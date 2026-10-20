@@ -1,0 +1,30 @@
+# Fly.io deployment: `fly launch --copy-config --no-deploy`, then
+# `fly secrets set ANTHROPIC_API_KEY=sk-ant-...` and `fly deploy`.
+app = "traceaudit"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  TRACEAUDIT_OPERATOR_KEYS = "anthropic=ANTHROPIC_API_KEY"
+  TRACEAUDIT_ALLOW_CLIENTS = "sim,anthropic"
+  TRACEAUDIT_ANONYMOUS = "all"
+  TRACEAUDIT_MAX_CALLS_PER_JOB = "200"
+  TRACEAUDIT_MAX_CALLS_PER_DAY = "2000"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[mounts]
+  source = "traceaudit_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

@@ -1,0 +1,19 @@
+services:
+  traceaudit:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./serve-data:/data
+    environment:
+      # The site's Anthropic key: visitors' audits run on it, within the caps. Never commit it; put it in .env.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TRACEAUDIT_OPERATOR_KEYS: "anthropic=ANTHROPIC_API_KEY"
+      TRACEAUDIT_ALLOW_CLIENTS: "sim,anthropic"
+      # none | analyse | all  (all = anyone may start audits; the caps below bound the spend)
+      TRACEAUDIT_ANONYMOUS: "all"
+      TRACEAUDIT_MAX_CALLS_PER_JOB: "200"
+      TRACEAUDIT_MAX_CALLS_PER_DAY: "2000"
+      # optional token:workspace pairs for private workspaces
+      TRACEAUDIT_TOKENS: ""
+    restart: unless-stopped

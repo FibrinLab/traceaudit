@@ -1,0 +1,11 @@
+runs/
+serve-data/
+viewer/node_modules/
+viewer/dist/
+.git/
+__pycache__/
+*.pyc
+tests/
+docs/
+specs/
+pilot/

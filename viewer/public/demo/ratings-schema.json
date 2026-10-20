@@ -1,0 +1,107 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "traceaudit rating record",
+ "type": "object",
+ "required": [
+  "schema_version",
+  "study_id",
+  "rater_id",
+  "trace_key",
+  "dimension",
+  "submitted_at",
+  "blinded"
+ ],
+ "properties": {
+  "schema_version": {
+   "const": 1
+  },
+  "study_id": {
+   "type": "string"
+  },
+  "rater_id": {
+   "type": "string",
+   "pattern": "^R\\d{2}$"
+  },
+  "session_id": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "trace_key": {
+   "type": "string"
+  },
+  "presentation_index": {
+   "type": [
+    "integer",
+    "null"
+   ]
+  },
+  "dimension": {
+   "type": "string",
+   "enum": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "tags"
+   ]
+  },
+  "score": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "minimum": 1,
+   "maximum": 4
+  },
+  "error_tags": {
+   "type": [
+    "array",
+    "null"
+   ],
+   "items": {
+    "type": "string"
+   }
+  },
+  "comment": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "started_at": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "submitted_at": {
+   "type": "string"
+  },
+  "duration_ms": {
+   "type": [
+    "integer",
+    "null"
+   ]
+  },
+  "blinded": {
+   "type": "boolean"
+  },
+  "viewer_version": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "bundle_run_id": {
+   "type": [
+    "string",
+    "null"
+   ]
+  }
+ }
+}

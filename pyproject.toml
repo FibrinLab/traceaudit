@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traceaudit"
+version = "0.2.0"
+description = "Faithfulness and grounding audit for clinical LLM reasoning traces"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Akanimoh Osutuk" }]
+dependencies = []
+
+[project.optional-dependencies]
+stats = ["numpy", "scipy", "scikit-learn", "statsmodels"]
+dev = ["pytest>=8", "coverage", "ruff", "mypy"]
+
+[project.scripts]
+traceaudit = "traceaudit.cli:main"
+
+[tool.setuptools]
+packages = ["traceaudit", "traceaudit.clients", "traceaudit.domains", "traceaudit.domains.haematology", "traceaudit.tools"]
+
+[tool.setuptools.package-data]
+traceaudit = ["prompts/*.json", "domains/*/*.json", "domains/*/*.jsonl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 160
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = ["E702", "E741"]  # compact one-line statements and short loop names are used deliberately

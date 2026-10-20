@@ -1,0 +1,24 @@
+# Render blueprint: connect the repo, set ANTHROPIC_API_KEY in the dashboard, deploy.
+services:
+  - type: web
+    name: traceaudit
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TRACEAUDIT_OPERATOR_KEYS
+        value: anthropic=ANTHROPIC_API_KEY
+      - key: TRACEAUDIT_ALLOW_CLIENTS
+        value: sim,anthropic
+      - key: TRACEAUDIT_ANONYMOUS
+        value: all
+      - key: TRACEAUDIT_MAX_CALLS_PER_JOB
+        value: "200"
+      - key: TRACEAUDIT_MAX_CALLS_PER_DAY
+        value: "2000"
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 5

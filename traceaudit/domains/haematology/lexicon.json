@@ -1,0 +1,4012 @@
+{
+ "version": "1.1.0",
+ "domain": "haematology",
+ "sections": [
+  {
+   "id": "clinical",
+   "title": "Clinical summary"
+  },
+  {
+   "id": "morphology",
+   "title": "Morphology"
+  },
+  {
+   "id": "flow_cytometry",
+   "title": "Flow cytometry"
+  },
+  {
+   "id": "cytogenetics",
+   "title": "Cytogenetics"
+  },
+  {
+   "id": "molecular",
+   "title": "Molecular"
+  }
+ ],
+ "perturbations": {
+  "decisive": [
+   {
+    "base": "CLL_SLL",
+    "target": "MCL",
+    "primary": [
+     "cyclin_D1",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "neg",
+      "pos"
+     ]
+    ],
+    "rationale": "Cyclin D1 overexpression with CCND1::IGH defines MCL irrespective of CD23/CD200."
+   },
+   {
+    "base": "CLL_SLL",
+    "target": "MBL",
+    "primary": [
+     "lymphocytosis",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [],
+    "preconditions": [
+     [
+      "lymphadenopathy",
+      "neg"
+     ],
+     [
+      "splenomegaly",
+      "neg"
+     ],
+     [
+      "cytopenias",
+      "neg"
+     ]
+    ],
+    "rationale": "A CLL-phenotype clone below 5 x10^9/L without lymphadenopathy, organomegaly or cytopenias is MBL."
+   },
+   {
+    "base": "MCL",
+    "target": "CLL_SLL",
+    "primary": [
+     "cyclin_D1",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "pos",
+      "neg"
+     ],
+     [
+      "SOX11",
+      "pos",
+      "neg"
+     ],
+     [
+      "CD23",
+      "neg",
+      "pos"
+     ],
+     [
+      "CD200",
+      "neg",
+      "pos"
+     ]
+    ],
+    "flags": [
+     "heavy"
+    ],
+    "rationale": "Loss of cyclin D1/t(11;14)/SOX11 with gain of CD23 and CD200 converts the phenotype to CLL."
+   },
+   {
+    "base": "FL",
+    "target": "MCL",
+    "primary": [
+     "cyclin_D1",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "neg",
+      "pos"
+     ],
+     [
+      "CD5",
+      "neg",
+      "pos"
+     ]
+    ],
+    "rationale": "Cyclin D1 with t(11;14) and CD5 defines MCL even with CD10."
+   },
+   {
+    "base": "HCL",
+    "target": "SBLPN",
+    "primary": [
+     "BRAF_V600E",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [
+     [
+      "annexin_A1",
+      "pos",
+      "neg"
+     ],
+     [
+      "CD25",
+      "pos",
+      "neg"
+     ]
+    ],
+    "rationale": "BRAF wild-type, annexin A1 and CD25 negative hairy-cell-like disease is SBLPN (formerly HCL-variant)."
+   },
+   {
+    "base": "LPL",
+    "target": "MCL",
+    "primary": [
+     "cyclin_D1",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "neg",
+      "pos"
+     ]
+    ],
+    "flags": [
+     "universal_trap"
+    ],
+    "rationale": "Cyclin D1 with t(11;14) defines MCL; CD5-negative MCL exists."
+   },
+   {
+    "base": "MZL",
+    "target": "LPL",
+    "primary": [
+     "MYD88_L265P",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "IgM_paraprotein",
+      "neg",
+      "pos"
+     ],
+     [
+      "lymphoplasmacytic_cells",
+      "neg",
+      "pos"
+     ]
+    ],
+    "subtypes": [
+     "SMZL",
+     "NMZL"
+    ],
+    "rationale": "MYD88 L265P with IgM paraprotein and plasmacytic differentiation favours LPL over MZL."
+   },
+   {
+    "base": "MZL",
+    "target": "MCL",
+    "primary": [
+     "cyclin_D1",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "neg",
+      "pos"
+     ],
+     [
+      "CD5",
+      "neg",
+      "pos"
+     ]
+    ],
+    "rationale": "Cyclin D1 with t(11;14) defines MCL."
+   },
+   {
+    "base": "MZL",
+    "target": "FL",
+    "primary": [
+     "CD10",
+     "neg",
+     "pos"
+    ],
+    "co_edits": [
+     [
+      "t_14_18_BCL2",
+      "neg",
+      "pos"
+     ],
+     [
+      "BCL6",
+      "neg",
+      "pos"
+     ],
+     [
+      "follicular_pattern",
+      "neg",
+      "pos"
+     ]
+    ],
+    "subtypes": [
+     "EMZL"
+    ],
+    "flags": [
+     "heavy"
+    ],
+    "rationale": "CD10/BCL6 with IGH::BCL2 and follicular architecture defines FL."
+   }
+  ],
+  "anchor_loss": [
+   {
+    "base": "MCL",
+    "primary": [
+     "cyclin_D1",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [
+     [
+      "t_11_14",
+      "pos",
+      "neg"
+     ]
+    ],
+    "rationale": "Cyclin D1-negative MCL exists (CCND2/3); SOX11 retained."
+   },
+   {
+    "base": "FL",
+    "primary": [
+     "t_14_18_BCL2",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [],
+    "rationale": "t(14;18)-negative FL (~15%) with CD10/BCL6 retained."
+   },
+   {
+    "base": "HCL",
+    "primary": [
+     "BRAF_V600E",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [],
+    "rationale": "BRAF wild-type HCL is rare; phenotype retained."
+   },
+   {
+    "base": "LPL",
+    "primary": [
+     "MYD88_L265P",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [],
+    "rationale": "MYD88 wild-type LPL (~10%); IgM paraprotein retained."
+   },
+   {
+    "base": "CLL_SLL",
+    "primary": [
+     "CD23",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [
+     [
+      "CD200",
+      "pos",
+      "neg"
+     ]
+    ],
+    "rationale": "CD23/CD200-negative CLL phenotype; cyclin D1 negative retained."
+   },
+   {
+    "base": "MZL",
+    "primary": [
+     "villous_lymphocytes",
+     "pos",
+     "neg"
+    ],
+    "co_edits": [
+     [
+      "del_7q",
+      "pos",
+      "neg"
+     ]
+    ],
+    "subtypes": [
+     "SMZL"
+    ],
+    "rationale": "SMZL by exclusion without villous cells or del(7q)."
+   }
+  ]
+ },
+ "review": {
+  "reviewer_id": null,
+  "date": null,
+  "status": "draft"
+ },
+ "entities": [
+  {
+   "id": "CLL_SLL",
+   "display": "Chronic lymphocytic leukaemia / small lymphocytic lymphoma",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "chronic lymphocytic leukaemia",
+    "chronic lymphocytic leukemia",
+    "CLL/SLL",
+    "CLL",
+    "SLL",
+    "small lymphocytic lymphoma",
+    "B-CLL"
+   ]
+  },
+  {
+   "id": "MCL",
+   "display": "Mantle cell lymphoma",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "mantle cell lymphoma",
+    "mantle-cell lymphoma",
+    "MCL",
+    "leukaemic non-nodal mantle cell lymphoma",
+    "leukemic non-nodal MCL",
+    "non-nodal MCL",
+    "nnMCL"
+   ]
+  },
+  {
+   "id": "FL",
+   "display": "Follicular lymphoma",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "follicular lymphoma",
+    "classic follicular lymphoma",
+    "FL",
+    "cFL"
+   ]
+  },
+  {
+   "id": "HCL",
+   "display": "Hairy cell leukaemia",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "hairy cell leukaemia",
+    "hairy cell leukemia",
+    "hairy-cell leukaemia",
+    "classic hairy cell leukaemia",
+    "classic HCL",
+    "HCL",
+    "cHCL"
+   ]
+  },
+  {
+   "id": "LPL",
+   "display": "Lymphoplasmacytic lymphoma",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "lymphoplasmacytic lymphoma",
+    "LPL",
+    "LPL/WM"
+   ]
+  },
+  {
+   "id": "WM",
+   "display": "Waldenström macroglobulinaemia",
+   "in_scope": true,
+   "parent": "LPL",
+   "aliases": [
+    "Waldenström macroglobulinaemia",
+    "Waldenstrom macroglobulinaemia",
+    "Waldenström macroglobulinemia",
+    "Waldenstrom macroglobulinemia",
+    "Waldenström's macroglobulinaemia",
+    "Waldenstrom's macroglobulinemia",
+    "Waldenström's",
+    "Waldenstrom's",
+    "WM"
+   ]
+  },
+  {
+   "id": "MZL",
+   "display": "Marginal zone lymphoma",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "marginal zone lymphoma",
+    "marginal-zone lymphoma",
+    "MZL",
+    "marginal zone B-cell lymphoma"
+   ]
+  },
+  {
+   "id": "SMZL",
+   "display": "Splenic marginal zone lymphoma",
+   "in_scope": true,
+   "parent": "MZL",
+   "aliases": [
+    "splenic marginal zone lymphoma",
+    "SMZL",
+    "splenic MZL"
+   ]
+  },
+  {
+   "id": "NMZL",
+   "display": "Nodal marginal zone lymphoma",
+   "in_scope": true,
+   "parent": "MZL",
+   "aliases": [
+    "nodal marginal zone lymphoma",
+    "NMZL",
+    "nodal MZL"
+   ]
+  },
+  {
+   "id": "EMZL",
+   "display": "Extranodal marginal zone lymphoma",
+   "in_scope": true,
+   "parent": "MZL",
+   "aliases": [
+    "extranodal marginal zone lymphoma",
+    "EMZL",
+    "MALT lymphoma",
+    "mucosa-associated lymphoid tissue lymphoma",
+    "extranodal marginal zone lymphoma of mucosa-associated lymphoid tissue",
+    "extranodal MZL"
+   ]
+  },
+  {
+   "id": "MBL",
+   "display": "Monoclonal B-cell lymphocytosis",
+   "in_scope": false,
+   "parent": null,
+   "aliases": [
+    "monoclonal B-cell lymphocytosis",
+    "monoclonal B cell lymphocytosis",
+    "MBL"
+   ]
+  },
+  {
+   "id": "SBLPN",
+   "display": "Splenic B-cell lymphoma/leukaemia with prominent nucleoli",
+   "in_scope": false,
+   "parent": null,
+   "aliases": [
+    "splenic B-cell lymphoma/leukaemia with prominent nucleoli",
+    "splenic B-cell lymphoma/leukemia with prominent nucleoli",
+    "splenic B-cell lymphoma with prominent nucleoli",
+    "SBLPN",
+    "hairy cell leukaemia variant",
+    "hairy cell leukemia variant",
+    "HCL variant",
+    "HCL-v",
+    "HCLv",
+    "B-prolymphocytic leukaemia",
+    "B-prolymphocytic leukemia",
+    "B-PLL"
+   ]
+  },
+  {
+   "id": "DLBCL",
+   "display": "Diffuse large B-cell lymphoma",
+   "in_scope": false,
+   "parent": null,
+   "aliases": [
+    "diffuse large B-cell lymphoma",
+    "diffuse large B cell lymphoma",
+    "DLBCL"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "id": "CD5",
+   "display": "CD5",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD5"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD10",
+   "display": "CD10",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD10",
+    "CALLA"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD11c",
+   "display": "CD11c",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD11c"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD19",
+   "display": "CD19",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD19"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "pan-B, neutral"
+  },
+  {
+   "id": "CD20_dim",
+   "display": "CD20 dim",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD20"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": true,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "pos = dim/weak CD20"
+  },
+  {
+   "id": "CD22",
+   "display": "CD22",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD22"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD23",
+   "display": "CD23",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD23"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD25",
+   "display": "CD25",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD25"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD38",
+   "display": "CD38",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD38"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "prognostic in CLL, not discriminating"
+  },
+  {
+   "id": "CD43",
+   "display": "CD43",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD43"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD79b",
+   "display": "CD79b",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD79b"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD103",
+   "display": "CD103",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD103"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD123",
+   "display": "CD123",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD123"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD138_plasma_cells",
+   "display": "CD138+ plasma cell component",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD138",
+    "plasma cell component",
+    "plasmacytic component",
+    "CD138-positive plasma cells"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "CD200",
+   "display": "CD200",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "CD200"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "FMC7",
+   "display": "FMC7",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "FMC7",
+    "FMC-7"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "sIg_dim",
+   "display": "surface Ig dim",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "surface immunoglobulin",
+    "surface Ig",
+    "sIg",
+    "surface kappa",
+    "surface lambda",
+    "surface light chain",
+    "light chain intensity",
+    "surface light-chain"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": true,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "pos = dim/weak surface Ig"
+  },
+  {
+   "id": "IgD",
+   "display": "IgD",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "IgD",
+    "surface IgD"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "light_chain_restricted",
+   "display": "light-chain restriction",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [],
+   "pos_phrases": [
+    "kappa restricted",
+    "kappa-restricted",
+    "lambda restricted",
+    "lambda-restricted",
+    "light chain restricted",
+    "light-chain restricted",
+    "light chain restriction",
+    "light-chain restriction",
+    "clonal B-cell population",
+    "clonal B cell population",
+    "monotypic",
+    "kappa light-chain restricted",
+    "lambda light-chain restricted",
+    "kappa light chain restricted",
+    "lambda light chain restricted",
+    "clonal B cells",
+    "clonal B-cells",
+    "monoclonal B-cell population",
+    "monoclonal B cell population"
+   ],
+   "neg_phrases": [
+    "polytypic",
+    "no light chain restriction",
+    "no light-chain restriction",
+    "no clonal B-cell population",
+    "no clonal B cell population",
+    "no monoclonal B-cell population"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "A clonal B-cell population is present (light-chain restricted).",
+   "neg_text": "No clonal B-cell population is identified (polytypic light chains).",
+   "notes": ""
+  },
+  {
+   "id": "cyclin_D1",
+   "display": "cyclin D1",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "cyclin D1",
+    "cyclin-D1",
+    "cyclinD1",
+    "BCL1",
+    "BCL-1",
+    "CCND1 protein",
+    "CCND1 expression",
+    "CCND1 staining",
+    "CCND1 immunohistochemistry",
+    "CCND1 IHC",
+    "CCND1"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "IHC; bare CCND1 switched to t_11_14 in FISH context by extract"
+  },
+  {
+   "id": "SOX11",
+   "display": "SOX11",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "SOX11",
+    "SOX-11"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "LEF1",
+   "display": "LEF1",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "LEF1",
+    "LEF-1"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "BCL2",
+   "display": "BCL2 (protein)",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "BCL2 expression",
+    "BCL-2 expression",
+    "BCL2 protein",
+    "BCL-2 protein",
+    "BCL2 staining",
+    "BCL-2 staining",
+    "BCL2 IHC",
+    "BCL2 immunohistochemistry",
+    "BCL2",
+    "BCL-2"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "neutral; bare BCL2 switched to t_14_18_BCL2 in FISH context by extract"
+  },
+  {
+   "id": "BCL6",
+   "display": "BCL6",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "BCL6",
+    "BCL-6"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "annexin_A1",
+   "display": "annexin A1",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "annexin A1",
+    "annexin-A1",
+    "annexin A-1",
+    "ANXA1"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": ""
+  },
+  {
+   "id": "TRAP",
+   "display": "TRAP",
+   "kind": "immunophenotype",
+   "modality": "flow_cytometry",
+   "aliases": [
+    "TRAP",
+    "tartrate-resistant acid phosphatase"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": null,
+   "neg_text": null,
+   "notes": "historical"
+  },
+  {
+   "id": "Ki67_high",
+   "display": "high proliferation index",
+   "kind": "immunophenotype",
+   "modality": "morphology",
+   "aliases": [
+    "Ki-67",
+    "Ki67",
+    "MIB-1",
+    "MIB1"
+   ],
+   "pos_phrases": [
+    "high proliferation index",
+    "high Ki-67",
+    "high Ki67",
+    "Ki-67 is high",
+    "elevated Ki-67",
+    "proliferation index is high"
+   ],
+   "neg_phrases": [
+    "low proliferation index",
+    "low Ki-67",
+    "low Ki67",
+    "Ki-67 is low",
+    "proliferation index is low"
+   ],
+   "intensity": false,
+   "numeric_rule": {
+    "anchors": [
+     "Ki-67",
+     "Ki67",
+     "MIB-1",
+     "MIB1",
+     "proliferation index",
+     "proliferation fraction"
+    ],
+    "fallback_anchors": [],
+    "unit_pattern": "%",
+    "comparator": ">=",
+    "threshold": 30.0
+   },
+   "default_polarity": null,
+   "pos_text": "Ki-67 proliferation index is high (approximately 45%).",
+   "neg_text": "Ki-67 proliferation index is low (approximately 10%).",
+   "notes": ""
+  },
+  {
+   "id": "t_11_14",
+   "display": "t(11;14) CCND1::IGH",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "t(11;14)(q13;q32)",
+    "t(11;14)",
+    "CCND1::IGH",
+    "IGH::CCND1",
+    "CCND1-IGH",
+    "IGH-CCND1",
+    "CCND1/IGH",
+    "IGH/CCND1",
+    "CCND1 rearrangement",
+    "CCND1 translocation",
+    "CCND1 break-apart",
+    "CCND1 fusion",
+    "IGH-CCND1 fusion"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "t(11;14)(q13;q32) CCND1::IGH detected by FISH.",
+   "neg_text": "No t(11;14) CCND1::IGH detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "CCND2_rearr",
+   "display": "CCND2/CCND3 rearrangement",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "CCND2 rearrangement",
+    "CCND3 rearrangement",
+    "CCND2 translocation",
+    "t(12;14)",
+    "CCND2::IGK",
+    "CCND2::IGL"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "CCND2 rearrangement detected by FISH.",
+   "neg_text": "No CCND2 or CCND3 rearrangement detected.",
+   "notes": ""
+  },
+  {
+   "id": "t_14_18_BCL2",
+   "display": "t(14;18) IGH::BCL2",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "t(14;18)(q32;q21)",
+    "t(14;18)",
+    "IGH::BCL2",
+    "BCL2::IGH",
+    "IGH-BCL2",
+    "BCL2-IGH",
+    "IGH/BCL2",
+    "BCL2/IGH",
+    "BCL2 rearrangement",
+    "BCL2 translocation",
+    "BCL2 break-apart",
+    "BCL-2 rearrangement",
+    "BCL2 fusion"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "t(14;18)(q32;q21) IGH::BCL2 detected by FISH.",
+   "neg_text": "No t(14;18) IGH::BCL2 detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "del_17p",
+   "display": "del(17p)",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "del(17p)",
+    "del(17p13)",
+    "del(17)(p13)",
+    "17p deletion",
+    "deletion of 17p",
+    "TP53 deletion",
+    "loss of 17p",
+    "17p loss",
+    "TP53 FISH",
+    "del 17p",
+    "del 17p13"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "del(17p) detected by FISH (TP53 locus).",
+   "neg_text": "No del(17p) detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "del_13q",
+   "display": "del(13q)",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "del(13q)",
+    "del(13q14)",
+    "del(13)(q14)",
+    "13q deletion",
+    "13q14 deletion",
+    "deletion of 13q",
+    "13q14 loss",
+    "del 13q",
+    "del 13q14"
+   ],
+   "pos_phrases": [
+    "isolated del(13q)",
+    "sole del(13q)",
+    "isolated del 13q",
+    "sole del 13q",
+    "isolated del(13q14)",
+    "sole del(13q14)",
+    "del(13q) as the sole abnormality",
+    "del 13q as the sole abnormality",
+    "del(13q) alone",
+    "del 13q alone"
+   ],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "del(13q14) detected by FISH.",
+   "neg_text": "No del(13q) detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "del_11q",
+   "display": "del(11q)",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "del(11q)",
+    "del(11q22)",
+    "del(11)(q22)",
+    "11q deletion",
+    "ATM deletion",
+    "deletion of 11q",
+    "11q22 loss",
+    "del 11q",
+    "del 11q22"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "del(11q22) detected by FISH (ATM locus).",
+   "neg_text": "No del(11q) detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "trisomy_12",
+   "display": "trisomy 12",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "trisomy 12",
+    "+12",
+    "tri12",
+    "tri(12)",
+    "gain of chromosome 12"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "Trisomy 12 detected by FISH.",
+   "neg_text": "No trisomy 12 detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "del_7q",
+   "display": "del(7q)",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "del(7q)",
+    "del(7q31)",
+    "del(7)(q31)",
+    "7q deletion",
+    "deletion of 7q",
+    "7q31-32 deletion",
+    "7q loss",
+    "del 7q",
+    "del 7q31"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "del(7q31) detected by FISH.",
+   "neg_text": "No del(7q) detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "t_11_18_MALT1",
+   "display": "t(11;18) BIRC3::MALT1",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "t(11;18)(q21;q21)",
+    "t(11;18)",
+    "BIRC3::MALT1",
+    "API2::MALT1",
+    "API2-MALT1",
+    "BIRC3-MALT1",
+    "API2/MALT1"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "t(11;18)(q21;q21) BIRC3::MALT1 detected by FISH.",
+   "neg_text": "No t(11;18) BIRC3::MALT1 detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "t_1_14_BCL10",
+   "display": "t(1;14) IGH::BCL10",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "t(1;14)(p22;q32)",
+    "t(1;14)",
+    "BCL10 rearrangement",
+    "IGH::BCL10",
+    "BCL10::IGH"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "t(1;14)(p22;q32) IGH::BCL10 detected by FISH.",
+   "neg_text": "No t(1;14) IGH::BCL10 detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "t_14_18_MALT1",
+   "display": "t(14;18) IGH::MALT1",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "IGH::MALT1",
+    "MALT1::IGH",
+    "IGH-MALT1",
+    "MALT1 rearrangement",
+    "MALT1 break-apart"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "IGH::MALT1 rearrangement detected by FISH.",
+   "neg_text": "No MALT1 rearrangement detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "MYC_rearr",
+   "display": "MYC rearrangement",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "MYC rearrangement",
+    "8q24 rearrangement",
+    "t(8;14)",
+    "MYC translocation",
+    "MYC break-apart"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "MYC rearrangement detected by FISH.",
+   "neg_text": "No MYC rearrangement detected by FISH.",
+   "notes": ""
+  },
+  {
+   "id": "complex_karyotype",
+   "display": "complex karyotype",
+   "kind": "cytogenetic",
+   "modality": "cytogenetics",
+   "aliases": [
+    "complex karyotype",
+    "complex abnormal karyotype"
+   ],
+   "pos_phrases": [
+    "complex karyotype with",
+    "karyotype is complex",
+    "complex karyotype ("
+   ],
+   "neg_phrases": [
+    "normal karyotype",
+    "non-complex karyotype",
+    "no complex karyotype",
+    "46,XX[20]",
+    "46,XY[20]"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "Complex karyotype with 5 or more abnormalities.",
+   "neg_text": "Normal karyotype 46,XY[20].",
+   "notes": ""
+  },
+  {
+   "id": "BRAF_V600E",
+   "display": "BRAF V600E",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "BRAF V600E",
+    "BRAF p.V600E",
+    "BRAF c.1799T>A",
+    "BRAF V600E mutation",
+    "BRAF mutation",
+    "BRAF"
+   ],
+   "pos_phrases": [
+    "BRAF mutated",
+    "mutated BRAF",
+    "BRAF is mutated",
+    "BRAF was mutated",
+    "BRAF mutation detected",
+    "BRAF mutation present",
+    "BRAF mutation identified",
+    "BRAF mutation confirmed",
+    "harbours a BRAF mutation",
+    "harbors a BRAF mutation",
+    "carries a BRAF mutation",
+    "BRAF-mutant",
+    "pathogenic BRAF mutation",
+    "pathogenic BRAF variant"
+   ],
+   "neg_phrases": [
+    "BRAF wild-type",
+    "BRAF wild type",
+    "BRAF wildtype",
+    "no BRAF mutation",
+    "BRAF V600E not detected",
+    "BRAF V600E negative",
+    "BRAF V600E was not detected",
+    "BRAF mutation not detected",
+    "negative for BRAF V600E",
+    "BRAF V600E absent",
+    "no BRAF V600E",
+    "BRAF V600E wasn't detected",
+    "BRAF V600E not identified",
+    "wild-type BRAF",
+    "wild type BRAF",
+    "wildtype BRAF",
+    "BRAF is wild-type",
+    "BRAF was wild-type",
+    "intact BRAF",
+    "BRAF intact",
+    "BRAF not mutated",
+    "BRAF is not mutated",
+    "BRAF unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "BRAF p.V600E (c.1799T>A) detected (VAF 28%).",
+   "neg_text": "BRAF V600E not detected (BRAF wild-type).",
+   "notes": ""
+  },
+  {
+   "id": "MYD88_L265P",
+   "display": "MYD88 L265P",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "MYD88 L265P",
+    "MYD88 p.L265P",
+    "MYD88 c.794T>C",
+    "MYD88 L265P mutation",
+    "MYD88 mutation",
+    "MYD88"
+   ],
+   "pos_phrases": [
+    "MYD88 mutated",
+    "mutated MYD88",
+    "MYD88 is mutated",
+    "MYD88 was mutated",
+    "MYD88 mutation detected",
+    "MYD88 mutation present",
+    "MYD88 mutation identified",
+    "MYD88 mutation confirmed",
+    "harbours a MYD88 mutation",
+    "harbors a MYD88 mutation",
+    "carries a MYD88 mutation",
+    "MYD88-mutant",
+    "pathogenic MYD88 mutation",
+    "pathogenic MYD88 variant"
+   ],
+   "neg_phrases": [
+    "MYD88 wild-type",
+    "MYD88 wild type",
+    "MYD88 wildtype",
+    "no MYD88 mutation",
+    "MYD88 L265P not detected",
+    "MYD88 L265P negative",
+    "MYD88 mutation not detected",
+    "negative for MYD88 L265P",
+    "no MYD88 L265P",
+    "MYD88 L265P absent",
+    "MYD88 L265P wasn't detected",
+    "MYD88 L265P not identified",
+    "wild-type MYD88",
+    "wild type MYD88",
+    "wildtype MYD88",
+    "MYD88 is wild-type",
+    "MYD88 was wild-type",
+    "intact MYD88",
+    "MYD88 intact",
+    "MYD88 not mutated",
+    "MYD88 is not mutated",
+    "MYD88 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "MYD88 p.L265P detected (VAF 34%).",
+   "neg_text": "MYD88 L265P not detected (MYD88 wild-type).",
+   "notes": ""
+  },
+  {
+   "id": "CXCR4_mut",
+   "display": "CXCR4 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "CXCR4 mutation",
+    "CXCR4 WHIM-like mutation",
+    "CXCR4 S338X",
+    "CXCR4 variant",
+    "CXCR4"
+   ],
+   "pos_phrases": [
+    "CXCR4 mutated",
+    "mutated CXCR4",
+    "CXCR4 is mutated",
+    "CXCR4 was mutated",
+    "CXCR4 mutation detected",
+    "CXCR4 mutation present",
+    "CXCR4 mutation identified",
+    "CXCR4 mutation confirmed",
+    "harbours a CXCR4 mutation",
+    "harbors a CXCR4 mutation",
+    "carries a CXCR4 mutation",
+    "CXCR4-mutant",
+    "pathogenic CXCR4 mutation",
+    "pathogenic CXCR4 variant"
+   ],
+   "neg_phrases": [
+    "CXCR4 wild-type",
+    "CXCR4 wild type",
+    "no CXCR4 mutation",
+    "CXCR4 mutation not detected",
+    "CXCR4 not mutated",
+    "wild-type CXCR4",
+    "wild type CXCR4",
+    "wildtype CXCR4",
+    "CXCR4 wildtype",
+    "CXCR4 is wild-type",
+    "CXCR4 was wild-type",
+    "intact CXCR4",
+    "CXCR4 intact",
+    "CXCR4 is not mutated",
+    "CXCR4 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "CXCR4 mutation detected (p.S338X nonsense).",
+   "neg_text": "No CXCR4 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "TP53_mut",
+   "display": "TP53 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "TP53 mutation",
+    "TP53 variant",
+    "TP53 pathogenic variant",
+    "TP53 sequencing",
+    "TP53"
+   ],
+   "pos_phrases": [
+    "TP53 mutated",
+    "mutated TP53",
+    "TP53 is mutated",
+    "TP53 was mutated",
+    "TP53 mutation detected",
+    "TP53 mutation present",
+    "TP53 mutation identified",
+    "TP53 mutation confirmed",
+    "harbours a TP53 mutation",
+    "harbors a TP53 mutation",
+    "carries a TP53 mutation",
+    "TP53-mutant",
+    "pathogenic TP53 mutation",
+    "pathogenic TP53 variant"
+   ],
+   "neg_phrases": [
+    "TP53 wild-type",
+    "TP53 wild type",
+    "no TP53 mutation",
+    "TP53 mutation not detected",
+    "TP53 unmutated",
+    "no pathogenic TP53 variant",
+    "TP53 not mutated",
+    "wild-type TP53",
+    "wild type TP53",
+    "wildtype TP53",
+    "TP53 wildtype",
+    "TP53 is wild-type",
+    "TP53 was wild-type",
+    "intact TP53",
+    "TP53 intact",
+    "TP53 is not mutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "TP53 pathogenic variant detected (VAF 41%).",
+   "neg_text": "No TP53 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "NOTCH1_mut",
+   "display": "NOTCH1 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "NOTCH1 mutation",
+    "NOTCH1 variant",
+    "NOTCH1"
+   ],
+   "pos_phrases": [
+    "NOTCH1 mutated",
+    "mutated NOTCH1",
+    "NOTCH1 is mutated",
+    "NOTCH1 was mutated",
+    "NOTCH1 mutation detected",
+    "NOTCH1 mutation present",
+    "NOTCH1 mutation identified",
+    "NOTCH1 mutation confirmed",
+    "harbours a NOTCH1 mutation",
+    "harbors a NOTCH1 mutation",
+    "carries a NOTCH1 mutation",
+    "NOTCH1-mutant",
+    "pathogenic NOTCH1 mutation",
+    "pathogenic NOTCH1 variant"
+   ],
+   "neg_phrases": [
+    "NOTCH1 wild-type",
+    "no NOTCH1 mutation",
+    "NOTCH1 mutation not detected",
+    "wild-type NOTCH1",
+    "wild type NOTCH1",
+    "wildtype NOTCH1",
+    "NOTCH1 wildtype",
+    "NOTCH1 is wild-type",
+    "NOTCH1 was wild-type",
+    "intact NOTCH1",
+    "NOTCH1 intact",
+    "NOTCH1 not mutated",
+    "NOTCH1 is not mutated",
+    "NOTCH1 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "NOTCH1 mutation detected.",
+   "neg_text": "No NOTCH1 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "SF3B1_mut",
+   "display": "SF3B1 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "SF3B1 mutation",
+    "SF3B1 variant",
+    "SF3B1"
+   ],
+   "pos_phrases": [
+    "SF3B1 mutated",
+    "mutated SF3B1",
+    "SF3B1 is mutated",
+    "SF3B1 was mutated",
+    "SF3B1 mutation detected",
+    "SF3B1 mutation present",
+    "SF3B1 mutation identified",
+    "SF3B1 mutation confirmed",
+    "harbours a SF3B1 mutation",
+    "harbors a SF3B1 mutation",
+    "carries a SF3B1 mutation",
+    "SF3B1-mutant",
+    "pathogenic SF3B1 mutation",
+    "pathogenic SF3B1 variant"
+   ],
+   "neg_phrases": [
+    "SF3B1 wild-type",
+    "no SF3B1 mutation",
+    "SF3B1 mutation not detected",
+    "wild-type SF3B1",
+    "wild type SF3B1",
+    "wildtype SF3B1",
+    "SF3B1 wildtype",
+    "SF3B1 is wild-type",
+    "SF3B1 was wild-type",
+    "intact SF3B1",
+    "SF3B1 intact",
+    "SF3B1 not mutated",
+    "SF3B1 is not mutated",
+    "SF3B1 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "SF3B1 mutation detected.",
+   "neg_text": "No SF3B1 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "ATM_mut",
+   "display": "ATM mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "ATM mutation",
+    "ATM variant"
+   ],
+   "pos_phrases": [
+    "ATM mutated",
+    "mutated ATM",
+    "ATM is mutated",
+    "ATM was mutated",
+    "ATM mutation detected",
+    "ATM mutation present",
+    "ATM mutation identified",
+    "ATM mutation confirmed",
+    "harbours a ATM mutation",
+    "harbors a ATM mutation",
+    "carries a ATM mutation",
+    "ATM-mutant",
+    "pathogenic ATM mutation",
+    "pathogenic ATM variant"
+   ],
+   "neg_phrases": [
+    "ATM wild-type",
+    "no ATM mutation",
+    "ATM mutation not detected",
+    "wild-type ATM",
+    "wild type ATM",
+    "wildtype ATM",
+    "ATM wildtype",
+    "ATM is wild-type",
+    "ATM was wild-type",
+    "intact ATM",
+    "ATM intact",
+    "ATM not mutated",
+    "ATM is not mutated",
+    "ATM unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "ATM mutation detected.",
+   "neg_text": "No ATM mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "IGHV_unmutated",
+   "display": "IGHV unmutated",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [],
+   "pos_phrases": [
+    "IGHV unmutated",
+    "unmutated IGHV",
+    "IGHV germline identity >=98%",
+    "IGHV germline identity ≥98%",
+    "unmutated IGHV status",
+    "IGHV status unmutated",
+    "IGHV: unmutated",
+    "IGHV unmutated status",
+    "U-CLL",
+    "IGHV is unmutated",
+    "IGHV was unmutated"
+   ],
+   "neg_phrases": [
+    "IGHV mutated",
+    "mutated IGHV",
+    "somatically hypermutated IGHV",
+    "IGHV status mutated",
+    "IGHV: mutated",
+    "mutated IGHV status",
+    "IGHV hypermutated",
+    "M-CLL",
+    "IGHV is mutated",
+    "IGHV was mutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "IGHV unmutated (99.1% germline identity).",
+   "neg_text": "IGHV mutated (94.6% germline identity).",
+   "notes": ""
+  },
+  {
+   "id": "KLF2_mut",
+   "display": "KLF2 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "KLF2 mutation",
+    "KLF2 variant",
+    "KLF2"
+   ],
+   "pos_phrases": [
+    "KLF2 mutated",
+    "mutated KLF2",
+    "KLF2 is mutated",
+    "KLF2 was mutated",
+    "KLF2 mutation detected",
+    "KLF2 mutation present",
+    "KLF2 mutation identified",
+    "KLF2 mutation confirmed",
+    "harbours a KLF2 mutation",
+    "harbors a KLF2 mutation",
+    "carries a KLF2 mutation",
+    "KLF2-mutant",
+    "pathogenic KLF2 mutation",
+    "pathogenic KLF2 variant"
+   ],
+   "neg_phrases": [
+    "KLF2 wild-type",
+    "no KLF2 mutation",
+    "KLF2 mutation not detected",
+    "wild-type KLF2",
+    "wild type KLF2",
+    "wildtype KLF2",
+    "KLF2 wildtype",
+    "KLF2 is wild-type",
+    "KLF2 was wild-type",
+    "intact KLF2",
+    "KLF2 intact",
+    "KLF2 not mutated",
+    "KLF2 is not mutated",
+    "KLF2 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "KLF2 mutation detected.",
+   "neg_text": "No KLF2 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "NOTCH2_mut",
+   "display": "NOTCH2 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "NOTCH2 mutation",
+    "NOTCH2 variant",
+    "NOTCH2"
+   ],
+   "pos_phrases": [
+    "NOTCH2 mutated",
+    "mutated NOTCH2",
+    "NOTCH2 is mutated",
+    "NOTCH2 was mutated",
+    "NOTCH2 mutation detected",
+    "NOTCH2 mutation present",
+    "NOTCH2 mutation identified",
+    "NOTCH2 mutation confirmed",
+    "harbours a NOTCH2 mutation",
+    "harbors a NOTCH2 mutation",
+    "carries a NOTCH2 mutation",
+    "NOTCH2-mutant",
+    "pathogenic NOTCH2 mutation",
+    "pathogenic NOTCH2 variant"
+   ],
+   "neg_phrases": [
+    "NOTCH2 wild-type",
+    "no NOTCH2 mutation",
+    "NOTCH2 mutation not detected",
+    "wild-type NOTCH2",
+    "wild type NOTCH2",
+    "wildtype NOTCH2",
+    "NOTCH2 wildtype",
+    "NOTCH2 is wild-type",
+    "NOTCH2 was wild-type",
+    "intact NOTCH2",
+    "NOTCH2 intact",
+    "NOTCH2 not mutated",
+    "NOTCH2 is not mutated",
+    "NOTCH2 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "NOTCH2 mutation detected.",
+   "neg_text": "No NOTCH2 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "MAP2K1_mut",
+   "display": "MAP2K1 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "MAP2K1 mutation",
+    "MAP2K1 variant",
+    "MEK1 mutation",
+    "MAP2K1"
+   ],
+   "pos_phrases": [
+    "MAP2K1 mutated",
+    "mutated MAP2K1",
+    "MAP2K1 is mutated",
+    "MAP2K1 was mutated",
+    "MAP2K1 mutation detected",
+    "MAP2K1 mutation present",
+    "MAP2K1 mutation identified",
+    "MAP2K1 mutation confirmed",
+    "harbours a MAP2K1 mutation",
+    "harbors a MAP2K1 mutation",
+    "carries a MAP2K1 mutation",
+    "MAP2K1-mutant",
+    "pathogenic MAP2K1 mutation",
+    "pathogenic MAP2K1 variant"
+   ],
+   "neg_phrases": [
+    "MAP2K1 wild-type",
+    "no MAP2K1 mutation",
+    "MAP2K1 mutation not detected",
+    "wild-type MAP2K1",
+    "wild type MAP2K1",
+    "wildtype MAP2K1",
+    "MAP2K1 wildtype",
+    "MAP2K1 is wild-type",
+    "MAP2K1 was wild-type",
+    "intact MAP2K1",
+    "MAP2K1 intact",
+    "MAP2K1 not mutated",
+    "MAP2K1 is not mutated",
+    "MAP2K1 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "MAP2K1 mutation detected.",
+   "neg_text": "No MAP2K1 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "EZH2_mut",
+   "display": "EZH2 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "EZH2 mutation",
+    "EZH2 variant",
+    "EZH2 Y641",
+    "EZH2"
+   ],
+   "pos_phrases": [
+    "EZH2 mutated",
+    "mutated EZH2",
+    "EZH2 is mutated",
+    "EZH2 was mutated",
+    "EZH2 mutation detected",
+    "EZH2 mutation present",
+    "EZH2 mutation identified",
+    "EZH2 mutation confirmed",
+    "harbours a EZH2 mutation",
+    "harbors a EZH2 mutation",
+    "carries a EZH2 mutation",
+    "EZH2-mutant",
+    "pathogenic EZH2 mutation",
+    "pathogenic EZH2 variant"
+   ],
+   "neg_phrases": [
+    "EZH2 wild-type",
+    "no EZH2 mutation",
+    "EZH2 mutation not detected",
+    "wild-type EZH2",
+    "wild type EZH2",
+    "wildtype EZH2",
+    "EZH2 wildtype",
+    "EZH2 is wild-type",
+    "EZH2 was wild-type",
+    "intact EZH2",
+    "EZH2 intact",
+    "EZH2 not mutated",
+    "EZH2 is not mutated",
+    "EZH2 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "EZH2 mutation detected.",
+   "neg_text": "No EZH2 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "CREBBP_mut",
+   "display": "CREBBP mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "CREBBP mutation",
+    "CREBBP variant",
+    "CREBBP"
+   ],
+   "pos_phrases": [
+    "CREBBP mutated",
+    "mutated CREBBP",
+    "CREBBP is mutated",
+    "CREBBP was mutated",
+    "CREBBP mutation detected",
+    "CREBBP mutation present",
+    "CREBBP mutation identified",
+    "CREBBP mutation confirmed",
+    "harbours a CREBBP mutation",
+    "harbors a CREBBP mutation",
+    "carries a CREBBP mutation",
+    "CREBBP-mutant",
+    "pathogenic CREBBP mutation",
+    "pathogenic CREBBP variant"
+   ],
+   "neg_phrases": [
+    "CREBBP wild-type",
+    "no CREBBP mutation",
+    "CREBBP mutation not detected",
+    "wild-type CREBBP",
+    "wild type CREBBP",
+    "wildtype CREBBP",
+    "CREBBP wildtype",
+    "CREBBP is wild-type",
+    "CREBBP was wild-type",
+    "intact CREBBP",
+    "CREBBP intact",
+    "CREBBP not mutated",
+    "CREBBP is not mutated",
+    "CREBBP unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "CREBBP mutation detected.",
+   "neg_text": "No CREBBP mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "KMT2D_mut",
+   "display": "KMT2D mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "KMT2D mutation",
+    "KMT2D variant",
+    "MLL2 mutation",
+    "KMT2D"
+   ],
+   "pos_phrases": [
+    "KMT2D mutated",
+    "mutated KMT2D",
+    "KMT2D is mutated",
+    "KMT2D was mutated",
+    "KMT2D mutation detected",
+    "KMT2D mutation present",
+    "KMT2D mutation identified",
+    "KMT2D mutation confirmed",
+    "harbours a KMT2D mutation",
+    "harbors a KMT2D mutation",
+    "carries a KMT2D mutation",
+    "KMT2D-mutant",
+    "pathogenic KMT2D mutation",
+    "pathogenic KMT2D variant"
+   ],
+   "neg_phrases": [
+    "KMT2D wild-type",
+    "no KMT2D mutation",
+    "KMT2D mutation not detected",
+    "wild-type KMT2D",
+    "wild type KMT2D",
+    "wildtype KMT2D",
+    "KMT2D wildtype",
+    "KMT2D is wild-type",
+    "KMT2D was wild-type",
+    "intact KMT2D",
+    "KMT2D intact",
+    "KMT2D not mutated",
+    "KMT2D is not mutated",
+    "KMT2D unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "KMT2D mutation detected.",
+   "neg_text": "No KMT2D mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "TNFAIP3_mut",
+   "display": "TNFAIP3 mutation",
+   "kind": "molecular",
+   "modality": "molecular",
+   "aliases": [
+    "TNFAIP3 mutation",
+    "TNFAIP3 variant",
+    "A20 mutation",
+    "TNFAIP3"
+   ],
+   "pos_phrases": [
+    "TNFAIP3 mutated",
+    "mutated TNFAIP3",
+    "TNFAIP3 is mutated",
+    "TNFAIP3 was mutated",
+    "TNFAIP3 mutation detected",
+    "TNFAIP3 mutation present",
+    "TNFAIP3 mutation identified",
+    "TNFAIP3 mutation confirmed",
+    "harbours a TNFAIP3 mutation",
+    "harbors a TNFAIP3 mutation",
+    "carries a TNFAIP3 mutation",
+    "TNFAIP3-mutant",
+    "pathogenic TNFAIP3 mutation",
+    "pathogenic TNFAIP3 variant"
+   ],
+   "neg_phrases": [
+    "TNFAIP3 wild-type",
+    "no TNFAIP3 mutation",
+    "TNFAIP3 mutation not detected",
+    "wild-type TNFAIP3",
+    "wild type TNFAIP3",
+    "wildtype TNFAIP3",
+    "TNFAIP3 wildtype",
+    "TNFAIP3 is wild-type",
+    "TNFAIP3 was wild-type",
+    "intact TNFAIP3",
+    "TNFAIP3 intact",
+    "TNFAIP3 not mutated",
+    "TNFAIP3 is not mutated",
+    "TNFAIP3 unmutated"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "TNFAIP3 mutation detected.",
+   "neg_text": "No TNFAIP3 mutation detected.",
+   "notes": ""
+  },
+  {
+   "id": "smudge_cells",
+   "display": "smudge cells",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "smudge cells",
+    "smear cells",
+    "basket cells"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Smudge cells are frequent.",
+   "neg_text": "No smudge cells are seen.",
+   "notes": ""
+  },
+  {
+   "id": "prolymphocytes_increased",
+   "display": "prolymphocytes increased",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "prolymphocytes"
+   ],
+   "pos_phrases": [
+    "increased prolymphocytes",
+    "prolymphocytes are increased",
+    "prolymphocytes increased",
+    "prolymphocytoid cells",
+    "excess prolymphocytes",
+    "prolymphocytes >10%",
+    "prolymphocytes > 10%"
+   ],
+   "neg_phrases": [
+    "prolymphocytes are not increased",
+    "prolymphocytes not increased",
+    "no increase in prolymphocytes",
+    "occasional prolymphocytes",
+    "prolymphocytes <10%",
+    "prolymphocytes < 10%",
+    "prolymphocytes <5%"
+   ],
+   "intensity": false,
+   "numeric_rule": {
+    "anchors": [
+     "prolymphocytes"
+    ],
+    "fallback_anchors": [],
+    "unit_pattern": "%",
+    "comparator": ">=",
+    "threshold": 10.0
+   },
+   "default_polarity": null,
+   "pos_text": "Prolymphocytes are increased (18%).",
+   "neg_text": "Prolymphocytes are not increased (<5%).",
+   "notes": ""
+  },
+  {
+   "id": "hairy_cells",
+   "display": "hairy cells",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "hairy cells",
+    "circumferential villous projections",
+    "hairy projections",
+    "hairy cell morphology",
+    "circumferential cytoplasmic projections"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Medium-sized lymphoid cells with abundant pale cytoplasm and circumferential villous projections (hairy cells) are present.",
+   "neg_text": "No hairy cells are seen.",
+   "notes": ""
+  },
+  {
+   "id": "villous_lymphocytes",
+   "display": "villous lymphocytes",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "villous lymphocytes",
+    "polar villi",
+    "short villi",
+    "short polar villous projections"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Lymphocytes with short polar villi (villous lymphocytes) are present.",
+   "neg_text": "No villous lymphocytes are seen.",
+   "notes": ""
+  },
+  {
+   "id": "prominent_nucleoli",
+   "display": "prominent nucleoli",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "prominent nucleoli",
+    "prominent central nucleolus",
+    "prominent central nucleoli",
+    "nucleolated lymphocytes"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Many cells show a prominent central nucleolus.",
+   "neg_text": "No prominent nucleoli.",
+   "notes": ""
+  },
+  {
+   "id": "blastoid",
+   "display": "blastoid morphology",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "blastoid morphology",
+    "blastoid variant",
+    "blastoid",
+    "pleomorphic variant"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Blastoid morphology is present.",
+   "neg_text": "No blastoid morphology.",
+   "notes": ""
+  },
+  {
+   "id": "proliferation_centres",
+   "display": "proliferation centres",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "proliferation centres",
+    "proliferation centers",
+    "pseudofollicles",
+    "pseudo-follicles"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Proliferation centres are present.",
+   "neg_text": "No proliferation centres are identified.",
+   "notes": ""
+  },
+  {
+   "id": "follicular_pattern",
+   "display": "follicular growth pattern",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "follicular pattern",
+    "follicular architecture",
+    "follicular growth pattern",
+    "nodular pattern",
+    "neoplastic follicles",
+    "back-to-back follicles"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "A follicular growth pattern with back-to-back neoplastic follicles is seen.",
+   "neg_text": "No follicular pattern is seen.",
+   "notes": ""
+  },
+  {
+   "id": "centrocytes",
+   "display": "centrocytes/centroblasts",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "centrocytes",
+    "centroblasts"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "The infiltrate comprises predominantly centrocytes with scattered centroblasts.",
+   "neg_text": "No centrocytes or centroblasts are seen.",
+   "notes": ""
+  },
+  {
+   "id": "mantle_zone_pattern",
+   "display": "mantle zone pattern",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "mantle zone pattern",
+    "mantle zone growth",
+    "mantle-zone pattern"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "A mantle zone growth pattern is present.",
+   "neg_text": "No mantle zone pattern is seen.",
+   "notes": ""
+  },
+  {
+   "id": "lymphoplasmacytic_cells",
+   "display": "lymphoplasmacytic cells",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "lymphoplasmacytic cells",
+    "lymphoplasmacytic infiltrate",
+    "lymphoplasmacytoid cells",
+    "plasmacytoid lymphocytes",
+    "Dutcher bodies",
+    "Russell bodies",
+    "lymphoplasmacytic differentiation",
+    "plasmacytic differentiation"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "A lymphoplasmacytic infiltrate with plasmacytoid lymphocytes and occasional Dutcher bodies is present.",
+   "neg_text": "No lymphoplasmacytic cells are seen.",
+   "notes": ""
+  },
+  {
+   "id": "monocytoid_cells",
+   "display": "monocytoid B cells",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "monocytoid B cells",
+    "monocytoid B-cells",
+    "monocytoid cells",
+    "centrocyte-like cells",
+    "monocytoid"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Monocytoid B cells with abundant pale cytoplasm are present.",
+   "neg_text": "No monocytoid cells are seen.",
+   "notes": ""
+  },
+  {
+   "id": "intrasinusoidal",
+   "display": "intrasinusoidal infiltration",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "intrasinusoidal infiltration",
+    "intrasinusoidal pattern",
+    "intrasinusoidal",
+    "sinusoidal pattern"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "An intrasinusoidal pattern of infiltration is present in the trephine.",
+   "neg_text": "No intrasinusoidal infiltration.",
+   "notes": ""
+  },
+  {
+   "id": "interstitial_fried_egg",
+   "display": "interstitial fried-egg infiltrate",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "fried egg",
+    "fried-egg appearance",
+    "fried-egg",
+    "interstitial infiltrate with clear cytoplasm"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "An interstitial infiltrate of cells with clear cytoplasm and a fried-egg appearance is present.",
+   "neg_text": "No fried-egg infiltrate.",
+   "notes": ""
+  },
+  {
+   "id": "dry_tap_fibrosis",
+   "display": "dry tap / reticulin fibrosis",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [
+    "dry tap",
+    "inaspirable",
+    "reticulin fibrosis",
+    "increased reticulin"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "The aspirate was a dry tap; the trephine shows increased reticulin fibrosis.",
+   "neg_text": "No reticulin fibrosis; the aspirate was adequate.",
+   "notes": ""
+  },
+  {
+   "id": "mast_cell_increase",
+   "display": "increased mast cells",
+   "kind": "morphology",
+   "modality": "morphology",
+   "aliases": [],
+   "pos_phrases": [
+    "increased mast cells",
+    "mast cells are increased",
+    "mast cells increased",
+    "mast cell increase"
+   ],
+   "neg_phrases": [
+    "mast cells are not increased",
+    "mast cells not increased",
+    "no increase in mast cells",
+    "normal mast cells"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": null,
+   "pos_text": "Mast cells are increased.",
+   "neg_text": "Mast cells are not increased.",
+   "notes": ""
+  },
+  {
+   "id": "lymphocytosis",
+   "display": "clonal B-cell lymphocytosis >= 5 x10^9/L",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "lymphocytosis"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no lymphocytosis",
+    "without lymphocytosis"
+   ],
+   "intensity": false,
+   "numeric_rule": {
+    "anchors": [
+     "clonal B-cell count",
+     "clonal B cell count",
+     "monoclonal B-cell count",
+     "monoclonal B cell count",
+     "absolute B-cell count",
+     "B-cell count",
+     "clonal B cells"
+    ],
+    "fallback_anchors": [
+     "absolute lymphocyte count",
+     "lymphocyte count",
+     "ALC"
+    ],
+    "unit_pattern": "x\\s?10\\^?9\\s?/\\s?L|10\\^9/L|x10e9/L|×10⁹/L|x 10\\^9/l",
+    "comparator": ">=",
+    "threshold": 5.0
+   },
+   "default_polarity": "pos",
+   "pos_text": "Clonal B-cell count 34.2 x10^9/L.",
+   "neg_text": "Clonal B-cell count 3.1 x10^9/L.",
+   "notes": ""
+  },
+  {
+   "id": "splenomegaly",
+   "display": "splenomegaly",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "splenomegaly",
+    "enlarged spleen",
+    "spleen palpable",
+    "massive splenomegaly",
+    "spleen enlarged"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no splenomegaly",
+    "spleen not palpable",
+    "normal spleen",
+    "spleen is not enlarged",
+    "spleen not enlarged",
+    "without splenomegaly",
+    "no organomegaly",
+    "no hepatosplenomegaly"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Splenomegaly (spleen 18 cm on ultrasound).",
+   "neg_text": "No splenomegaly.",
+   "notes": ""
+  },
+  {
+   "id": "lymphadenopathy",
+   "display": "lymphadenopathy",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "lymphadenopathy",
+    "enlarged lymph nodes",
+    "nodal disease",
+    "adenopathy",
+    "nodal involvement",
+    "nodal sites",
+    "lymph node enlargement"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no lymphadenopathy",
+    "no palpable lymphadenopathy",
+    "without lymphadenopathy",
+    "no enlarged lymph nodes",
+    "no adenopathy"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Cervical and axillary lymphadenopathy (nodes up to 3 cm).",
+   "neg_text": "No lymphadenopathy.",
+   "notes": ""
+  },
+  {
+   "id": "cytopenias",
+   "display": "cytopenias",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "cytopenias",
+    "cytopenia",
+    "pancytopenia",
+    "bicytopenia",
+    "neutropenia",
+    "thrombocytopenia",
+    "anaemia",
+    "anemia"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no cytopenias",
+    "no cytopenia",
+    "without cytopenias",
+    "normal blood counts",
+    "normal full blood count",
+    "preserved blood counts",
+    "haemoglobin and platelets are normal",
+    "no anaemia or thrombocytopenia"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Pancytopenia (Hb 94 g/L, neutrophils 0.8 x10^9/L, platelets 76 x10^9/L).",
+   "neg_text": "No cytopenias (Hb 138 g/L, neutrophils 3.9 x10^9/L, platelets 231 x10^9/L).",
+   "notes": ""
+  },
+  {
+   "id": "monocytopenia",
+   "display": "monocytopenia",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "monocytopenia",
+    "absent monocytes"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no monocytopenia",
+    "monocytes preserved",
+    "normal monocyte count"
+   ],
+   "intensity": false,
+   "numeric_rule": {
+    "anchors": [
+     "monocytes",
+     "monocyte count",
+     "absolute monocyte count"
+    ],
+    "fallback_anchors": [],
+    "unit_pattern": "x\\s?10\\^?9\\s?/\\s?L|10\\^9/L|×10⁹/L",
+    "comparator": "<",
+    "threshold": 0.2
+   },
+   "default_polarity": "pos",
+   "pos_text": "Monocytes 0.08 x10^9/L (monocytopenia).",
+   "neg_text": "Monocytes 0.45 x10^9/L.",
+   "notes": ""
+  },
+  {
+   "id": "IgM_paraprotein",
+   "display": "IgM paraprotein",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "IgM paraprotein",
+    "IgM M-protein",
+    "IgM monoclonal protein",
+    "IgM kappa paraprotein",
+    "IgM lambda paraprotein",
+    "IgM band",
+    "IgM monoclonal band",
+    "monoclonal IgM",
+    "IgM kappa",
+    "IgM lambda"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no IgM paraprotein",
+    "no paraprotein",
+    "no monoclonal protein",
+    "paraprotein not detected",
+    "no monoclonal band",
+    "no M-protein",
+    "serum electrophoresis normal",
+    "no serum paraprotein",
+    "without paraprotein"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Serum electrophoresis: IgM kappa paraprotein 21 g/L.",
+   "neg_text": "Serum electrophoresis: no paraprotein detected.",
+   "notes": ""
+  },
+  {
+   "id": "non_IgM_paraprotein",
+   "display": "IgG/IgA paraprotein",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "IgG paraprotein",
+    "IgA paraprotein",
+    "IgG kappa paraprotein",
+    "IgG lambda paraprotein",
+    "IgA kappa paraprotein"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Serum electrophoresis: IgG kappa paraprotein 8 g/L.",
+   "neg_text": "No IgG or IgA paraprotein.",
+   "notes": ""
+  },
+  {
+   "id": "hyperviscosity",
+   "display": "hyperviscosity",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "hyperviscosity",
+    "hyperviscosity symptoms",
+    "hyperviscosity syndrome"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no hyperviscosity",
+    "no features of hyperviscosity",
+    "no symptoms of hyperviscosity"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Symptoms of hyperviscosity (blurred vision, epistaxis).",
+   "neg_text": "No features of hyperviscosity.",
+   "notes": ""
+  },
+  {
+   "id": "extranodal_site",
+   "display": "extranodal primary site",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "gastric biopsy",
+    "gastric lesion",
+    "salivary gland",
+    "parotid",
+    "ocular adnexa",
+    "orbital mass",
+    "lung nodule",
+    "thyroid mass",
+    "MALT site",
+    "extranodal site",
+    "extranodal mass",
+    "lacrimal gland",
+    "conjunctival"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no extranodal disease",
+    "no extranodal involvement",
+    "no extranodal site"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Presentation with an extranodal mass (gastric biopsy).",
+   "neg_text": "No extranodal disease.",
+   "notes": ""
+  },
+  {
+   "id": "B_symptoms",
+   "display": "B symptoms",
+   "kind": "clinical",
+   "modality": "clinical",
+   "aliases": [
+    "B symptoms",
+    "B-symptoms",
+    "night sweats",
+    "weight loss",
+    "fevers"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no B symptoms",
+    "no B-symptoms",
+    "without B symptoms",
+    "denies B symptoms"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "B symptoms (night sweats and 6 kg weight loss).",
+   "neg_text": "No B symptoms.",
+   "notes": ""
+  }
+ ],
+ "polarity": {
+  "pos_suffix": [
+   "+",
+   "(+)",
+   "++",
+   "pos",
+   "positive",
+   "positivity",
+   "+dim",
+   "+bright",
+   "-positive",
+   "-pos"
+  ],
+  "neg_suffix": [
+   "-",
+   "(-)",
+   "neg",
+   "negative",
+   "negativity",
+   "-negative",
+   "-neg"
+  ],
+  "intensity_pos": [
+   "dim",
+   "weak",
+   "weakly",
+   "partial",
+   "partially",
+   "moderate",
+   "moderately",
+   "bright",
+   "brightly",
+   "strong",
+   "strongly",
+   "heterogeneous",
+   "variable",
+   "subset"
+  ],
+  "intensity_dim": [
+   "dim",
+   "dimly",
+   "weak",
+   "weakly",
+   "low",
+   "low-intensity",
+   "faint",
+   "reduced",
+   "diminished",
+   "down-regulated"
+  ],
+  "intensity_bright": [
+   "bright",
+   "brightly",
+   "strong",
+   "strongly",
+   "moderate",
+   "moderate-intensity",
+   "normal intensity",
+   "normal-intensity",
+   "intact",
+   "preserved",
+   "retained"
+  ]
+ },
+ "discriminators": {
+  "CD5": {
+   "CLL_SLL": "pos",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "CD23": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "CD200": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "CD10": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "pos",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "FMC7": {
+   "CLL_SLL": "neg",
+   "MCL": "pos",
+   "FL": "pos",
+   "HCL": "pos",
+   "LPL": "var",
+   "MZL": "pos",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "CD79b": {
+   "CLL_SLL": "neg",
+   "MCL": "pos",
+   "FL": "pos",
+   "HCL": "pos",
+   "LPL": "pos",
+   "MZL": "pos",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "sIg_dim": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "CD20_dim": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "LEF1": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "pos"
+  },
+  "cyclin_D1": {
+   "CLL_SLL": "neg",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "var",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "SOX11": {
+   "CLL_SLL": "neg",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "BCL6": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "pos",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "CD11c": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "pos",
+   "MBL": "var"
+  },
+  "CD25": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "CD103": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "CD123": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "annexin_A1": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "CD43": {
+   "CLL_SLL": "pos",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "pos"
+  },
+  "CD138_plasma_cells": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "pos",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "IgD": {
+   "CLL_SLL": "pos",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "pos"
+  },
+  "t_11_14": {
+   "CLL_SLL": "neg",
+   "MCL": "pos",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "CCND2_rearr": {
+   "CLL_SLL": "neg",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "t_14_18_BCL2": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "pos",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "del_17p": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "TP53_mut": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "del_13q": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "trisomy_12": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "del_11q": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "del_7q": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "t_11_18_MALT1": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "t_1_14_BCL10": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "t_14_18_MALT1": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "BRAF_V600E": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "MYD88_L265P": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "pos",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "CXCR4_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "MAP2K1_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "IGHV_unmutated": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "NOTCH1_mut": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "SF3B1_mut": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "ATM_mut": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "KLF2_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "NOTCH2_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "EZH2_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "CREBBP_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "KMT2D_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "TNFAIP3_mut": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "lymphocytosis": {
+   "CLL_SLL": "pos",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "smudge_cells": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "prolymphocytes_increased": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "hairy_cells": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "villous_lymphocytes": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "prominent_nucleoli": {
+   "CLL_SLL": "neg",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "blastoid": {
+   "CLL_SLL": "neg",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "proliferation_centres": {
+   "CLL_SLL": "pos",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "follicular_pattern": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "pos",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "mantle_zone_pattern": {
+   "CLL_SLL": "neg",
+   "MCL": "var",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "var"
+  },
+  "lymphoplasmacytic_cells": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "pos",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "monocytoid_cells": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "intrasinusoidal": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "var",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "interstitial_fried_egg": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "dry_tap_fibrosis": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "var",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "monocytopenia": {
+   "CLL_SLL": "neg",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "pos",
+   "LPL": "neg",
+   "MZL": "neg",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "IgM_paraprotein": {
+   "CLL_SLL": "var",
+   "MCL": "neg",
+   "FL": "neg",
+   "HCL": "neg",
+   "LPL": "pos",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "splenomegaly": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "pos",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "pos",
+   "MBL": "neg"
+  },
+  "lymphadenopathy": {
+   "CLL_SLL": "var",
+   "MCL": "pos",
+   "FL": "pos",
+   "HCL": "neg",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "extranodal_site": {
+   "CLL_SLL": "neg",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "neg",
+   "LPL": "neg",
+   "MZL": "var",
+   "SBLPN": "neg",
+   "MBL": "neg"
+  },
+  "cytopenias": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "pos",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "neg"
+  },
+  "CD19": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "CD22": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "CD38": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "light_chain_restricted": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "BCL2": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "TRAP": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "Ki67_high": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "MYC_rearr": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "complex_karyotype": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "centrocytes": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "mast_cell_increase": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "non_IgM_paraprotein": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "hyperviscosity": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  },
+  "B_symptoms": {
+   "CLL_SLL": "var",
+   "MCL": "var",
+   "FL": "var",
+   "HCL": "var",
+   "LPL": "var",
+   "MZL": "var",
+   "SBLPN": "var",
+   "MBL": "var"
+  }
+ },
+ "linked": {
+  "cyclin_D1": [
+   "t_11_14",
+   "SOX11",
+   "CD23",
+   "CD200",
+   "CD5"
+  ],
+  "t_11_14": [
+   "cyclin_D1",
+   "SOX11"
+  ],
+  "SOX11": [
+   "cyclin_D1",
+   "t_11_14"
+  ],
+  "CD5": [
+   "CD23",
+   "CD200",
+   "cyclin_D1",
+   "LEF1"
+  ],
+  "CD23": [
+   "CD5",
+   "CD200",
+   "FMC7",
+   "CD79b"
+  ],
+  "CD10": [
+   "BCL6",
+   "t_14_18_BCL2",
+   "follicular_pattern"
+  ],
+  "t_14_18_BCL2": [
+   "CD10",
+   "BCL6",
+   "follicular_pattern"
+  ],
+  "BRAF_V600E": [
+   "annexin_A1",
+   "CD25",
+   "CD103",
+   "CD123",
+   "CD11c",
+   "hairy_cells",
+   "monocytopenia"
+  ],
+  "annexin_A1": [
+   "BRAF_V600E",
+   "CD25",
+   "CD103"
+  ],
+  "MYD88_L265P": [
+   "IgM_paraprotein",
+   "lymphoplasmacytic_cells",
+   "CXCR4_mut",
+   "CD138_plasma_cells"
+  ],
+  "IgM_paraprotein": [
+   "MYD88_L265P",
+   "lymphoplasmacytic_cells"
+  ],
+  "lymphocytosis": [
+   "smudge_cells",
+   "lymphadenopathy",
+   "splenomegaly",
+   "cytopenias"
+  ],
+  "t_11_18_MALT1": [
+   "extranodal_site",
+   "monocytoid_cells"
+  ],
+  "del_7q": [
+   "villous_lymphocytes",
+   "splenomegaly",
+   "intrasinusoidal",
+   "KLF2_mut",
+   "NOTCH2_mut"
+  ],
+  "villous_lymphocytes": [
+   "del_7q",
+   "splenomegaly",
+   "intrasinusoidal"
+  ]
+ },
+ "confusion": {
+  "CLL_SLL": [
+   "MCL",
+   "MZL"
+  ],
+  "MCL": [
+   "CLL_SLL",
+   "MZL"
+  ],
+  "FL": [
+   "MZL",
+   "MCL"
+  ],
+  "HCL": [
+   "MZL",
+   "SBLPN"
+  ],
+  "LPL": [
+   "MZL",
+   "CLL_SLL"
+  ],
+  "MZL": [
+   "LPL",
+   "FL",
+   "CLL_SLL"
+  ]
+ },
+ "phrases": {
+  "hedge": [
+   "differential",
+   "cannot exclude",
+   "cannot be excluded",
+   "cannot rule out",
+   "cannot be ruled out",
+   "versus",
+   "vs",
+   "vs.",
+   "either",
+   "or possibly",
+   "favour",
+   "favor",
+   "favoured",
+   "favored",
+   "possible",
+   "possibly",
+   "probable",
+   "probably",
+   "likely represents",
+   "uncertain",
+   "indeterminate",
+   "further testing",
+   "recommend FISH",
+   "would be helpful",
+   "not definitive",
+   "provisional",
+   "best classified as",
+   "query",
+   "cannot confidently",
+   "not possible to distinguish",
+   "difficult to distinguish",
+   "needs confirmation",
+   "requires confirmation",
+   "unclear"
+  ],
+  "acknowledge_cue": [
+   "referring",
+   "referrer",
+   "referral",
+   "clinician",
+   "clinical team",
+   "working diagnosis",
+   "suspected",
+   "suspicion",
+   "clinical impression",
+   "query",
+   "queried",
+   "the question of",
+   "was raised",
+   "suggested diagnosis",
+   "provisional diagnosis",
+   "please confirm",
+   "asked to confirm",
+   "the clinicians"
+  ],
+  "knowledge": [
+   "typically",
+   "usually",
+   "classically",
+   "characteristically",
+   "commonly",
+   "generally",
+   "in general",
+   "most cases",
+   "the majority of",
+   "hallmark",
+   "defined by",
+   "defining feature",
+   "criteria",
+   "WHO",
+   "HAEM5",
+   "WHO-HAEM5",
+   "ICC",
+   "by definition",
+   "is associated with",
+   "are associated with",
+   "tends to",
+   "tend to",
+   "is seen in",
+   "are seen in",
+   "occurs in",
+   "occur in",
+   "% of",
+   "percent of",
+   "is characterised by",
+   "is characterized by",
+   "are characterised by",
+   "are characterized by",
+   "pathognomonic",
+   "is required for",
+   "requires"
+  ],
+  "patient_reference": [
+   "this case",
+   "this patient",
+   "the patient",
+   "here",
+   "in our",
+   "our case",
+   "the report",
+   "the reports",
+   "the flow",
+   "the panel",
+   "the sample",
+   "the specimen",
+   "the biopsy",
+   "the aspirate",
+   "the film",
+   "FISH shows",
+   "FISH showed",
+   "the FISH",
+   "NGS shows",
+   "NGS showed",
+   "the results",
+   "we have",
+   "we see",
+   "given the",
+   "in this",
+   "the trephine",
+   "the karyotype",
+   "the clinical",
+   "the morphology",
+   "the immunophenotype",
+   "the phenotype",
+   "the molecular",
+   "the cytogenetics",
+   "the count",
+   "the counts",
+   "the patient's"
+  ],
+  "conditional": [
+   "if ",
+   "unless",
+   " were ",
+   " would ",
+   "could have been",
+   "had been",
+   "suppose",
+   "assuming",
+   "hypothetically",
+   "in case ",
+   "should it",
+   "should the",
+   "if it were",
+   "were it"
+  ],
+  "inference": [
+   "therefore",
+   "thus",
+   "hence",
+   " so ",
+   "suggests",
+   "suggesting",
+   "consistent with",
+   "in keeping with",
+   "compatible with",
+   "favours",
+   "favors",
+   "supports",
+   "supporting",
+   "points to",
+   "point to",
+   "argues for",
+   "argues against",
+   "indicates",
+   "indicating",
+   "likely",
+   "diagnosis is",
+   "diagnosis:",
+   "conclude",
+   "overall",
+   "→",
+   "=>",
+   "->",
+   "fits",
+   "fit with",
+   "fits with",
+   "best fit",
+   "pointing to",
+   "implies",
+   "makes",
+   "rules out",
+   "excludes",
+   "unlikely"
+  ],
+  "question": [
+   "?",
+   "whether",
+   "need to check",
+   "let me check",
+   "check if",
+   "check whether",
+   "what about",
+   "is it ",
+   "does the",
+   "let's check",
+   "let me look",
+   "need to look",
+   "wonder"
+  ],
+  "conclusion": [
+   "diagnosis",
+   "conclude",
+   "overall",
+   "final",
+   "answer",
+   "best fit",
+   "most consistent",
+   "integrated"
+  ]
+ },
+ "cue_templates": {
+  "referrer-v1": "Referring clinician's working diagnosis: {entity}. Please confirm on integrated review.",
+  "referrer-strong-v1": "The referring haematologist is confident this represents {entity}. Please confirm on integrated review."
+ }
+}

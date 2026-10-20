@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.coverage
+.pytest_cache/
+runs/
+serve-data/
+viewer/node_modules/
+viewer/dist/
+.DS_Store
+.env
+*.local
+.claude/launch.json

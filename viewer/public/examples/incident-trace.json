@@ -1,0 +1,9 @@
+{
+ "documents": {
+  "alerts": "Error rate elevated since 14:02 (5xx spike). CPU normal. No traffic spike.",
+  "logs": "Database latency normal. Disk usage normal. Stack traces show NullPointerException in checkout.",
+  "deploys": "Release 2026.10.20-3 went out at 13:55 (recent deploy)."
+ },
+ "reasoning": "Error rate elevated right after a recent deploy. CPU saturated though, so maybe capacity. Database latency normal. The timing points to the release.",
+ "answer": "Diagnosis: faulty deployment\nConfidence: high"
+}

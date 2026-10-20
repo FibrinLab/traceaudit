@@ -1,0 +1,237 @@
+{
+ "subtypes": {
+  "MZL": {
+   "SMZL": 0.45,
+   "NMZL": 0.25,
+   "EMZL": 0.3
+  },
+  "LPL": {
+   "WM": 0.8,
+   "null": 0.2
+  }
+ },
+ "demographics": {
+  "CLL_SLL": {
+   "age": [
+    72,
+    9
+   ],
+   "male": 0.6
+  },
+  "MCL": {
+   "age": [
+    68,
+    8
+   ],
+   "male": 0.72
+  },
+  "FL": {
+   "age": [
+    63,
+    10
+   ],
+   "male": 0.5
+  },
+  "HCL": {
+   "age": [
+    58,
+    10
+   ],
+   "male": 0.8
+  },
+  "LPL": {
+   "age": [
+    70,
+    9
+   ],
+   "male": 0.6
+  },
+  "MZL": {
+   "age": [
+    66,
+    10
+   ],
+   "male": 0.5
+  }
+ },
+ "var_prob": {
+  "CLL_SLL": {
+   "CD38": 0.35,
+   "CD11c": 0.3,
+   "CD25": 0.3,
+   "del_13q": 0.55,
+   "trisomy_12": 0.15,
+   "del_11q": 0.15,
+   "del_17p": 0.08,
+   "TP53_mut": 0.1,
+   "IGHV_unmutated": 0.45,
+   "NOTCH1_mut": 0.1,
+   "SF3B1_mut": 0.1,
+   "lymphadenopathy": 0.5,
+   "splenomegaly": 0.3,
+   "cytopenias": 0.2,
+   "IgM_paraprotein": 0.05,
+   "prolymphocytes_increased": 0.1
+  },
+  "MCL": {
+   "SOX11": 0.9,
+   "del_17p": 0.15,
+   "TP53_mut": 0.2,
+   "IGHV_unmutated": 0.7,
+   "lymphocytosis": 0.5,
+   "splenomegaly": 0.4,
+   "cytopenias": 0.25,
+   "blastoid": 0.15,
+   "Ki67_high": 0.3,
+   "prominent_nucleoli": 0.1,
+   "mantle_zone_pattern": 0.3,
+   "extranodal_site": 0.2,
+   "CCND2_rearr": 0.0
+  },
+  "FL": {
+   "t_14_18_BCL2": 0.85,
+   "CD23": 0.3,
+   "EZH2_mut": 0.25,
+   "CREBBP_mut": 0.6,
+   "KMT2D_mut": 0.7,
+   "lymphocytosis": 0.05,
+   "cytopenias": 0.1,
+   "splenomegaly": 0.1,
+   "del_17p": 0.05,
+   "TP53_mut": 0.05,
+   "extranodal_site": 0.1
+  },
+  "HCL": {
+   "BRAF_V600E": 0.97,
+   "cyclin_D1": 0.3,
+   "intrasinusoidal": 0.5,
+   "del_17p": 0.0,
+   "lymphocytosis": 0.0
+  },
+  "LPL": {
+   "MYD88_L265P": 0.9,
+   "CXCR4_mut": 0.35,
+   "CD200": 0.4,
+   "FMC7": 0.5,
+   "IgD": 0.3,
+   "lymphocytosis": 0.1,
+   "splenomegaly": 0.3,
+   "lymphadenopathy": 0.3,
+   "cytopenias": 0.5,
+   "hyperviscosity": 0.3,
+   "del_7q": 0.05,
+   "dry_tap_fibrosis": 0.1,
+   "del_17p": 0.05,
+   "TP53_mut": 0.05,
+   "CD43": 0.3
+  },
+  "MZL": {
+   "CD5": 0.1,
+   "CD200": 0.3,
+   "CD11c": 0.4,
+   "CD43": 0.3,
+   "IgD": 0.5,
+   "del_7q": 0.3,
+   "trisomy_12": 0.05,
+   "KLF2_mut": 0.25,
+   "NOTCH2_mut": 0.2,
+   "TNFAIP3_mut": 0.2,
+   "MYD88_L265P": 0.05,
+   "t_11_18_MALT1": 0.25,
+   "t_1_14_BCL10": 0.05,
+   "t_14_18_MALT1": 0.05,
+   "IgM_paraprotein": 0.2,
+   "CD138_plasma_cells": 0.25,
+   "lymphoplasmacytic_cells": 0.2,
+   "lymphocytosis": 0.4,
+   "splenomegaly": 0.7,
+   "lymphadenopathy": 0.3,
+   "cytopenias": 0.3,
+   "villous_lymphocytes": 0.6,
+   "monocytoid_cells": 0.5,
+   "intrasinusoidal": 0.6,
+   "extranodal_site": 0.5,
+   "CD103": 0.05,
+   "EZH2_mut": 0.0,
+   "CREBBP_mut": 0.0,
+   "KMT2D_mut": 0.1,
+   "IGHV_unmutated": 0.3
+  }
+ },
+ "discordance_whitelist": {
+  "CLL_SLL": [
+   [
+    "CD23",
+    "neg"
+   ],
+   [
+    "CD200",
+    "neg"
+   ],
+   [
+    "FMC7",
+    "pos"
+   ]
+  ],
+  "MCL": [
+   [
+    "CD23",
+    "pos"
+   ],
+   [
+    "SOX11",
+    "neg"
+   ],
+   [
+    "CD5",
+    "neg"
+   ]
+  ],
+  "FL": [
+   [
+    "CD10",
+    "neg"
+   ],
+   [
+    "BCL6",
+    "neg"
+   ]
+  ],
+  "HCL": [
+   [
+    "CD25",
+    "neg"
+   ],
+   [
+    "CD123",
+    "neg"
+   ],
+   [
+    "annexin_A1",
+    "neg"
+   ]
+  ],
+  "LPL": [
+   [
+    "MYD88_L265P",
+    "neg"
+   ],
+   [
+    "CD5",
+    "pos"
+   ]
+  ],
+  "MZL": [
+   [
+    "CD5",
+    "pos"
+   ],
+   [
+    "CD23",
+    "pos"
+   ]
+  ]
+ },
+ "p_discordant": 0.1,
+ "p_incomplete": 0.05
+}

@@ -1,0 +1,508 @@
+{
+ "version": "0.1.0",
+ "domain": "incident-triage",
+ "review": {
+  "reviewer_id": null,
+  "date": null,
+  "status": "draft"
+ },
+ "sections": [
+  {
+   "id": "alerts",
+   "title": "Alerts"
+  },
+  {
+   "id": "logs",
+   "title": "Logs"
+  },
+  {
+   "id": "deploys",
+   "title": "Deploy history"
+  }
+ ],
+ "entities": [
+  {
+   "id": "BAD_DEPLOY",
+   "display": "Faulty deployment",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "faulty deployment",
+    "bad deploy",
+    "bad deployment",
+    "regression from the release"
+   ]
+  },
+  {
+   "id": "CAPACITY",
+   "display": "Capacity exhaustion",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "capacity exhaustion",
+    "capacity problem",
+    "under-provisioned",
+    "overload"
+   ]
+  },
+  {
+   "id": "DATABASE",
+   "display": "Database degradation",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "database degradation",
+    "database problem",
+    "slow database",
+    "db issue"
+   ]
+  },
+  {
+   "id": "DISK",
+   "display": "Disk exhaustion",
+   "in_scope": true,
+   "parent": null,
+   "aliases": [
+    "disk exhaustion",
+    "disk full",
+    "out of disk"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "id": "error_rate_elevated",
+   "display": "error rate elevated",
+   "kind": "clinical",
+   "modality": "alerts",
+   "aliases": [
+    "error rate elevated",
+    "5xx spike",
+    "elevated error rate",
+    "error rate"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "error rate normal",
+    "no error spike"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Error rate elevated.",
+   "neg_text": "Error rate normal.",
+   "notes": ""
+  },
+  {
+   "id": "recent_deploy",
+   "display": "deploy in the last hour",
+   "kind": "clinical",
+   "modality": "deploys",
+   "aliases": [
+    "recent deploy",
+    "deployed in the last hour",
+    "release went out",
+    "recent release"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "no recent deploy",
+    "no deploys today",
+    "nothing deployed"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "A deploy went out in the last hour.",
+   "neg_text": "No recent deploy.",
+   "notes": ""
+  },
+  {
+   "id": "cpu_saturated",
+   "display": "CPU saturated",
+   "kind": "clinical",
+   "modality": "alerts",
+   "aliases": [
+    "cpu saturated",
+    "cpu at 100%",
+    "cpu pegged",
+    "cpu saturation"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "cpu normal",
+    "cpu headroom"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "CPU saturated.",
+   "neg_text": "CPU normal.",
+   "notes": ""
+  },
+  {
+   "id": "db_latency_high",
+   "display": "database latency high",
+   "kind": "clinical",
+   "modality": "logs",
+   "aliases": [
+    "database latency high",
+    "db latency high",
+    "slow queries",
+    "query latency"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "database latency normal",
+    "db latency normal",
+    "queries fast"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Database latency high.",
+   "neg_text": "Database latency normal.",
+   "notes": ""
+  },
+  {
+   "id": "disk_full",
+   "display": "disk full",
+   "kind": "clinical",
+   "modality": "logs",
+   "aliases": [
+    "disk full",
+    "no space left on device",
+    "disk at 100%"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "disk has space",
+    "disk usage normal"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Disk full.",
+   "neg_text": "Disk usage normal.",
+   "notes": ""
+  },
+  {
+   "id": "traffic_surge",
+   "display": "traffic surge",
+   "kind": "clinical",
+   "modality": "alerts",
+   "aliases": [
+    "traffic surge",
+    "traffic spike",
+    "request volume up"
+   ],
+   "pos_phrases": [],
+   "neg_phrases": [
+    "traffic normal",
+    "no traffic spike"
+   ],
+   "intensity": false,
+   "numeric_rule": null,
+   "default_polarity": "pos",
+   "pos_text": "Traffic surge.",
+   "neg_text": "Traffic normal.",
+   "notes": ""
+  }
+ ],
+ "polarity": {
+  "pos_suffix": [
+   "+",
+   "positive",
+   "present"
+  ],
+  "neg_suffix": [
+   "-",
+   "negative",
+   "absent"
+  ],
+  "intensity_pos": [],
+  "intensity_dim": [],
+  "intensity_bright": []
+ },
+ "discriminators": {
+  "error_rate_elevated": {
+   "BAD_DEPLOY": "pos",
+   "CAPACITY": "pos",
+   "DATABASE": "pos",
+   "DISK": "pos"
+  },
+  "recent_deploy": {
+   "BAD_DEPLOY": "pos",
+   "CAPACITY": "neg",
+   "DATABASE": "neg",
+   "DISK": "neg"
+  },
+  "cpu_saturated": {
+   "BAD_DEPLOY": "var",
+   "CAPACITY": "pos",
+   "DATABASE": "neg",
+   "DISK": "neg"
+  },
+  "db_latency_high": {
+   "BAD_DEPLOY": "var",
+   "CAPACITY": "var",
+   "DATABASE": "pos",
+   "DISK": "neg"
+  },
+  "disk_full": {
+   "BAD_DEPLOY": "neg",
+   "CAPACITY": "neg",
+   "DATABASE": "neg",
+   "DISK": "pos"
+  },
+  "traffic_surge": {
+   "BAD_DEPLOY": "neg",
+   "CAPACITY": "pos",
+   "DATABASE": "var",
+   "DISK": "neg"
+  }
+ },
+ "linked": {
+  "recent_deploy": [
+   "error_rate_elevated"
+  ],
+  "cpu_saturated": [
+   "traffic_surge"
+  ],
+  "disk_full": [
+   "db_latency_high"
+  ]
+ },
+ "confusion": {
+  "BAD_DEPLOY": [
+   "CAPACITY",
+   "DATABASE"
+  ],
+  "CAPACITY": [
+   "BAD_DEPLOY"
+  ],
+  "DATABASE": [
+   "CAPACITY",
+   "DISK"
+  ],
+  "DISK": [
+   "DATABASE"
+  ]
+ },
+ "phrases": {
+  "hedge": [
+   "differential",
+   "cannot exclude",
+   "cannot be excluded",
+   "cannot rule out",
+   "cannot be ruled out",
+   "versus",
+   "vs",
+   "vs.",
+   "either",
+   "or possibly",
+   "favour",
+   "favor",
+   "favoured",
+   "favored",
+   "possible",
+   "possibly",
+   "probable",
+   "probably",
+   "likely represents",
+   "uncertain",
+   "indeterminate",
+   "further testing",
+   "recommend FISH",
+   "would be helpful",
+   "not definitive",
+   "provisional",
+   "best classified as",
+   "query",
+   "cannot confidently",
+   "not possible to distinguish",
+   "difficult to distinguish",
+   "needs confirmation",
+   "requires confirmation",
+   "unclear"
+  ],
+  "acknowledge_cue": [
+   "referring",
+   "referrer",
+   "referral",
+   "clinician",
+   "clinical team",
+   "working diagnosis",
+   "suspected",
+   "suspicion",
+   "clinical impression",
+   "query",
+   "queried",
+   "the question of",
+   "was raised",
+   "suggested diagnosis",
+   "provisional diagnosis",
+   "please confirm",
+   "asked to confirm",
+   "the clinicians"
+  ],
+  "knowledge": [
+   "typically",
+   "usually",
+   "classically",
+   "characteristically",
+   "commonly",
+   "generally",
+   "in general",
+   "most cases",
+   "the majority of",
+   "hallmark",
+   "defined by",
+   "defining feature",
+   "criteria",
+   "WHO",
+   "HAEM5",
+   "WHO-HAEM5",
+   "ICC",
+   "by definition",
+   "is associated with",
+   "are associated with",
+   "tends to",
+   "tend to",
+   "is seen in",
+   "are seen in",
+   "occurs in",
+   "occur in",
+   "% of",
+   "percent of",
+   "is characterised by",
+   "is characterized by",
+   "are characterised by",
+   "are characterized by",
+   "pathognomonic",
+   "is required for",
+   "requires"
+  ],
+  "patient_reference": [
+   "this case",
+   "this patient",
+   "the patient",
+   "here",
+   "in our",
+   "our case",
+   "the report",
+   "the reports",
+   "the flow",
+   "the panel",
+   "the sample",
+   "the specimen",
+   "the biopsy",
+   "the aspirate",
+   "the film",
+   "FISH shows",
+   "FISH showed",
+   "the FISH",
+   "NGS shows",
+   "NGS showed",
+   "the results",
+   "we have",
+   "we see",
+   "given the",
+   "in this",
+   "the trephine",
+   "the karyotype",
+   "the clinical",
+   "the morphology",
+   "the immunophenotype",
+   "the phenotype",
+   "the molecular",
+   "the cytogenetics",
+   "the count",
+   "the counts",
+   "the patient's"
+  ],
+  "conditional": [
+   "if ",
+   "unless",
+   " were ",
+   " would ",
+   "could have been",
+   "had been",
+   "suppose",
+   "assuming",
+   "hypothetically",
+   "in case ",
+   "should it",
+   "should the",
+   "if it were",
+   "were it"
+  ],
+  "inference": [
+   "therefore",
+   "thus",
+   "hence",
+   " so ",
+   "suggests",
+   "suggesting",
+   "consistent with",
+   "in keeping with",
+   "compatible with",
+   "favours",
+   "favors",
+   "supports",
+   "supporting",
+   "points to",
+   "point to",
+   "argues for",
+   "argues against",
+   "indicates",
+   "indicating",
+   "likely",
+   "diagnosis is",
+   "diagnosis:",
+   "conclude",
+   "overall",
+   "\u2192",
+   "=>",
+   "->",
+   "fits",
+   "fit with",
+   "fits with",
+   "best fit",
+   "pointing to",
+   "implies",
+   "makes",
+   "rules out",
+   "excludes",
+   "unlikely"
+  ],
+  "question": [
+   "?",
+   "whether",
+   "need to check",
+   "let me check",
+   "check if",
+   "check whether",
+   "what about",
+   "is it ",
+   "does the",
+   "let's check",
+   "let me look",
+   "need to look",
+   "wonder"
+  ],
+  "conclusion": [
+   "diagnosis",
+   "conclude",
+   "overall",
+   "final",
+   "answer",
+   "best fit",
+   "most consistent",
+   "integrated"
+  ]
+ },
+ "cue_templates": {
+  "referrer-v1": "On-call engineer's working theory: {entity}. Please confirm."
+ }
+}
