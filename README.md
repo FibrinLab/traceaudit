@@ -109,7 +109,20 @@ cp .env.example .env            # put your key in .env (git-ignored)
 docker compose up --build       # http://localhost:8080, data in ./serve-data
 ```
 
-`fly.toml` and `render.yaml` are included: on Fly, `fly launch --copy-config --no-deploy`,
+**Cloudflare.** The viewer is a static site on Pages and the service runs as a
+Cloudflare Container behind a Worker; a Pages Function proxies `/api/*` to it.
+
+```bash
+cd cloudflare && npm install && npx wrangler deploy          # builds the Dockerfile, deploys the container (Docker must be running)
+npx wrangler secret put ANTHROPIC_API_KEY                     # the site key
+cd ../viewer && npm run build && npx wrangler pages deploy dist --project-name traceaudit
+npx wrangler pages secret put API_ORIGIN --project-name traceaudit   # https://traceaudit.<your-subdomain>.workers.dev
+```
+
+The container's disk is ephemeral: finished jobs disappear when it sleeps. Use a
+host with a volume for durable results.
+
+`fly.toml` and `render.yaml` are also included: on Fly, `fly launch --copy-config --no-deploy`,
 `fly secrets set ANTHROPIC_API_KEY=...`, `fly deploy`; on Render, connect the repository,
 set `ANTHROPIC_API_KEY` in the dashboard and deploy the blueprint.
 

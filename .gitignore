@@ -13,3 +13,6 @@ viewer/dist/
 .env
 *.local
 .claude/launch.json
+cloudflare/node_modules/
+cloudflare/.wrangler/
+viewer/.wrangler/
