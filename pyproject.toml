@@ -19,8 +19,8 @@ dev = ["pytest>=8", "coverage", "ruff", "mypy"]
 [project.scripts]
 traceaudit = "traceaudit.cli:main"
 
-[tool.setuptools]
-packages = ["traceaudit", "traceaudit.clients", "traceaudit.domains", "traceaudit.domains.haematology", "traceaudit.tools"]
+[tool.setuptools.packages.find]
+include = ["traceaudit*"]
 
 [tool.setuptools.package-data]
 traceaudit = ["prompts/*.json", "domains/*/*.json", "domains/*/*.jsonl"]
