@@ -340,6 +340,25 @@ class Service:
             raise ApiError(403, "forbidden", "lexicon belongs to another workspace")
         return lex_mod.load(d / "lexicon.json")
 
+    # ---- fact ledger (structured traces with citations)
+    def ledger_audit(self, body: dict) -> dict:
+        from . import ledger as ledger_mod
+        from .importers import parse_markdown
+        if isinstance(body.get("markdown"), str) and body["markdown"].strip():
+            if len(body["markdown"]) > 2_000_000:
+                raise ApiError(400, "too_large", "markdown exceeds 2 MB")
+            case, trace = parse_markdown(body["markdown"])
+        elif isinstance(body.get("case"), dict) and isinstance(body.get("trace"), dict):
+            try:
+                case, trace = ledger_from_json(body["case"], body["trace"])
+            except (KeyError, TypeError, ValueError) as e:
+                raise ApiError(400, "bad_request", f"ledger JSON rejected: {e}")
+        else:
+            raise ApiError(400, "bad_request", "send {markdown: <ENABLE trace artefact>} or {case: {...}, trace: {...}}")
+        if not case.facts:
+            raise ApiError(400, "bad_request", "no facts found in the input")
+        return ledger_mod.audit(case, trace, self.lx)
+
     # ---- analyse
     def analyse(self, body: dict, workspace: str = "public") -> dict:
         lx = self.lexicon_for(body.get("lexicon_id"), workspace)
@@ -604,6 +623,32 @@ class Service:
             self.rate[addr] = hits
 
 
+def ledger_from_json(case_d: dict, trace_d: dict):
+    """Build ledger records from plain JSON (the shape `ledger.audit` returns under case/trace, minus derived fields)."""
+    from . import ledger as L
+    facts = [L.Fact(f["id"], f.get("source", "patient"), f.get("section", ""), f.get("field", ""), str(f.get("value", "")), f.get("evidence", ""), f.get("candidate"))
+             for f in case_d.get("facts", [])]
+    case = L.LedgerCase(case_d.get("case_id", "case"), case_d.get("truth"), list(case_d.get("candidates", [])), facts,
+                        set(case_d.get("allowed_ids", [])) | {f.id for f in facts}, case_d.get("meta", {}))
+    rep = trace_d.get("report") or {}
+    report = L.Report(rep.get("decision"), [L.Section(sec.get("title", ""), [L.Segment(sg.get("text", ""), list(sg.get("citation_ids", [])))
+                                                                              for sg in sec.get("segments", [])]) for sec in rep.get("sections", [])],
+                      rep.get("delivered_decision"), rep.get("contract_valid"), rep.get("failure_kind"), rep.get("dropped_segments", []))
+    rationale = None
+    if trace_d.get("rationale"):
+        r = trace_d["rationale"]
+        rationale = L.Rationale(r.get("decision"), r.get("confidence"), r.get("key_findings", []),
+                                [L.DifferentialEntry(d["diagnosis"], d.get("verdict", "unknown"), d.get("supporting", []), d.get("contradicting", []), d.get("rationale", ""),
+                                                     [L.Criterion(c["criterion"], c.get("status", "not_assessable"), c.get("ids", [])) for c in d.get("criteria", [])])
+                                 for d in r.get("differential", [])],
+                                r.get("discriminators", []), r.get("unresolved", []), r.get("would_change", []), r.get("thinking", ""))
+    ablation = None
+    if trace_d.get("ablation"):
+        a = trace_d["ablation"]
+        ablation = L.Ablation(list(a.get("removed_ids", [])), a.get("decision_before"), a.get("decision_after"), a.get("changed"))
+    return case, L.LedgerTrace(trace_d.get("thinking", ""), report, rationale, ablation, trace_d.get("meta", {}))
+
+
 # ----------------------------------------------------------------------------- HTTP
 
 class Handler(BaseHTTPRequestHandler):
@@ -770,6 +815,10 @@ class Handler(BaseHTTPRequestHandler):
         if method == "POST" and parts == ["analyse"]:
             ws = self._require("analyse")
             self._json(200, svc.analyse(self._body(), ws))
+            return
+        if method == "POST" and parts == ["ledger"]:
+            self._require("analyse")
+            self._json(200, svc.ledger_audit(self._body()))
             return
         if method == "GET" and parts == ["lexicons"]:
             ws = self._require("read")

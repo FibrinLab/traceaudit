@@ -245,3 +245,21 @@ def test_bare_server_has_no_built_in_domain(tmp_path, sample_cases):
     finally:
         httpd.shutdown()
         httpd.server_close()
+
+
+def test_ledger_endpoint(server):
+    base, _ = server
+    md = Path(__file__).with_name("fixtures").joinpath("enable_trace_case_003.md").read_text()
+    st, out = call(base, "POST", "/api/ledger", {"markdown": md})
+    assert st == 200 and out["case_id"] == "case_003" and out["metrics"]["facts"] == 111
+    status = {c["id"]: c["status"] for c in out["checks"]}
+    assert status["citations_exist"] == "PASS" and status["coverage"] == "FAIL"
+    # round-trip through the JSON form
+    st2, out2 = call(base, "POST", "/api/ledger", {"case": {"case_id": out["case_id"], "truth": out["truth"], "candidates": out["candidates"],
+                                                            "facts": [{k: f[k] for k in ("id", "source", "section", "field", "value", "evidence", "candidate")} for f in out["facts"]]},
+                                                   "trace": {"thinking": out["thinking"]["text"],
+                                                             "report": {"decision": out["decision"], "sections": [{"title": s["title"], "segments": [{"text": g["text"], "citation_ids": g["citation_ids"]} for g in s["segments"]]} for s in out["sections"]]},
+                                                             "rationale": out["rationale"], "ablation": out["ablation"]}})
+    assert st2 == 200 and out2["metrics"]["cited_in_report"] == out["metrics"]["cited_in_report"]
+    st, out = call(base, "POST", "/api/ledger", {"markdown": "nothing here"})
+    assert st == 400

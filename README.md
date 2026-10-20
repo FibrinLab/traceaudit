@@ -17,6 +17,18 @@ example is in `examples/`), or start from the packaged reference domain,
 diagnosis ([docs/00-project-spec.md](docs/00-project-spec.md)). It is not loaded
 unless you ask for it.
 
+Two ways in. If your pipeline already emits **facts with ids** and traces that
+**cite** them (a report whose segments carry citation ids, a rationale with a
+differential, an ablation arm), feed the artefact straight to the fact ledger:
+every citation is checked against its fact, ignored facts are listed, the
+differential and criteria are checked, and the ablation tells you whether the
+stated discriminators were load-bearing. If you only have prose, the lexicon
+extractor turns documents into facts first.
+
+```bash
+traceaudit ledger audit tests/fixtures/enable_trace_case_003.md      # 24 checks on a structured trace artefact
+```
+
 What a researcher gets, for any domain:
 
 | Need | Tool |
@@ -24,6 +36,7 @@ What a researcher gets, for any domain:
 | Describe the domain | a lexicon (upload in the app, or a file); validated on load |
 | Get cases | upload documents with known answers (`traceaudit cases build`), or write a generator like the haematology one |
 | Check a single output | Analyse tab or `POST /api/analyse`: every factual claim graded against the documents, answer parsed, reasoning graph |
+| Audit a structured trace | `POST /api/ledger` or `traceaudit ledger audit`: citations graded against facts, coverage, differential and criteria checks, ablation verdict ([specs/18-fact-ledger.md](specs/18-fact-ledger.md)) |
 | Audit a model | counterfactual edits derived from the lexicon's own discriminator table (or authored rows), neutral edits, authority cues, three reasoning efforts, 5 runs |
 | Trust the instruments | a fault-injecting simulated model and a validation grid that must recover planted rates |
 | Report | case-clustered intervals, effort contrasts, viewer dashboard with exportable figures, a long table for mixed-effects models |

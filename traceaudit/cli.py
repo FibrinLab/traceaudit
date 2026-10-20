@@ -326,6 +326,24 @@ def cmd_cases(a) -> int:
     return 1 if (a.strict and problems) else 0
 
 
+def cmd_ledger(a) -> int:
+    from . import ledger as ledger_mod
+    from .importers import load as load_artefact
+    case, trace = load_artefact(a.file)
+    res = ledger_mod.audit(case, trace)
+    if a.json:
+        print(json.dumps(res, indent=1))
+        return 0
+    print(f"{res['case_id']}: decision {res['decision']} (truth {res['truth']}); {res['metrics']['checks_failed']} of {res['metrics']['checks_total']} checks failed")
+    for ch in res["checks"]:
+        print(f"  {ch['status']:4} {ch['title']}" + (f" — {ch['detail']}" if ch["detail"] else ""))
+    m = res["metrics"]
+    print(f"  facts {m['facts']} (patient {m['patient_facts']}, context {m['context_facts']}, reference {m['reference_facts']}); "
+          f"cited in report {m['cited_in_report']} (agree {m['cited_agree']}, disagree {m['cited_disagree']}, unverifiable {m['cited_unverifiable']}); "
+          f"ignored {m['ignored']} ({m['ignored_informative']} informative)")
+    return 1 if m["checks_failed"] else 0
+
+
 def cmd_manifest(a) -> int:
     from .experiment import manifest_check, read_manifest
     if a.action == "show":
@@ -424,6 +442,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("action", choices=["build"]); s.add_argument("documents", help="JSONL of {case_id, entity, documents{section: text}, truth?}")
     s.add_argument("-o", "--out", required=True); s.add_argument("--approve", action="store_true", help="mark the built cases approved for runs")
     s.add_argument("--strict", action="store_true", help="drop cases with problems and exit 1 if any"); s.set_defaults(fn=cmd_cases)
+    s = sub.add_parser("ledger", help="audit a structured trace artefact (facts + citations)")
+    s.add_argument("action", choices=["audit"]); s.add_argument("file", help="ENABLE-style markdown artefact"); s.add_argument("--json", action="store_true")
+    s.set_defaults(fn=cmd_ledger)
     s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p
