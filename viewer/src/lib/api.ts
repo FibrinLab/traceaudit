@@ -1,6 +1,7 @@
 // Typed client for the `traceaudit serve` HTTP API (specs/17-service.md §3).
 // No React here so it can be unit-tested with a stubbed fetch.
 import type { Claim, GroundingRecord, LexiconEntity, LexiconFinding, Polarity, ReasoningMap, Reports, Section } from '../types';
+export type { Reports };
 
 export interface ApiSettings {
   /** Origin or prefix of the service, e.g. `http://127.0.0.1:8080`. Empty means same origin. */
@@ -45,7 +46,8 @@ export interface Limits {
 }
 export interface Health {
   version: string;
-  lexicon_version: string;
+  /** Version of the operator-configured lexicon, when there is one; the service ships none. */
+  lexicon_version?: string | null;
   modes: string[];
   clients: string[];
   anonymous: string;
@@ -53,8 +55,8 @@ export interface Health {
   /** Client kinds that can run on the site's own key; the key field is hidden for these. Older services omit it. */
   operator_keys?: string[];
   limits?: Limits;
-  /** Domain of the default lexicon (e.g. "haematology") and its document sections. */
-  domain?: string;
+  /** Domain and document sections of the operator-configured lexicon; `null` / `[]` when none is configured. */
+  domain?: string | null;
   sections?: Section[];
 }
 /** Calls left in today's operator-key budget, or null when the service reports no limits. */
@@ -67,30 +69,31 @@ export function defaultClientKind(h: Health): string {
   return h.operator_keys?.find((k) => h.clients.includes(k)) ?? (h.clients.includes('sim') ? 'sim' : h.clients[0] ?? '');
 }
 export interface LexiconDisplay { version: string; entities: LexiconEntity[]; findings: LexiconFinding[]; domain?: string; sections?: Section[] }
-/** One row of `GET /api/lexicons`: the built-in lexicon (`id: "default"`) and uploads visible to the workspace. */
-export interface LexiconMeta { id: string; name?: string | null; domain: string; version: string; sections: Section[]; n_findings: number; n_entities: number; source: string }
-/** Human label for a lexicon row: "Haematology (built-in)", "Incident triage (uploaded)". */
+/** One row of `GET /api/lexicons`: the starter lexicons the service ships as examples (`source: "example"`, ids like
+ *  `example:incident-triage`) and the workspace's uploads (`source: "upload"`). There is no default lexicon. */
+export interface LexiconMeta { id: string; name?: string | null; domain: string; version: string; sections: Section[]; n_findings: number; n_entities: number; source: 'example' | 'upload' | string }
+/** Human label for a lexicon row: "Incident triage (example)", "Ops (uploaded)". */
 export function lexiconLabel(l: LexiconMeta): string {
   const base = (l.name && l.name !== l.domain ? l.name : titleFromDomain(l.domain)) || l.id;
-  return `${base} (${l.id === 'default' ? 'built-in' : l.source === 'upload' ? 'uploaded' : l.source})`;
+  return `${base} (${l.source === 'upload' ? 'uploaded' : l.source})`;
 }
 export function titleFromDomain(d: string): string {
   const s = d.replace(/[_-]+/g, ' ').trim();
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
 export interface CaseSet { id: string; name: string; n_cases: number; n_perturbations: number; approved: boolean; source: string; /** Not sent by the service yet; shown when present. */ domain?: string | null }
+/** Body of `POST /api/uploads`: a named case set as JSONL text (one case or perturbation per line). */
+export interface UploadCreate { name: string; cases: string; approved: boolean }
 
 export interface AnalyseRequest {
-  /** General form: `{ <section id>: text }` for any domain, with optional display titles. */
+  /** `{ <section id>: text }` for the chosen lexicon's sections, with display titles. */
   documents?: Record<string, string>;
   titles?: Record<string, string>;
-  /** Haematology shorthand, still accepted by the service. */
-  reports?: Partial<Reports>;
   reasoning: string;
   answer: string;
   truth?: Record<string, Polarity>;
   entity?: string;
-  /** `default` or an uploaded lexicon id; omitted means the service default. */
+  /** An example or uploaded lexicon id. The service has no default: without a usable id it answers `lexicon_required`. */
   lexicon_id?: string;
 }
 export interface AnalyseCase { case_id: string; entity: string | null; reports: Reports; truth: Record<string, Polarity>; finding_spans: Record<string, import('../types').FindingSpan[]>; sections?: Section[] | null }
@@ -192,6 +195,7 @@ export const PLAIN_ERRORS: Record<string, string> = {
   budget_exhausted: 'The site\'s daily budget for its own key is used up. Try again tomorrow, or run the job on your own key.',
   bad_lexicon: 'That file is not a lexicon the service can load. It needs version, domain, sections, entities and findings; see examples/lexicon-incident-triage.json.',
   lexicon_not_found: 'The chosen lexicon is no longer on the service. Pick another one or upload it again.',
+  lexicon_required: 'Choose a lexicon first. The service has no default: pick an example or upload your own.',
 };
 
 export function describeError(e: unknown): string {
@@ -207,12 +211,14 @@ export interface ApiClient {
   url: (path: string) => string;
   headers: (extra?: Record<string, string>) => Record<string, string>;
   health: () => Promise<Health>;
-  /** One lexicon's display data; `id` omitted or `default` is the service's built-in one. */
-  lexicon: (id?: string) => Promise<LexiconDisplay>;
+  /** One lexicon's display data, by example or upload id. */
+  lexicon: (id: string) => Promise<LexiconDisplay>;
   lexicons: () => Promise<LexiconMeta[]>;
   /** Upload a lexicon JSON document (the file's text); resolves to its metadata, which includes the new id. */
   uploadLexicon: (lexiconJson: string, name?: string) => Promise<LexiconMeta>;
   caseSets: () => Promise<CaseSet[]>;
+  /** Upload a case set (JSONL text); resolves to the new case set as `/api/case-sets` lists it. */
+  createUpload: (req: UploadCreate) => Promise<CaseSet>;
   analyse: (req: AnalyseRequest) => Promise<AnalyseResponse>;
   createJob: (req: JobCreate) => Promise<{ job_id: string }>;
   listJobs: () => Promise<JobSummary[]>;
@@ -248,10 +254,11 @@ export function createApi(settings: ApiSettings, fetchImpl: typeof fetch = (...a
     url,
     headers,
     health: () => request<Health>('/api/health'),
-    lexicon: (id) => request<LexiconDisplay>(id && id !== 'default' ? `/api/lexicon?id=${encodeURIComponent(id)}` : '/api/lexicon'),
+    lexicon: (id) => request<LexiconDisplay>(`/api/lexicon?id=${encodeURIComponent(id)}`),
     lexicons: () => request<LexiconMeta[]>('/api/lexicons'),
     uploadLexicon: (lexiconJson, name) => request<LexiconMeta>('/api/lexicons', json(name ? { lexicon: lexiconJson, name } : { lexicon: lexiconJson })),
     caseSets: () => request<CaseSet[]>('/api/case-sets'),
+    createUpload: (req) => request<CaseSet>('/api/uploads', json(req)),
     analyse: (req) => request<AnalyseResponse>('/api/analyse', json(req)),
     createJob: (req) => request<{ job_id: string }>('/api/jobs', json(req)),
     listJobs: () => request<JobSummary[]>('/api/jobs'),

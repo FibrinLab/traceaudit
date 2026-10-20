@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import type { CaseFile, Lexicon, Variant } from '../types';
 import { entityColor, entityShort } from '../lib/palette';
 import { findingDisplay } from '../lib/format';
+import { hubFontSize } from './LexiconAtlas';
 import { ChartFrame } from './ChartFrame';
 import { useTooltip } from './Tooltip';
 
@@ -97,7 +98,7 @@ export function CaseConstellation({ caseFile, lexicon, selectedVariant, onSelect
           );
         })}
         <circle cx={cx} cy={cy} r={34} fill={entityColor(lexicon, ent)} stroke="var(--ink-2)" strokeWidth={3} />
-        <text x={cx} y={cy + 4.5} textAnchor="middle" style={{ fontSize: ent === 'CLL_SLL' ? 11 : 13, fontWeight: 600, fill: 'var(--ink)' }}>{entityShort(ent)}</text>
+        <text x={cx} y={cy + 4.5} textAnchor="middle" style={{ fontSize: hubFontSize(entityShort(ent)) + 1, fontWeight: 700, fill: 'var(--ink)' }}>{entityShort(ent)}</text>
         {variant?.perturbation?.cue && <text x={cx} y={cy + 56} textAnchor="middle" style={{ fontSize: 11.5, fill: 'var(--cue)' }}>▲ cue: {entityShort(variant.perturbation.cue.entity)} ({variant.perturbation.cue.correct ? 'correct' : 'wrong'})</text>}
         {variant?.perturbation?.expected_entity && <text x={cx} y={cy + 56} textAnchor="middle" style={{ fontSize: 11.5, fill: 'var(--edited)' }}>✎ expected to become {entityShort(variant.perturbation.expected_entity)}</text>}
       </svg>

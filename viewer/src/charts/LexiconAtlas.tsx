@@ -44,6 +44,8 @@ export function layoutAtlas(atlas: Atlas): { nodes: SimNode[]; links: SimLink[] 
 }
 
 function satR(n: AtlasNode): number { return 4 + Math.sqrt(n.size) * 1.1; }
+/** Hub labels shrink with length so any lexicon's ids fit the 26px disc. */
+export function hubFontSize(label: string): number { return label.length <= 4 ? 12 : label.length <= 7 ? 10 : label.length <= 10 ? 8 : 7; }
 
 interface Props {
   lexicon: Lexicon;
@@ -198,7 +200,7 @@ export function LexiconAtlas({ lexicon, asserted, problems, filterEntity, filter
               onClick={() => activate(n)} onKeyDown={(e) => onKey(e, n)}>
               <circle r={26} fill={entityColor(lexicon, n.id)} stroke="var(--ink-2)" strokeWidth={3} />
               {filterEntity === n.id && <circle r={31} fill="none" stroke="var(--focus)" strokeWidth={2} />}
-              <text textAnchor="middle" y={4} style={{ fontSize: n.id === 'CLL_SLL' ? 10.5 : 12, fontWeight: 600, fill: 'var(--ink)' }}>{entityShort(n.id)}</text>
+              <text textAnchor="middle" y={4} style={{ fontSize: hubFontSize(entityShort(n.id)), fontWeight: 700, fill: 'var(--ink)' }}>{entityShort(n.id)}</text>
             </g>
           );
         })}

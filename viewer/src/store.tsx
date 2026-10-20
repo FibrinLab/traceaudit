@@ -6,17 +6,23 @@ import { settingsKey } from './lib/ratings';
 export interface Settings {
   backendUrl: string;
   backendToken: string;
+  /** Light is the default. "auto" follows the operating system; it is never chosen for the user. */
   theme: 'auto' | 'light' | 'dark';
   showLinkedMentions: boolean;
 }
 
-const DEFAULT_SETTINGS: Settings = { backendUrl: '', backendToken: '', theme: 'auto', showLinkedMentions: false };
+const DEFAULT_SETTINGS: Settings = { backendUrl: '', backendToken: '', theme: 'light', showLinkedMentions: false };
+const GLOBAL_SETTINGS_KEY = 'traceaudit:settings';
 
 export type Mode = 'explore' | 'rate' | 'review';
 
+/** idle: nothing requested (the Analyse pages are the landing); pick: the user asked to load a bundle (the Load
+ *  bundle panel is shown); loading / ready / error follow a requested bundle. */
+export type Status = 'idle' | 'pick' | 'loading' | 'ready' | 'error';
+
 interface State {
   bundle: Bundle | null;
-  status: 'idle' | 'loading' | 'ready' | 'error';
+  status: Status;
   error: string | null;
   /** The URL the current (or last requested) bundle was loaded from; null for files and in-memory bundles. */
   bundleUrl: string | null;
@@ -33,7 +39,10 @@ type Action =
   | { type: 'settings'; settings: Partial<Settings> }
   | { type: 'mode'; mode: Mode }
   | { type: 'caseLoaded' }
-  | { type: 'reset' };
+  /** Drop the bundle and show the Load bundle panel. */
+  | { type: 'reset' }
+  /** Drop the bundle and the panel: back to the no-results state. */
+  | { type: 'idle' };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -42,25 +51,31 @@ function reducer(state: State, action: Action): State {
     case 'error': return { ...state, status: 'error', error: action.error };
     case 'settings': {
       const settings = { ...state.settings, ...action.settings };
-      if (state.bundle) saveSettings(state.bundle.index.run.run_id, settings);
+      saveSettings(state.bundle?.index.run.run_id ?? null, settings);
       return { ...state, settings };
     }
     case 'mode': return { ...state, mode: action.mode };
     case 'caseLoaded': return { ...state, caseVersion: state.caseVersion + 1 };
-    case 'reset': return { ...state, bundle: null, status: 'idle', error: null };
+    case 'reset': return { ...state, bundle: null, status: 'pick', error: null };
+    case 'idle': return { ...state, bundle: null, status: 'idle', error: null };
   }
 }
 
-function loadSettings(runId: string): Settings {
-  try {
-    const raw = localStorage.getItem(settingsKey(runId)) ?? localStorage.getItem('traceaudit:settings');
-    return raw ? { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) } : DEFAULT_SETTINGS;
-  } catch { return DEFAULT_SETTINGS; }
+function parseSettings(raw: string | null): Settings | null {
+  if (!raw) return null;
+  try { return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) }; } catch { return null; }
 }
-function saveSettings(runId: string, s: Settings): void {
+/** Settings before any bundle is loaded: the last ones saved in this browser, else the defaults (light theme). */
+function initialSettings(): Settings {
+  try { return parseSettings(localStorage.getItem(GLOBAL_SETTINGS_KEY)) ?? DEFAULT_SETTINGS; } catch { return DEFAULT_SETTINGS; }
+}
+function loadSettings(runId: string): Settings {
+  try { return parseSettings(localStorage.getItem(settingsKey(runId))) ?? parseSettings(localStorage.getItem(GLOBAL_SETTINGS_KEY)) ?? DEFAULT_SETTINGS; } catch { return DEFAULT_SETTINGS; }
+}
+function saveSettings(runId: string | null, s: Settings): void {
   try {
-    localStorage.setItem(settingsKey(runId), JSON.stringify(s));
-    localStorage.setItem('traceaudit:settings', JSON.stringify(s));
+    if (runId) localStorage.setItem(settingsKey(runId), JSON.stringify(s));
+    localStorage.setItem(GLOBAL_SETTINGS_KEY, JSON.stringify(s));
   } catch { /* storage unavailable */ }
 }
 
@@ -77,7 +92,7 @@ interface StoreValue extends State {
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children, autoload = true }: { children: ReactNode; autoload?: boolean }) {
-  const [state, dispatch] = useReducer(reducer, { bundle: null, status: 'idle', error: null, bundleUrl: null, settings: DEFAULT_SETTINGS, mode: 'explore', caseVersion: 0 });
+  const [state, dispatch] = useReducer(reducer, undefined, () => ({ bundle: null, status: 'idle' as Status, error: null, bundleUrl: null, settings: initialSettings(), mode: 'explore' as Mode, caseVersion: 0 }));
 
   const openBundle = useCallback(async (url: string, headers?: Record<string, string>): Promise<boolean> => {
     dispatch({ type: 'loading', url });
@@ -92,19 +107,29 @@ export function StoreProvider({ children, autoload = true }: { children: ReactNo
   }, []);
   const loadFromUrl = useCallback(async (url: string) => { await openBundle(url); }, [openBundle]);
 
+  // Only a `?bundle=<url>` on the address loads anything at start; otherwise the viewer opens on Analyse with no results.
   useEffect(() => {
     if (!autoload) return;
+    const url = bundleUrlFromLocation();
+    if (!url) return;
     if (window.location.protocol === 'file:') {
       // fetch() of local files is blocked in most browsers; show the picker instead.
       dispatch({ type: 'error', error: 'Opened from file:// — use the Load bundle panel to pick the exported folder or bundle.json.' });
       return;
     }
-    void loadFromUrl(bundleUrlFromLocation());
+    void loadFromUrl(url);
   }, [autoload, loadFromUrl]);
 
+  // The theme is always resolved to light or dark on <html>, so the stylesheet never guesses: "System" follows the OS.
   useEffect(() => {
     const t = state.settings.theme;
-    document.documentElement.dataset.theme = t === 'auto' ? '' : t;
+    const root = document.documentElement;
+    if (t !== 'auto') { root.dataset.theme = t; return; }
+    const mq = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    const apply = () => { root.dataset.theme = mq?.matches ? 'dark' : 'light'; };
+    apply();
+    mq?.addEventListener?.('change', apply);
+    return () => mq?.removeEventListener?.('change', apply);
   }, [state.settings.theme]);
 
   const value = useMemo<StoreValue>(() => ({

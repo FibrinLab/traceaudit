@@ -1,28 +1,43 @@
-// Colour roles: entity categorical (fixed slot order, validated in tokens.css), ordinal greys-to-accent, and status tokens.
+// Colour roles: category categorical slots (taken from the bundle's lexicon, validated in tokens.css), ordinal
+// greys-to-accent, and status tokens. Nothing here knows any particular domain.
 import type { Lexicon, Outcome } from '../types';
 
-export const ENTITY_ORDER = ['CLL_SLL', 'MCL', 'FL', 'HCL', 'LPL', 'MZL'] as const;
-export type EntitySlot = (typeof ENTITY_ORDER)[number];
+/** The number of categorical colour slots in tokens.css (`--entity-1` … `--entity-6`). */
+export const MAX_ENTITY_SLOTS = 6;
 
-/** Short entity label for chart marks and legends. */
+/** The lexicon's top-level in-scope categories in declared order: these take the colour slots, one each, up to six.
+ *  Sub-categories fold to their parent's slot; anything else (out of scope, beyond six, unresolved) is grey. */
+export function entityOrder(lexicon: Lexicon | undefined | null): string[] {
+  if (!lexicon) return [];
+  return lexicon.entities.filter((e) => e.in_scope !== false && !e.parent).map((e) => e.id).slice(0, MAX_ENTITY_SLOTS);
+}
+
+/** Short category label for chart marks and legends: the id as the lexicon spells it. */
 export function entityShort(id: string | null | undefined): string {
-  if (!id) return 'unresolved';
-  if (id === 'CLL_SLL') return 'CLL/SLL';
-  if (id === 'UNRESOLVED') return 'unresolved';
+  if (!id || id === 'UNRESOLVED') return 'unresolved';
   return id;
 }
 
-/** Fold a sub-entity (WM, SMZL…) to its colour slot via the lexicon parent; others to the neutral slot. */
-export function entitySlot(lexicon: Lexicon | undefined, id: string | null | undefined): EntitySlot | 'other' {
-  if (!id) return 'other';
-  if ((ENTITY_ORDER as readonly string[]).includes(id)) return id as EntitySlot;
-  const e = lexicon?.entities.find((x) => x.id === id);
-  if (e?.parent && (ENTITY_ORDER as readonly string[]).includes(e.parent)) return e.parent as EntitySlot;
-  return 'other';
+/** The 1-based colour slot of a category, via its parent for sub-categories; 'other' for the neutral slot. */
+export function entitySlot(lexicon: Lexicon | undefined | null, id: string | null | undefined): number | 'other' {
+  if (!id || !lexicon) return 'other';
+  const order = entityOrder(lexicon);
+  const direct = order.indexOf(id);
+  if (direct >= 0) return direct + 1;
+  const e = lexicon.entities.find((x) => x.id === id);
+  const viaParent = e?.parent ? order.indexOf(e.parent) : -1;
+  return viaParent >= 0 ? viaParent + 1 : 'other';
 }
 
-export function entityColor(lexicon: Lexicon | undefined, id: string | null | undefined): string {
+export function entityColor(lexicon: Lexicon | undefined | null, id: string | null | undefined): string {
   return `var(--entity-${entitySlot(lexicon, id)})`;
+}
+
+/** Order a set of category ids: lexicon slot order first, then anything else alphabetically. */
+export function orderEntities(lexicon: Lexicon | undefined | null, ids: Iterable<string>): string[] {
+  const present = new Set(ids);
+  const order = entityOrder(lexicon);
+  return [...order.filter((e) => present.has(e)), ...[...present].filter((e) => !order.includes(e)).sort()];
 }
 
 export const OUTCOME_COLOR: Record<Outcome, string> = {

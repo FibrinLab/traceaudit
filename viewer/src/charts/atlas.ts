@@ -1,7 +1,7 @@
 // Lexicon Atlas graph builder: entity hubs in a ring, finding satellites, expected-polarity edges.
 // Pure (no d3); the force layout runs in LexiconAtlas.tsx. Unit-tested.
 import type { Lexicon } from '../types';
-import { ENTITY_ORDER } from '../lib/palette';
+import { entityOrder } from '../lib/palette';
 
 export interface AtlasNode {
   id: string;
@@ -25,12 +25,13 @@ export interface AtlasInputs {
   asserted: Map<string, number>;
   /** finding → contradicted + unsupported claim counts (summary.grounding.per_finding or recomputed). */
   problems: Map<string, number>;
+  /** Hub order; defaults to the lexicon's top-level in-scope categories (the colour slots). */
   entities?: readonly string[];
   /** Include findings with neither a discriminator edge nor an assertion (default false). */
   includeIsolated?: boolean;
 }
 
-export function buildAtlas({ lexicon, asserted, problems, entities = ENTITY_ORDER, includeIsolated = false }: AtlasInputs): Atlas {
+export function buildAtlas({ lexicon, asserted, problems, entities = entityOrder(lexicon), includeIsolated = false }: AtlasInputs): Atlas {
   const disc = lexicon.discriminators ?? {};
   const nodes: AtlasNode[] = [];
   const edges: AtlasEdge[] = [];

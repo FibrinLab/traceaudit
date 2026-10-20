@@ -13,9 +13,9 @@ export interface BuildOptions {
   now?: Date;
 }
 
-/** The documents the case has, in section order: the response's, else the request's (`documents` or `reports`). */
+/** The documents the case has, in section order: the response's, else the request's. */
 function caseDocuments(req: AnalyseRequest, res: AnalyseResponse): { reports: Reports; sections: Section[] } {
-  const source: Partial<Reports> = res.case?.reports ?? req.documents ?? req.reports ?? {};
+  const source: Partial<Reports> = res.case?.reports ?? req.documents ?? {};
   const declared = res.case?.sections ?? (req.titles ? Object.keys(req.documents ?? {}).map((id) => ({ id, title: req.titles?.[id] ?? id })) : null);
   const sections = sectionsFor(source, declared);
   const reports: Reports = {};

@@ -3,7 +3,7 @@ import { chordDirected, ribbonArrow, type Chord, type ChordGroup } from 'd3-chor
 import { arc } from 'd3-shape';
 import type { Lexicon } from '../types';
 import type { TraceRow } from '../lib/cohort';
-import { ENTITY_ORDER, entityColor, entityShort } from '../lib/palette';
+import { entityColor, entityShort, orderEntities } from '../lib/palette';
 import { pct } from '../lib/format';
 import { ChartFrame } from './ChartFrame';
 import { useTooltip } from './Tooltip';
@@ -21,7 +21,7 @@ export function AuthorityChord({ rows, lexicon, onFilterEntity }: { rows: TraceR
     const wrong = rows.filter((r) => r.edit_kind === 'authority_wrong' && r.base_stable && r.outcome && r.outcome !== 'already_agreed');
     const present = new Set<string>();
     for (const r of wrong) { present.add(r.base_modal_entity ?? 'UNRESOLVED'); present.add(r.answer_entity ?? 'UNRESOLVED'); }
-    const names = [...ENTITY_ORDER.filter((e) => present.has(e)), ...[...present].filter((e) => !(ENTITY_ORDER as readonly string[]).includes(e)).sort()];
+    const names = orderEntities(lexicon, present);
     const idx = new Map(names.map((e, i) => [e, i]));
     const matrix = names.map(() => names.map(() => 0));
     const cells = new Map<string, Cell>();
@@ -36,7 +36,7 @@ export function AuthorityChord({ rows, lexicon, onFilterEntity }: { rows: TraceR
       cells.set(k, c);
     }
     return { names, matrix, cells, n: wrong.length };
-  }, [rows]);
+  }, [rows, lexicon]);
 
   const chords = useMemo(() => (names.length ? chordDirected().padAngle(0.05).sortSubgroups((a, b) => b - a)(matrix) : null), [names, matrix]);
   const arcGen = arc<ChordGroup>().innerRadius(R).outerRadius(R + 14);

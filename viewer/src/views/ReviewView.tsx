@@ -149,7 +149,7 @@ function PerturbationReview({ v, base, sections, item, onChange }: { v: Variant;
         </div>
       )}
       <div style={{ marginTop: 8 }}>
-        <DecisionForm item={item} onChange={onChange} name={v.variant} checklist={['Is the edited case still internally coherent?', 'Is the expected answer or behaviour what you would conclude?', 'Is the edit conspicuous in a way a real report would not be?']} />
+        <DecisionForm item={item} onChange={onChange} name={v.variant} checklist={['Is the edited case still internally coherent?', 'Is the expected answer or behaviour what you would conclude?', 'Is the edit conspicuous in a way a real document would not be?']} />
       </div>
     </section>
   );

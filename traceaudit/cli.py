@@ -302,8 +302,10 @@ def cmd_serve(a) -> int:
                                   allow_clients=a.allow_clients or os.environ.get("TRACEAUDIT_ALLOW_CLIENTS") or "sim",
                                   rate_per_min=a.rate, extra_cases=a.cases, operator_keys=op_keys,
                                   max_calls_per_job=a.max_calls_per_job or int(os.environ.get("TRACEAUDIT_MAX_CALLS_PER_JOB") or 200),
-                                  max_calls_per_day=a.max_calls_per_day or int(os.environ.get("TRACEAUDIT_MAX_CALLS_PER_DAY") or 2000))
-    print(f"traceaudit serve on http://{a.host}:{a.port} (root {a.root}, clients {sorted(cfg.allow_clients)}, anonymous {cfg.anonymous}, "
+                                  max_calls_per_day=a.max_calls_per_day or int(os.environ.get("TRACEAUDIT_MAX_CALLS_PER_DAY") or 2000),
+                                  domain=a.domain or os.environ.get("TRACEAUDIT_DOMAIN") or None, lexicon=a.default_lexicon,
+                                  examples_dir=a.examples or os.environ.get("TRACEAUDIT_EXAMPLES") or None)
+    print(f"traceaudit serve on http://{a.host}:{a.port} (root {a.root}, domain {cfg.domain or cfg.lexicon_path or 'none built in'}, clients {sorted(cfg.allow_clients)}, anonymous {cfg.anonymous}, "
           f"site keys for {sorted(cfg.operator_keys) or 'none'}, caps {cfg.max_calls_per_job}/job {cfg.max_calls_per_day}/day)", file=sys.stderr)
     serve_forever(cfg)
     return 0
@@ -414,6 +416,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--operator-key", action="append", default=[], metavar="KIND=ENV",
                    help="let jobs of this client kind run on a key held by the site, read from the named environment variable, e.g. anthropic=ANTHROPIC_API_KEY")
     s.add_argument("--max-calls-per-job", type=int, default=None); s.add_argument("--max-calls-per-day", type=int, default=None)
+    s.add_argument("--domain", default=None, help="offer a packaged domain by default (e.g. haematology); default none built in")
+    s.add_argument("--default-lexicon", default=None, help="offer this lexicon file as the default domain")
+    s.add_argument("--examples", default=None, help="directory of starter lexicons (lexicon-<name>.json); default: examples/")
     s.set_defaults(fn=cmd_serve)
     s = sub.add_parser("cases", help="build cases from documents with known answers (any domain)")
     s.add_argument("action", choices=["build"]); s.add_argument("documents", help="JSONL of {case_id, entity, documents{section: text}, truth?}")

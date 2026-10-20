@@ -137,7 +137,8 @@ export async function loadBundleFromDirectoryHandle(dir: FileSystemDirectoryHand
   });
 }
 
-export function bundleUrlFromLocation(search: string = window.location.search): string {
+/** The `?bundle=<url>` parameter, or null when the address names no bundle (nothing is packaged with the viewer). */
+export function bundleUrlFromLocation(search: string = window.location.search): string | null {
   const params = new URLSearchParams(search);
-  return params.get('bundle') || './demo/';
+  return params.get('bundle') || null;
 }

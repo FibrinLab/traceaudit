@@ -1,40 +1,39 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { Lexicon } from '../types';
 import { assertionCounts, buildAtlas, neighbours } from '../charts/atlas';
 import { layoutAtlas } from '../charts/LexiconAtlas';
+import { makeIncidentBundle } from './fixtures/incidentBundle';
 
-const index = JSON.parse(readFileSync(resolve(__dirname, '../../public/demo/index.json'), 'utf8'));
-const lexicon = index.lexicon as Lexicon;
+const { lexicon } = makeIncidentBundle();
 
 describe('buildAtlas', () => {
-  it('places six entity hubs on a ring and links findings by expected polarity', () => {
-    const asserted = new Map([['CD5', 10], ['CD23', 4]]);
-    const problems = new Map([['CD5', 5]]);
+  it('places the lexicon categories as hubs on a ring and links findings by expected polarity', () => {
+    const asserted = new Map([['recent_deploy', 10], ['cpu_saturated', 4]]);
+    const problems = new Map([['recent_deploy', 5]]);
     const atlas = buildAtlas({ lexicon, asserted, problems });
     const hubs = atlas.nodes.filter((n) => n.kind === 'entity');
-    expect(hubs.map((h) => h.id)).toEqual(['CLL_SLL', 'MCL', 'FL', 'HCL', 'LPL', 'MZL']);
+    expect(hubs.map((h) => h.id)).toEqual(['BAD_DEPLOY', 'CAPACITY', 'DATABASE', 'DISK']);
+    expect(hubs[0].label).toBe('Faulty deployment');
     for (const h of hubs) expect(Math.hypot(h.ring!.x, h.ring!.y)).toBeCloseTo(1, 6);
-    const cd5 = atlas.nodes.find((n) => n.id === 'CD5')!;
-    expect(cd5.size).toBe(10);
-    expect(cd5.heat).toBeCloseTo(0.5);
-    expect(atlas.edges.find((e) => e.source === 'CD5' && e.target === 'CLL_SLL')?.expected).toBe('pos');
-    expect(atlas.edges.find((e) => e.source === 'CD5' && e.target === 'FL')?.expected).toBe('neg');
+    const rd = atlas.nodes.find((n) => n.id === 'recent_deploy')!;
+    expect(rd.size).toBe(10);
+    expect(rd.heat).toBeCloseTo(0.5);
+    expect(atlas.edges.find((e) => e.source === 'recent_deploy' && e.target === 'BAD_DEPLOY')?.expected).toBe('pos');
+    expect(atlas.edges.find((e) => e.source === 'recent_deploy' && e.target === 'CAPACITY')?.expected).toBe('neg');
     // "var" discriminators draw no edge
-    expect(atlas.edges.find((e) => e.source === 'CD5' && e.target === 'MZL')).toBeUndefined();
-    expect(neighbours(atlas, 'CD5').has('CLL_SLL')).toBe(true);
-    expect(atlas.nodes.find((n) => n.id === 'MCL')!.size).toBe(atlas.edges.filter((e) => e.target === 'MCL').length);
+    expect(atlas.edges.find((e) => e.source === 'cpu_saturated' && e.target === 'BAD_DEPLOY')).toBeUndefined();
+    expect(neighbours(atlas, 'recent_deploy').has('BAD_DEPLOY')).toBe(true);
+    expect(atlas.nodes.find((n) => n.id === 'CAPACITY')!.size).toBe(atlas.edges.filter((e) => e.target === 'CAPACITY').length);
   });
   it('drops isolated findings unless asked to keep them', () => {
-    const lx: Lexicon = { ...lexicon, findings: [...lexicon.findings, { id: 'orphan', display: 'Orphan', kind: 'clinical' }] };
+    const lx: Lexicon = { ...lexicon, findings: [...lexicon.findings, { id: 'orphan', display: 'Orphan', kind: 'other' }] };
     expect(buildAtlas({ lexicon: lx, asserted: new Map(), problems: new Map() }).nodes.some((n) => n.id === 'orphan')).toBe(false);
     expect(buildAtlas({ lexicon: lx, asserted: new Map(), problems: new Map(), includeIsolated: true }).nodes.some((n) => n.id === 'orphan')).toBe(true);
   });
   it('counts assertions per finding', () => {
-    const m = assertionCounts([['CD5', 'CD5', 'CD23'], ['CD23']]);
-    expect(m.get('CD5')).toBe(2);
-    expect(m.get('CD23')).toBe(2);
+    const m = assertionCounts([['recent_deploy', 'recent_deploy', 'cpu_saturated'], ['cpu_saturated']]);
+    expect(m.get('recent_deploy')).toBe(2);
+    expect(m.get('cpu_saturated')).toBe(2);
   });
 });
 

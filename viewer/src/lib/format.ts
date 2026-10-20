@@ -98,9 +98,10 @@ export function formatDuration(ms: number): string {
   return `${Math.floor(min / 60)} h ${min % 60} min`;
 }
 
-/** Parse the answer line ("Answer:", "Diagnosis:", "Integrated diagnosis:", "Conclusion:" or "Root cause:") and the confidence line from a model answer. */
-export function parseAnswer(answer: string): { diagnosis: string | null; confidence: string | null } {
-  const dx = /^\s*(?:integrated diagnosis|diagnosis|answer|conclusion|root cause)\s*:\s*(.+)/im.exec(answer);
+/** Parse the answer line (any of "Answer:", "Conclusion:", "Root cause:", "Diagnosis:", "Integrated diagnosis:") and the
+ *  confidence line from a model answer; the prefixes are whatever answer formats the lexicons in use ask for. */
+export function parseAnswer(answer: string): { label: string | null; confidence: string | null } {
+  const dx = /^\s*(?:answer|conclusion|root cause|integrated diagnosis|diagnosis)\s*:\s*(.+)/im.exec(answer);
   const conf = /Confidence:\s*(\w+)/i.exec(answer);
-  return { diagnosis: dx ? dx[1].trim() : null, confidence: conf ? conf[1].toLowerCase() : null };
+  return { label: dx ? dx[1].trim() : null, confidence: conf ? conf[1].toLowerCase() : null };
 }

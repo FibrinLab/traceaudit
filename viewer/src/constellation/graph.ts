@@ -53,7 +53,7 @@ export function sourceFindings(variant: Pick<Variant, 'finding_spans' | 'truth_a
     const first = list.slice().sort((a, b) => order(a.report) - order(b.report) || a.start - b.start)[0];
     items.push({ findingId: fid, report: first.report, start: first.start, polarity: truth[fid] ?? first.polarity });
   }
-  for (const [fid, pol] of Object.entries(truth)) if (!spans[fid]?.length) items.push({ findingId: fid, report: sections[0]?.id ?? 'clinical', start: 1e9, polarity: pol });
+  for (const [fid, pol] of Object.entries(truth)) if (!spans[fid]?.length) items.push({ findingId: fid, report: sections[0]?.id ?? '', start: 1e9, polarity: pol });
   items.sort((a, b) => order(a.report) - order(b.report) || a.start - b.start);
   return items.map((it, i) => ({
     id: `f:${it.findingId}`, band: 0, shape: 'finding', label: shorten(lexicon.findings.find((f) => f.id === it.findingId)?.display ?? it.findingId, 26),

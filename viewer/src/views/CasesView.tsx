@@ -18,11 +18,11 @@ export function CasesView() {
     <div>
       <h1>Cases</h1>
       <p className="lede">
-        {index.cases.length} synthetic cases, {index.summary.counts.traces} traces.
+        {index.cases.length} case{index.cases.length === 1 ? '' : 's'}, {index.summary.counts.traces} trace{index.summary.counts.traces === 1 ? '' : 's'}.
         {index.study ? <> Study <strong>{index.study.study_id}</strong> is attached with {index.study.rating_set.length} traces in the rating set.</> : <> No study is attached, so case review is available.</>}
       </p>
       <div className="filters" style={{ margin: '8px 0 16px' }}>
-        <label className="field"><span>Case id</span><input type="search" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="CLL-001" /></label>
+        <label className="field"><span>Case id</span><input type="search" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter by id" /></label>
         <label className="field"><span>Category</span>
           <select value={entity} onChange={(e) => setEntity(e.target.value)}>
             <option value="">All categories</option>

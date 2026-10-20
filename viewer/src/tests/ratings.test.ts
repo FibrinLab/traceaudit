@@ -6,7 +6,7 @@ import {
   type RatingState,
 } from '../lib/ratings';
 
-const schema = JSON.parse(readFileSync(resolve(__dirname, '../../public/demo/ratings-schema.json'), 'utf8')) as {
+const schema = JSON.parse(readFileSync(resolve(__dirname, 'fixtures/ratings-schema.json'), 'utf8')) as {
   required: string[]; properties: Record<string, { type?: string | string[]; enum?: string[]; const?: unknown; pattern?: string; minimum?: number; maximum?: number }>;
 };
 
@@ -16,14 +16,14 @@ function memStorage() {
 }
 
 function completeState(): RatingState {
-  const r = emptyTraceRating('CLL-001|base|medium|2', 14, '2026-12-01T10:02:11Z');
+  const r = emptyTraceRating('INC-001|base|medium|2', 14, '2026-12-01T10:02:11Z');
   for (const d of DIMENSIONS) r.scores[d] = 3;
   r.scores.D7 = 2;
   r.error_tags = ['logical_leap', 'overconfidence'];
   r.comment = 'Reasonable but overconfident.';
   r.submitted_at = '2026-12-01T10:06:40Z';
   r.duration_ms = 269000;
-  const incomplete = emptyTraceRating('CLL-001|base|low|1', 15, '2026-12-01T10:07:00Z');
+  const incomplete = emptyTraceRating('INC-001|base|low|1', 15, '2026-12-01T10:07:00Z');
   incomplete.scores.D1 = 4;
   return {
     session: { rater_id: 'R01', study_id: 'pilot-1', session_id: 'sess-1', order: [r.trace_key, incomplete.trace_key], started_at: '2026-12-01T10:00:00Z' },
@@ -77,8 +77,8 @@ describe('tags and completeness', () => {
   });
   it('requires all seven scores and at least one tag', () => {
     const s = completeState();
-    expect(isComplete(s.ratings['CLL-001|base|medium|2'])).toBe(true);
-    expect(isComplete(s.ratings['CLL-001|base|low|1'])).toBe(false);
+    expect(isComplete(s.ratings['INC-001|base|medium|2'])).toBe(true);
+    expect(isComplete(s.ratings['INC-001|base|low|1'])).toBe(false);
     expect(isComplete(undefined)).toBe(false);
   });
 });
@@ -99,14 +99,14 @@ describe('export format (spec 12 §5)', () => {
     expect(d7.error_tags).toBeNull();
     expect(d7.comment).toBeNull();
     for (const r of recs) {
-      expect(r).toMatchObject({ schema_version: 1, study_id: 'pilot-1', rater_id: 'R01', session_id: 'sess-1', trace_key: 'CLL-001|base|medium|2', presentation_index: 14, started_at: '2026-12-01T10:02:11Z', submitted_at: '2026-12-01T10:06:40Z', duration_ms: 269000, blinded: true, viewer_version: '0.1.0', bundle_run_id: meta.bundle_run_id });
+      expect(r).toMatchObject({ schema_version: 1, study_id: 'pilot-1', rater_id: 'R01', session_id: 'sess-1', trace_key: 'INC-001|base|medium|2', presentation_index: 14, started_at: '2026-12-01T10:02:11Z', submitted_at: '2026-12-01T10:06:40Z', duration_ms: 269000, blinded: true, viewer_version: '0.1.0', bundle_run_id: meta.bundle_run_id });
       expect(validateRecord(r)).toEqual([]);
       expect(checkAgainstSchema(r as unknown as Record<string, unknown>)).toEqual([]);
     }
   });
   it('can include incomplete traces when asked', () => {
     const recs = ratingRecords(completeState(), meta, true);
-    expect(recs.filter((r) => r.trace_key === 'CLL-001|base|low|1').map((r) => r.dimension)).toEqual(['D1']);
+    expect(recs.filter((r) => r.trace_key === 'INC-001|base|low|1').map((r) => r.dimension)).toEqual(['D1']);
   });
   it('serialises as JSONL with a trailing newline', () => {
     const txt = toJsonl(ratingRecords(completeState(), meta));

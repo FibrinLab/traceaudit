@@ -1,13 +1,14 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Lexicon } from '../types';
 import type { TraceRow } from '../lib/cohort';
-import { ENTITY_ORDER, entityColor, entityShort, heat } from '../lib/palette';
+import { entityColor, entityShort, heat, orderEntities } from '../lib/palette';
 import { findingDisplay } from '../lib/format';
 import { ChartFrame } from './ChartFrame';
 import { useTooltip } from './Tooltip';
 
-/** Finding × case entity: how many claims about the finding were contradicted or unsupported in traces of that entity. */
-export function buildHeat(rows: TraceRow[]): { findings: string[]; entities: string[]; cell: Map<string, { contradicted: number; unsupported: number }> } {
+/** Finding × case category: how many claims about the finding were contradicted or unsupported in traces of that category.
+ *  Columns follow the lexicon's category order. */
+export function buildHeat(rows: TraceRow[], lexicon?: Lexicon): { findings: string[]; entities: string[]; cell: Map<string, { contradicted: number; unsupported: number }> } {
   const cell = new Map<string, { contradicted: number; unsupported: number }>();
   const fs = new Set<string>(), es = new Set<string>();
   const bump = (f: string, e: string, k: 'contradicted' | 'unsupported') => {
@@ -19,8 +20,7 @@ export function buildHeat(rows: TraceRow[]): { findings: string[]; entities: str
     for (const f of r.contradicted_findings) bump(f, r.entity, 'contradicted');
     for (const f of r.unsupported_findings) bump(f, r.entity, 'unsupported');
   }
-  const entities = [...ENTITY_ORDER.filter((e) => es.has(e)), ...[...es].filter((e) => !(ENTITY_ORDER as readonly string[]).includes(e)).sort()];
-  return { findings: [...fs], entities, cell };
+  return { findings: [...fs], entities: orderEntities(lexicon, es), cell };
 }
 
 export function Heatmap({ rows, lexicon, onFilterFinding, onFilterEntity, filterFinding }: { rows: TraceRow[]; lexicon: Lexicon; onFilterFinding: (f: string) => void; onFilterEntity: (e: string) => void; filterFinding: string }) {
@@ -28,7 +28,7 @@ export function Heatmap({ rows, lexicon, onFilterFinding, onFilterEntity, filter
   const tip = useTooltip();
   const [sortBy, setSortBy] = useState<string>('total');
   const [limit, setLimit] = useState(24);
-  const data = useMemo(() => buildHeat(rows), [rows]);
+  const data = useMemo(() => buildHeat(rows, lexicon), [rows, lexicon]);
   const totals = useMemo(() => {
     const t = new Map<string, number>();
     for (const f of data.findings) t.set(f, data.entities.reduce((a, e) => { const c = data.cell.get(`${f}|${e}`); return a + (c ? c.contradicted + c.unsupported : 0); }, 0));

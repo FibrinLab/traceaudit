@@ -26,7 +26,10 @@ from .schema import (EFFORTS, Case, Review, Trace, load_cases, load_perturbation
 
 from .domains import sample_paths as _sample_paths
 
-SAMPLE_CASES, SAMPLE_PERTS = _sample_paths("haematology")
+try:
+    SAMPLE_CASES, SAMPLE_PERTS = _sample_paths("haematology")
+except Exception:  # noqa: BLE001 - domain pack absent
+    SAMPLE_CASES, SAMPLE_PERTS = None, None
 MAX_REPORT_CHARS = 50_000
 MAX_REASONING_CHARS = 200_000
 TERMINAL = {"done", "failed", "cancelled", "interrupted"}
@@ -56,6 +59,9 @@ class ServiceConfig:
     rate_per_min: int = 60
     extra_cases: Path | None = None
     workers: int = 1
+    domain: str | None = None            # packaged domain to offer by default (e.g. "haematology"); None = none built in
+    lexicon_path: Path | None = None     # or an explicit default lexicon file
+    examples_dir: Path | None = None     # starter lexicons offered as "example:<name>" (default: the repo's examples/)
     operator_keys: dict[str, str] = field(default_factory=dict)   # client kind -> API key held by the operator (from env, never persisted)
     max_calls_per_job: int = 200
     max_calls_per_day: int = 2000
@@ -63,7 +69,8 @@ class ServiceConfig:
     @classmethod
     def from_args(cls, root: str, host: str, port: int, static: str | None, tokens: str | None, anonymous: str,
                   allow_clients: str, rate_per_min: int, extra_cases: str | None, operator_keys: dict[str, str] | None = None,
-                  max_calls_per_job: int = 200, max_calls_per_day: int = 2000) -> "ServiceConfig":
+                  max_calls_per_job: int = 200, max_calls_per_day: int = 2000, domain: str | None = None, lexicon: str | None = None,
+                  examples_dir: str | None = None) -> "ServiceConfig":
         tok: dict[str, str] = {}
         for item in (tokens or "").split(","):
             item = item.strip()
@@ -76,7 +83,8 @@ class ServiceConfig:
         return cls(Path(root), host, port, Path(static) if static else None, tok, anonymous,
                    {c.strip() for c in allow_clients.split(",") if c.strip()}, rate_per_min,
                    Path(extra_cases) if extra_cases else None, operator_keys={k: v for k, v in (operator_keys or {}).items() if v},
-                   max_calls_per_job=max_calls_per_job, max_calls_per_day=max_calls_per_day)
+                   max_calls_per_job=max_calls_per_job, max_calls_per_day=max_calls_per_day, domain=domain,
+                   lexicon_path=Path(lexicon) if lexicon else None, examples_dir=Path(examples_dir) if examples_dir else None)
 
 
 # ----------------------------------------------------------------------------- jobs
@@ -109,7 +117,13 @@ class Service:
         (self.root / "jobs").mkdir(parents=True, exist_ok=True)
         (self.root / "uploads").mkdir(parents=True, exist_ok=True)
         (self.root / "lexicons").mkdir(parents=True, exist_ok=True)
-        self.lx = lex_mod.load()
+        self.lx = None
+        if cfg.lexicon_path:
+            self.lx = lex_mod.load(cfg.lexicon_path)
+        elif cfg.domain:
+            from .domains import lexicon_path
+            self.lx = lex_mod.load(lexicon_path(cfg.domain))
+        self.examples_dir = cfg.examples_dir or (Path(__file__).resolve().parents[1] / "examples")
         self.jobs: dict[str, Job] = {}
         self.lock = threading.Lock()
         self.queue: queue.Queue = queue.Queue()
@@ -146,7 +160,10 @@ class Service:
 
     # ---- case sets
     def case_sets(self, workspace: str) -> list[dict]:
-        sets = [self._case_set_entry("sample", "Packaged sample (6 cases)", SAMPLE_CASES, SAMPLE_PERTS, "packaged")]
+        sets = []
+        if self.cfg.domain and SAMPLE_CASES is not None:
+            sets.append({**self._case_set_entry("sample", f"{self.cfg.domain} sample ({sum(1 for _ in read_jsonl(SAMPLE_CASES))} cases)", SAMPLE_CASES, SAMPLE_PERTS, "packaged"),
+                         "domain": self.cfg.domain})
         if self.cfg.extra_cases and self.cfg.extra_cases.exists():
             perts = self.cfg.extra_cases.with_name("perturbations.jsonl")
             sets.append(self._case_set_entry("extra", self.cfg.extra_cases.name, self.cfg.extra_cases, perts if perts.exists() else None, "operator"))
@@ -157,7 +174,7 @@ class Service:
                 if m.get("workspace") == workspace:
                     sets.append({"id": m["upload_id"], "name": m.get("name") or m["upload_id"], "n_cases": m["n_cases"],
                                  "n_perturbations": m["n_perturbations"], "approved": m.get("approved", False), "source": "upload",
-                                 "lexicon": m.get("lexicon", False)})
+                                 "lexicon": m.get("lexicon", False), "domain": m.get("domain")})
         return sets
 
     def _case_set_entry(self, cid: str, name: str, cases: Path, perts: Path | None, source: str) -> dict:
@@ -169,7 +186,10 @@ class Service:
     def _resolve_case_set(self, cid: str, workspace: str) -> tuple[Path, Path | None, Path | None, bool]:
         """-> (cases_path, perturbations_path, lexicon_path, approved)"""
         if cid == "sample":
-            return SAMPLE_CASES, SAMPLE_PERTS, None, True
+            if not (self.cfg.domain and SAMPLE_CASES is not None):
+                raise ApiError(404, "case_set_not_found", "no packaged sample on this server")
+            from .domains import lexicon_path
+            return SAMPLE_CASES, SAMPLE_PERTS, lexicon_path(self.cfg.domain), True
         if cid == "extra" and self.cfg.extra_cases:
             p = self.cfg.extra_cases.with_name("perturbations.jsonl")
             cs = load_cases(self.cfg.extra_cases)
@@ -193,7 +213,7 @@ class Service:
         upload_id = "up-" + uuid.uuid4().hex[:10]
         d = self.root / "uploads" / upload_id
         d.mkdir(parents=True)
-        lex = self.lx
+        lex = None
         if body.get("lexicon"):
             (d / "lexicon.json").write_text(body["lexicon"], encoding="utf-8")
             try:
@@ -201,6 +221,18 @@ class Service:
             except (ValueError, json.JSONDecodeError, KeyError) as e:
                 shutil.rmtree(d, ignore_errors=True)
                 raise ApiError(400, "bad_lexicon", f"lexicon rejected: {e}")
+        elif body.get("lexicon_id"):
+            try:
+                lex = self.lexicon_for(body["lexicon_id"], workspace)
+            except ApiError:
+                shutil.rmtree(d, ignore_errors=True)
+                raise
+            shutil.copy(lex.path, d / "lexicon.json")
+        else:
+            lex = self.lx
+        if lex is None:
+            shutil.rmtree(d, ignore_errors=True)
+            raise ApiError(400, "lexicon_required", "choose a lexicon_id or include a lexicon with the cases")
         try:
             cases = [Case.from_dict(json.loads(line)) for line in cases_text.splitlines() if line.strip()]
         except (json.JSONDecodeError, TypeError, KeyError, ValueError) as e:
@@ -244,14 +276,25 @@ class Service:
         if perts:
             write_jsonl(d / "perturbations.jsonl", perts)
         meta = {"upload_id": upload_id, "workspace": workspace, "name": body.get("name") or upload_id, "created": _now(),
-                "n_cases": len(cases), "n_perturbations": len(perts), "approved": approved, "lexicon": bool(body.get("lexicon"))}
+                "n_cases": len(cases), "n_perturbations": len(perts), "approved": approved, "lexicon": (d / "lexicon.json").exists(),
+                "domain": lex.domain}
         (d / "upload.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
         return {**meta, "problems": []}
 
     # ---- lexicons
     def lexicons(self, workspace: str) -> list[dict]:
-        out = [{"id": "default", "domain": self.lx.domain, "version": self.lx.version, "sections": self.lx.sections,
-                "n_findings": len(self.lx.findings), "n_entities": len(self.lx.in_scope_entities()), "source": "packaged"}]
+        out = []
+        if self.lx is not None:
+            out.append({"id": "default", "name": self.lx.domain, "domain": self.lx.domain, "version": self.lx.version, "sections": self.lx.sections,
+                        "n_findings": len(self.lx.findings), "n_entities": len(self.lx.in_scope_entities()), "source": "packaged"})
+        for path in sorted(self.examples_dir.glob("lexicon-*.json")) if self.examples_dir and self.examples_dir.exists() else []:
+            try:
+                lx = lex_mod.load(path)
+            except Exception:  # noqa: BLE001 - skip broken examples
+                continue
+            name = path.stem[len("lexicon-"):]
+            out.append({"id": f"example:{name}", "name": name.replace("-", " "), "domain": lx.domain, "version": lx.version, "sections": lx.sections,
+                        "n_findings": len(lx.findings), "n_entities": len(lx.in_scope_entities()), "source": "example"})
         for d in sorted((self.root / "lexicons").glob("*")):
             meta = d / "lexicon.meta.json"
             if meta.exists():
@@ -280,7 +323,14 @@ class Service:
 
     def lexicon_for(self, lexicon_id: str | None, workspace: str):
         if not lexicon_id or lexicon_id == "default":
+            if self.lx is None:
+                raise ApiError(400, "lexicon_required", "choose a lexicon (lexicon_id): this server has no built-in domain")
             return self.lx
+        if lexicon_id.startswith("example:"):
+            path = (self.examples_dir or Path(".")) / f"lexicon-{lexicon_id[len('example:'):]}.json"
+            if not path.exists():
+                raise ApiError(404, "lexicon_not_found", f"unknown example lexicon {lexicon_id!r}")
+            return lex_mod.load(path)
         d = self.root / "lexicons" / lexicon_id
         meta = d / "lexicon.meta.json"
         if not meta.exists():
@@ -305,8 +355,7 @@ class Service:
         else:
             reports = body.get("reports") or {}
             keys = [sec["id"] for sec in lx.sections]
-            if lx.sections != lex_mod.DEFAULT_SECTIONS:
-                sections = list(lx.sections)
+            sections = list(lx.sections)
         if not isinstance(reports, dict) or not any((reports.get(k) or "").strip() for k in keys):
             raise ApiError(400, "bad_request", "documents must contain at least one of " + ", ".join(keys))
         if len(keys) > 20:
@@ -392,6 +441,8 @@ class Service:
                 raise ApiError(403, "key_required", f"an API key for {kind} is required on this server")
         # spend caps: the exact number of planned calls (honours the variant filter)
         lx_for_plan = lex_mod.load(lex_path) if lex_path else self.lx
+        if lx_for_plan is None:
+            raise ApiError(400, "lexicon_required", "this case set has no lexicon and the server has no built-in domain")
         est_calls = len(experiment.plan(load_cases(cases_path), load_perturbations(perts_path) if perts_path else [], efforts, runs,
                                         int(body.get("seed", 20261020)), variant_filter=body.get("variants"), lexicon=lx_for_plan))
         if est_calls == 0:
@@ -468,6 +519,8 @@ class Service:
         d = self._job_dir(job.job_id)
         run_dir = d / "run"
         lx = lex_mod.load(cfg["paths"]["lexicon"]) if cfg["paths"].get("lexicon") else self.lx
+        if lx is None:
+            raise RuntimeError("no lexicon for this job")
         cases = load_cases(cfg["paths"]["cases"])
         perts = load_perturbations(cfg["paths"]["perturbations"]) if cfg["paths"].get("perturbations") else []
         ckind = cfg["client"]["kind"]
@@ -698,10 +751,10 @@ class Handler(BaseHTTPRequestHandler):
         parts = [p for p in path.split("/") if p][1:]  # drop 'api'
         if method == "GET" and parts == ["health"]:
             ws, _ = self._workspace()
-            self._json(200, {"version": __version__, "lexicon_version": svc.lx.version, "modes": ["analyse", "audit"],
+            self._json(200, {"version": __version__, "lexicon_version": svc.lx.version if svc.lx else None, "modes": ["analyse", "audit"],
                              "clients": sorted(svc.cfg.allow_clients), "anonymous": svc.cfg.anonymous, "workspace": ws,
                              "viewer": svc.cfg.static is not None, "operator_keys": sorted(svc.cfg.operator_keys), "limits": svc.limits(),
-                             "domain": svc.lx.domain, "sections": svc.lx.sections})
+                             "domain": svc.lx.domain if svc.lx else None, "sections": svc.lx.sections if svc.lx else []})
             return
         if method == "GET" and parts == ["lexicon"]:
             ws, _ = self._workspace()

@@ -14,7 +14,8 @@ from extraction to the dashboard, reads the lexicon. Bring your own
 ([docs/bring-your-own-domain.md](docs/bring-your-own-domain.md); a software-incident
 example is in `examples/`), or start from the packaged reference domain,
 `traceaudit/domains/haematology/`, built for a study of mature B-cell neoplasm
-diagnosis ([docs/00-project-spec.md](docs/00-project-spec.md)).
+diagnosis ([docs/00-project-spec.md](docs/00-project-spec.md)). It is not loaded
+unless you ask for it.
 
 What a researcher gets, for any domain:
 
@@ -74,10 +75,12 @@ hash, seeds); `traceaudit manifest check <run_dir>` enforces completeness.
 traceaudit serve --root serve-data --static viewer/dist --port 8080
 ```
 
-Open http://127.0.0.1:8080. The **Analyse** tab accepts a single trace (reports,
-reasoning, answer) and grounds it immediately, or submits an audit job that runs
-the full probe suite against a model endpoint you supply and opens the results in
-the cohort dashboard. Tokens (`--tokens token:workspace`) scope jobs and uploads;
+Open http://127.0.0.1:8080. Nothing domain-specific is built in: pick a starter
+lexicon from `examples/` (or upload your own) in the **Analyse** tab, paste a
+trace to ground it immediately, or upload cases and submit an audit job that runs
+the full probe suite against a model endpoint and opens the results in the cohort
+dashboard. `--domain haematology` offers the packaged reference domain and its
+sample cases as well; it is off by default. Tokens (`--tokens token:workspace`) scope jobs and uploads;
 anonymous visitors can analyse traces but not run jobs unless `--anonymous all`.
 `--allow-clients sim,ollama,openai,anthropic` decides which model clients jobs may
 use (the public demo default is the simulated model only). Model keys travel in the

@@ -16,7 +16,7 @@ PKG = Path(__file__).resolve().parents[1] / "traceaudit"
 @pytest.fixture()
 def server(tmp_path):
     cfg = ServiceConfig(root=tmp_path / "root", host="127.0.0.1", port=0, tokens={"tok-a": "wsA", "tok-b": "wsB"},
-                        anonymous="analyse", allow_clients={"sim"}, rate_per_min=1000)
+                        anonymous="analyse", allow_clients={"sim"}, rate_per_min=1000, domain="haematology")
     httpd = make_server(cfg)
     t = threading.Thread(target=httpd.serve_forever, daemon=True)
     t.start()
@@ -48,7 +48,7 @@ def test_health_lexicon_and_case_sets(server):
     st, lx = call(base, "GET", "/api/lexicon")
     assert st == 200 and any(e["id"] == "MCL" for e in lx["entities"]) and len(lx["findings"]) > 50
     st, cs = call(base, "GET", "/api/case-sets", token="tok-a")
-    assert st == 200 and cs[0]["id"] == "sample" and cs[0]["approved"] and cs[0]["n_cases"] == 6
+    assert st == 200 and cs[0]["id"] == "sample" and cs[0]["approved"] and cs[0]["n_cases"] == 6 and cs[0]["domain"] == "haematology"
 
 
 def test_analyse_extracted_oracle(server, by_case):
@@ -156,7 +156,7 @@ def test_static_fallback(tmp_path):
 
 def test_operator_key_and_caps(tmp_path):
     cfg = ServiceConfig(root=tmp_path / "root", port=0, tokens={"t": "ws"}, anonymous="all", allow_clients={"sim", "anthropic"},
-                        operator_keys={"anthropic": "sk-site"}, max_calls_per_job=50, max_calls_per_day=60)
+                        operator_keys={"anthropic": "sk-site"}, max_calls_per_job=50, max_calls_per_day=60, domain="haematology")
     httpd = make_server(cfg)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{httpd.server_address[1]}"
@@ -193,7 +193,7 @@ def test_custom_lexicon_and_documents(server):
     st, meta = call(base, "POST", "/api/lexicons", {"lexicon": lex_text, "name": "incident"})
     assert st == 201 and meta["domain"] == "incident-triage" and [s["id"] for s in meta["sections"]] == ["alerts", "logs", "deploys"]
     st, lst = call(base, "GET", "/api/lexicons")
-    assert [x["id"] for x in lst][:1] == ["default"] and any(x["id"] == meta["id"] for x in lst)
+    assert [x["id"] for x in lst][:1] == ["default"] and any(x["id"] == meta["id"] for x in lst) and any(x["id"] == "example:incident-triage" for x in lst)
     ex = json.loads(Path(__file__).resolve().parents[1].joinpath("examples", "incident-trace.json").read_text())
     st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": meta["id"]})
     assert st == 200 and out["domain"] == "incident-triage"
@@ -204,3 +204,44 @@ def test_custom_lexicon_and_documents(server):
     assert st == 400 and out["error"]["code"] == "bad_lexicon"
     st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": "lex-nope"})
     assert st == 404
+
+
+def test_bare_server_has_no_built_in_domain(tmp_path, sample_cases):
+    cfg = ServiceConfig(root=tmp_path / "root", port=0, tokens={"t": "ws"}, anonymous="all", allow_clients={"sim"})
+    httpd = make_server(cfg)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        st, h = call(base, "GET", "/api/health")
+        assert h["domain"] is None and h["sections"] == [] and h["lexicon_version"] is None
+        st, lst = call(base, "GET", "/api/lexicons")
+        assert [x["source"] for x in lst] == ["example"] and lst[0]["id"] == "example:incident-triage"
+        st, cs = call(base, "GET", "/api/case-sets")
+        assert cs == []
+        ex = json.loads(Path(__file__).resolve().parents[1].joinpath("examples", "incident-trace.json").read_text())
+        st, out = call(base, "POST", "/api/analyse", ex)
+        assert st == 400 and out["error"]["code"] == "lexicon_required"
+        st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": "example:incident-triage"})
+        assert st == 200 and out["domain"] == "incident-triage" and out["grounding"]["answer_entity"] == "BAD_DEPLOY"
+        # uploading cases needs a lexicon too; with the example it works and the sim audit runs on it
+        st, out = call(base, "POST", "/api/uploads", {"name": "h", "cases": "\n".join(c.to_json() for c in sample_cases[:1]), "approved": True})
+        assert st == 400 and out["error"]["code"] == "lexicon_required"
+        from traceaudit import cases as cases_mod, lexicon
+        lx = lexicon.load(Path(__file__).resolve().parents[1] / "examples" / "lexicon-incident-triage.json")
+        case, probs = cases_mod.build_case({"case_id": "INC-001", "entity": "BAD_DEPLOY", "documents": ex["documents"]}, lx, approve=True)
+        st, up = call(base, "POST", "/api/uploads", {"name": "incidents", "cases": case.to_json(), "approved": True, "lexicon_id": "example:incident-triage"})
+        assert st == 201 and up["domain"] == "incident-triage" and up["n_perturbations"] >= 2
+        st, out = call(base, "POST", "/api/jobs", {"client": {"kind": "sim"}, "case_set": up["upload_id"], "efforts": ["low"], "runs": 1})
+        assert st == 202
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            st, j = call(base, "GET", f"/api/jobs/{out['job_id']}")
+            if j["status"] in serve.TERMINAL:
+                break
+            time.sleep(0.5)
+        assert j["status"] == "done", j
+        st, idx = call(base, "GET", f"/api/jobs/{out['job_id']}/bundle/index.json")
+        assert st == 200 and idx["lexicon"]["version"] == "0.1.0"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { navigate, useRoute, type Route } from './lib/router';
-import { useApi } from './lib/useApiSettings';
 import { useStore, VIEWER_VERSION } from './store';
 import { LoadPanel } from './components/LoadPanel';
 import { KeyboardHelp } from './components/Shared';
@@ -65,15 +64,10 @@ export function App() {
 
   useEffect(() => { document.title = titleFor(route); window.scrollTo(0, 0); }, [route]);
 
-  // Landing: with no bundle to show and a reachable service, the front page is Analyse. The Load bundle panel
-  // stays one click away in the top bar (it navigates to #/cases, which is never redirected).
-  const api = useApi();
+  // Landing: the front page is Analyse unless the address asked for a bundle (`?bundle=`), in which case `#/` is Cases.
   useEffect(() => {
-    if (route.name !== 'home' || status !== 'error') return;
-    let cancelled = false;
-    api.health().then(() => { if (!cancelled && window.location.hash.replace(/^#\/?$/, '') === '') navigate('#/analyse'); }).catch(() => { /* no service: show the Load bundle panel */ });
-    return () => { cancelled = true; };
-  }, [route.name, status, api]);
+    if (route.name === 'home' && status === 'idle') navigate('#/analyse');
+  }, [route.name, status]);
 
   const manifest = bundle?.index.run.manifest;
   const model = manifest?.model as { tag?: string; effort_mechanism?: string } | undefined;
@@ -84,24 +78,24 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <a className="wordmark" href={isRate ? '#/rate' : '#/cases'}>traceaudit<span>Trace Viewer</span></a>
+        <a className="wordmark" href={isRate ? '#/rate' : '#/analyse'}>traceaudit<span>Trace Viewer</span></a>
         <nav className="tabs" aria-label="Main">
+          {!isRate && <a href="#/analyse" aria-current={serviceRoute ? 'page' : undefined}>Analyse</a>}
           {!isRate && <a href="#/cases" aria-current={casesActive ? 'page' : undefined}>Cases</a>}
           {!isRate && <a href="#/cohort" aria-current={route.name === 'cohort' ? 'page' : undefined}>Cohort</a>}
-          {!isRate && <a href="#/analyse" aria-current={serviceRoute ? 'page' : undefined}>Analyse</a>}
           {bundle?.index.study && <a href="#/rate" aria-current={isRate ? 'page' : undefined}>Rate</a>}
           {isRate && <a href="#/cases">Exit rating mode</a>}
         </nav>
         <span className="spacer" />
         <div className="tools">
           <div className="seg" role="group" aria-label="Colour theme">
-            {(['auto', 'light', 'dark'] as const).map((t) => (
+            {(['light', 'dark', 'auto'] as const).map((t) => (
               <button key={t} type="button" aria-pressed={settings.theme === t} onClick={() => updateSettings({ theme: t })}>{t === 'auto' ? 'System' : t === 'light' ? 'Light' : 'Dark'}</button>
             ))}
           </div>
           <KeyboardHelp shortcuts={GLOBAL_SHORTCUTS} />
           {!isRate && <ApiSettingsButton />}
-          <button type="button" className="btn small" onClick={() => { dispatch({ type: 'reset' }); if (serviceRoute) window.location.hash = '#/cases'; }} title="Load a different bundle">Load bundle</button>
+          <button type="button" className="btn small" onClick={() => { dispatch({ type: 'reset' }); if (serviceRoute) window.location.hash = '#/cases'; }} title={bundle ? 'Load a different bundle' : 'Load a bundle'}>Load bundle</button>
         </div>
       </header>
       {bundle && status === 'ready' && !serviceRoute && (
@@ -122,14 +116,32 @@ export function App() {
       <main>
         {serviceRoute ? (
           <RouteView route={route} />
-        ) : status !== 'ready' || !bundle ? (
+        ) : status === 'ready' && bundle ? (
+          <RouteView route={route} />
+        ) : status === 'idle' ? (
+          <NoResults route={route} onLoad={() => dispatch({ type: 'reset' })} />
+        ) : (
           <div className="narrow">
             <LoadPanel status={status} error={error} />
           </div>
-        ) : (
-          <RouteView route={route} />
         )}
       </main>
+    </div>
+  );
+}
+
+/** The bundle pages before any results exist: point at the two ways to get some. */
+function NoResults({ route, onLoad }: { route: Route; onLoad: () => void }) {
+  const title = route.name === 'cohort' ? 'Cohort' : route.name === 'rate' ? 'Rating mode' : route.name === 'review' ? 'Case review' : 'Cases';
+  return (
+    <div className="empty-state" role="status">
+      <h1>{title}</h1>
+      <p>No results loaded. Run an audit under Analyse, or load a bundle.</p>
+      <div className="actions">
+        <a className="btn primary" href="#/analyse/audit">Run an audit</a>
+        <a className="btn" href="#/analyse/trace">Analyse a trace</a>
+        <button type="button" className="btn" onClick={onLoad}>Load a bundle</button>
+      </div>
     </div>
   );
 }
@@ -168,6 +180,6 @@ function RouteView({ route }: { route: Route }) {
     case 'analyse': return route.page === 'trace' ? <AnalyseTraceView /> : route.page === 'audit' ? <AuditView /> : <AnalyseView />;
     case 'jobs': return <JobsView />;
     case 'job': return <JobView jobId={route.jobId} />;
-    case 'notfound': return <div className="narrow"><h1>Not found</h1><p className="muted">No view at <code>{route.path}</code>. <a href="#/cases">Go to cases</a>.</p></div>;
+    case 'notfound': return <div className="narrow"><h1>Not found</h1><p className="muted">No view at <code>{route.path}</code>. <a href="#/analyse">Go to Analyse</a>.</p></div>;
   }
 }

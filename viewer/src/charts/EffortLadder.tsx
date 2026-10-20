@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import type { Interval, Lexicon, Summary } from '../types';
 import { applyFilters, filtersAreDefault, METRIC_META, ratesFromRows, ratesFromSummary, type Filters, type Rates, type TraceRow } from '../lib/cohort';
-import { ENTITY_ORDER, entityColor, entityShort } from '../lib/palette';
+import { entityColor, entityOrder, entityShort } from '../lib/palette';
 import { intervalText, pct } from '../lib/format';
 import { ChartFrame } from './ChartFrame';
 import { useTooltip } from './Tooltip';
@@ -34,14 +34,14 @@ export function EffortLadder({ rows, summary, filters, lexicon }: { rows: TraceR
   const { source, byEffort } = useMemo(() => ratesByEffort(rows, summary, filters), [rows, summary, filters]);
   const perEntity = useMemo(() => {
     const out: Record<string, Record<string, Rates>> = {};
-    for (const ent of ENTITY_ORDER) {
+    for (const ent of entityOrder(lexicon)) {
       const base = applyFilters(rows, { ...filters, entity: ent, effort: '' });
       if (!base.length) continue;
       out[ent] = {} as Record<string, Rates>;
       for (const e of EFFORTS) out[ent][e] = ratesFromRows(base.filter((r) => r.effort === e), filters.rule);
     }
     return out;
-  }, [rows, filters]);
+  }, [rows, filters, lexicon]);
 
   const W = 540, rowH = 46, labelW = 110, M = { top: 22, right: 20, bottom: 22 };
   const plotW = W - labelW - M.right;

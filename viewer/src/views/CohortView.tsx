@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useStore } from '../store';
 import type { Interval } from '../types';
 import { applyFilters, EMPTY_FILTERS, filtersAreDefault, useAllCases, useTraceRows, type Filters, type Rule } from '../lib/cohort';
-import { ENTITY_ORDER, entityShort, KIND_LABEL } from '../lib/palette';
+import { entityOrder, entityShort, KIND_LABEL } from '../lib/palette';
 import { entityDisplay, findingDisplay, intervalText, num, pct } from '../lib/format';
 import { downloadJson } from '../lib/download';
 import { OutcomeRiver, type RiverPin } from '../charts/OutcomeRiver';
@@ -24,6 +24,7 @@ export function CohortView() {
   const index = bundle!.index;
   const s = index.summary;
   const lexicon = index.lexicon;
+  const categories = useMemo(() => entityOrder(lexicon), [lexicon]);
   const { cases, loaded, total, error } = useAllCases();
   const allRows = useTraceRows(cases);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -53,13 +54,13 @@ export function CohortView() {
     const [sc, sk] = splitId(p.source), [tc, tk] = splitId(p.target);
     const patch: Partial<Filters> = {};
     if (sc === 1) patch.kind = sk; if (tc === 1) patch.kind = tk;
-    if (sc === 0 && (ENTITY_ORDER as readonly string[]).includes(sk)) patch.entity = sk;
+    if (sc === 0 && categories.includes(sk)) patch.entity = sk;
     setFilters((f) => ({ ...f, ...patch }));
   };
   const onRiverNode = (n: RiverNode) => {
     setPin(null);
     if (n.column === 1) set({ kind: filters.kind === n.key ? '' : n.key });
-    else if ((n.column === 0 || n.column === 2) && (ENTITY_ORDER as readonly string[]).includes(n.key)) set({ entity: filters.entity === n.key ? '' : n.key });
+    else if ((n.column === 0 || n.column === 2) && categories.includes(n.key)) set({ entity: filters.entity === n.key ? '' : n.key });
   };
 
   const loading = loaded < total;
@@ -84,7 +85,7 @@ export function CohortView() {
         <label className="field"><span>Category</span>
           <select value={filters.entity} onChange={(e) => set({ entity: e.target.value })}>
             <option value="">All categories</option>
-            {ENTITY_ORDER.map((e) => <option key={e} value={e}>{entityDisplay(lexicon, e)}</option>)}
+            {categories.map((e) => <option key={e} value={e}>{entityDisplay(lexicon, e)}</option>)}
           </select>
         </label>
         <label className="field"><span>Effort</span>
@@ -117,7 +118,7 @@ export function CohortView() {
           <HeadlineRates rows={allRows} summary={s} filters={filters} />
           {s.effort_contrasts && (
             <div className="panel tight" style={{ marginTop: 16 }}>
-              <div className="panel-head"><h3 style={{ fontSize: 'var(--fs-1)', fontFamily: 'var(--font-ui)', fontWeight: 500 }}>Effort contrasts, high minus low</h3></div>
+              <div className="panel-head"><h3 style={{ fontSize: 'var(--fs-1)', fontFamily: 'var(--font-ui)', fontWeight: 700 }}>Effort contrasts, high minus low</h3></div>
               <div className="row small">
                 {Object.entries(s.effort_contrasts).map(([k, iv]) => <span key={k} className="chip neutral">{k.replace(/_high_minus_low/, '').replace(/_/g, ' ')} {signed(iv)}</span>)}
               </div>

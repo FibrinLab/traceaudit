@@ -5,7 +5,7 @@ import { Banner } from './Shared';
 
 export function LoadPanel({ status, error }: { status: string; error: string | null }) {
   const { setBundle, loadFromUrl, dispatch, bundleUrl } = useStore();
-  const [url, setUrl] = useState(bundleUrl ?? bundleUrlFromLocation());
+  const [url, setUrl] = useState(bundleUrl ?? bundleUrlFromLocation() ?? '');
   const [localError, setLocalError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const dirInput = useRef<HTMLInputElement>(null);
@@ -43,22 +43,25 @@ export function LoadPanel({ status, error }: { status: string; error: string | n
 
   return (
     <div className="panel" aria-labelledby="load-title">
-      <h1 id="load-title">Load bundle</h1>
+      <div className="panel-head">
+        <h1 id="load-title" style={{ margin: 0 }}>Load bundle</h1>
+        {status !== 'loading' && <button type="button" className="btn small quiet" onClick={() => dispatch({ type: 'idle' })}>Cancel</button>}
+      </div>
       <p className="muted">
-        Load a bundle exported by <code>traceaudit export</code>: a folder containing <code>index.json</code> and <code>cases/</code>, or a single <code>bundle.json</code>.
+        Load a bundle exported by <code>traceaudit export</code> or written by a finished audit job: a folder containing <code>index.json</code> and <code>cases/</code>, or a single <code>bundle.json</code>.
         Nothing leaves this browser. Without a bundle you can still <a href="#/analyse">analyse a trace or audit a model</a> through the service.
       </p>
       {status === 'loading' && <p role="status" aria-live="polite">Loading…</p>}
       {(error || localError) && status !== 'loading' && <Banner tone="warn">{localError ?? error}</Banner>}
 
       <h2>From a URL</h2>
-      <form className="row" onSubmit={(e) => { e.preventDefault(); void loadFromUrl(url); }}>
+      <form className="row" onSubmit={(e) => { e.preventDefault(); if (url.trim()) void loadFromUrl(url.trim()); }}>
         <label>Bundle directory or bundle.json{' '}
-          <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} size={40} aria-describedby="url-help" />
+          <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} size={40} aria-describedby="url-help" placeholder="../export/ or https://…/bundle.json" />
         </label>
-        <button type="submit" className="btn primary">Load</button>
+        <button type="submit" className="btn primary" disabled={!url.trim()}>Load</button>
       </form>
-      <p id="url-help" className="small muted">Relative to this page. You can also open the viewer with <code>?bundle=&lt;relative-url&gt;</code>. The packaged demo lives at <code>./demo/</code>.</p>
+      <p id="url-help" className="small muted">Relative to this page, or absolute. You can also open the viewer with <code>?bundle=&lt;url&gt;</code>.</p>
 
       <h2>From your computer</h2>
       <div className="row">

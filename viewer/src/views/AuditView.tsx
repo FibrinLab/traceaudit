@@ -32,6 +32,12 @@ export function AuditView() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Minimal case-set upload: a name and JSONL text, posted as `{ name, cases, approved: true }`.
+  const [uploadName, setUploadName] = useState('');
+  const [uploadJsonl, setUploadJsonl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +52,7 @@ export function AuditView() {
   }, [api]);
 
   const selectedSet = useMemo(() => caseSets?.find((s) => s.id === caseSet) ?? null, [caseSets, caseSet]);
+  const noSets = !!caseSets && caseSets.length === 0;
   const calls = estimateCalls(selectedSet, efforts.size, runs);
   const needsModel = kind !== 'sim';
   const onSiteKey = !!health?.operator_keys?.includes(kind);
@@ -61,9 +68,27 @@ export function AuditView() {
         : null;
   const toggleEffort = (e: string) => setEfforts((s) => { const next = new Set(s); if (next.has(e)) next.delete(e); else next.add(e); return next; });
 
+  const upload = async () => {
+    setUploadError(null); setUploadNotice(null);
+    if (!uploadName.trim()) { setUploadError('Name the case set.'); return; }
+    if (!uploadJsonl.trim()) { setUploadError('Paste the cases as JSONL: one JSON object per line.'); return; }
+    setUploading(true);
+    try {
+      const created = await api.createUpload({ name: uploadName.trim(), cases: uploadJsonl, approved: true });
+      const sets = await api.caseSets();
+      const merged = sets.some((s) => s.id === created.id) ? sets : [...sets, created];
+      setCaseSets(merged);
+      setCaseSet(created.id);
+      setUploadNotice(`Uploaded ${created.name}: ${created.n_cases} case${created.n_cases === 1 ? '' : 's'}, ${created.n_perturbations} perturbation${created.n_perturbations === 1 ? '' : 's'}. It is selected above.`);
+      setUploadName(''); setUploadJsonl('');
+    } catch (e) {
+      setUploadError(describeError(e));
+    } finally { setUploading(false); }
+  };
+
   const submit = async () => {
     setError(null);
-    if (!selectedSet) { setError('Choose a case set.'); return; }
+    if (!selectedSet) { setError(noSets ? 'Upload a case set first.' : 'Choose a case set.'); return; }
     if (!selectedSet.approved) { setError(`${selectedSet.name} has not been approved for audit runs.`); return; }
     if (!kind) { setError('Choose a client kind.'); return; }
     if (needsModel && !model.trim()) { setError('Enter the model name or tag to call.'); return; }
@@ -100,15 +125,17 @@ export function AuditView() {
         <div className="form-grid">
           <label className="field block full">
             <span>Case set</span>
-            <select value={caseSet} onChange={(e) => setCaseSet(e.target.value)} disabled={!caseSets} required>
+            <select value={caseSet} onChange={(e) => setCaseSet(e.target.value)} disabled={!caseSets || noSets} required aria-describedby="case-set-help">
               {!caseSets && <option value="">{loadError ? 'Not available' : 'Loading…'}</option>}
-              {caseSets?.length === 0 && <option value="">No case sets on this service</option>}
+              {noSets && <option value="">No case sets yet</option>}
+              {caseSets && caseSets.length > 0 && !caseSet && <option value="">Choose a case set…</option>}
               {caseSets?.map((s) => (
                 <option key={s.id} value={s.id} disabled={!s.approved}>
                   {s.name} ({s.n_cases} cases, {s.n_perturbations} perturbations){s.approved ? '' : ' — not approved'}
                 </option>
               ))}
             </select>
+            {noSets && <span id="case-set-help" className="muted">No case sets yet. Upload cases below (JSONL, one case or perturbation per line); the set is approved and selected when the upload succeeds.</span>}
             {selectedSet && (
               <span className="row small" style={{ gap: 8 }}>
                 <Chip tone="neutral">{selectedSet.n_cases} cases</Chip>
@@ -182,10 +209,33 @@ export function AuditView() {
         {limitProblem && <Banner tone="warn">{limitProblem}</Banner>}
         {error && <Banner tone="bad">{error}</Banner>}
         <div className="actions" style={{ marginTop: 12 }}>
-          <button type="submit" className="btn primary" disabled={submitting || !caseSets || !health || !!limitProblem}>{submitting ? 'Starting…' : 'Start audit'}</button>
+          <button type="submit" className="btn primary" disabled={submitting || !caseSets || !health || !!limitProblem || !selectedSet}>{submitting ? 'Starting…' : 'Start audit'}</button>
           <a href="#/jobs" className="btn">View jobs</a>
         </div>
       </form>
+
+      <details className="panel" style={{ marginTop: 16 }} open={noSets} aria-labelledby="upload-title">
+        <summary id="upload-title" style={{ fontWeight: 700 }}>Upload a case set</summary>
+        <p className="muted" style={{ marginTop: 8 }}>
+          One JSON object per line: cases carry <code>case_id</code>, <code>entity</code>, <code>documents</code> (section id → text) and <code>truth</code>; perturbations carry <code>case_id</code>, <code>variant</code> and <code>edits</code>.
+          The set is posted to <code>/api/uploads</code> as approved and appears in the list above.
+        </p>
+        <div className="form-grid">
+          <label className="field block">
+            <span>Name</span>
+            <input type="text" value={uploadName} onChange={(e) => setUploadName(e.target.value)} placeholder="e.g. Incident triage pilot" autoComplete="off" />
+          </label>
+          <label className="field block full">
+            <span>Cases (JSONL)</span>
+            <textarea className="report" value={uploadJsonl} onChange={(e) => setUploadJsonl(e.target.value)} spellCheck={false} placeholder={'{"case_id":"INC-001","entity":"BAD_DEPLOY","documents":{"alerts":"…"},"truth":{"recent_deploy":"pos"}}\n{"case_id":"INC-001","variant":"dec-recent_deploy","edits":[…]}'} />
+          </label>
+        </div>
+        {uploadError && <Banner tone="bad">{uploadError}</Banner>}
+        {uploadNotice && !uploadError && <Banner tone="good">{uploadNotice}</Banner>}
+        <div className="actions" style={{ marginTop: 10 }}>
+          <button type="button" className="btn" onClick={() => void upload()} disabled={uploading || !caseSets}>{uploading ? 'Uploading…' : 'Upload case set'}</button>
+        </div>
+      </details>
     </AnalysePage>
   );
 }

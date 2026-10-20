@@ -29,7 +29,7 @@ describe('seeded shuffle', () => {
     expect(hashSeed(1, 'R01')).toBeGreaterThanOrEqual(0);
     expect(hashSeed(1, 'R01')).toBeLessThanOrEqual(0xffffffff);
   });
-  it('pins the demo order so a regression in the PRNG is caught', () => {
+  it('pins a known order so a regression in the PRNG is caught', () => {
     const order = presentationOrder(['a', 'b', 'c', 'd', 'e', 'f'], 20261020, 'R01');
     // Snapshot of the current implementation; update deliberately if the algorithm changes.
     expect(order).toMatchInlineSnapshot(`

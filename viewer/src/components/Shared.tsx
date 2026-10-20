@@ -61,7 +61,7 @@ export function AnswerCard({ title, answer, lexicon, grounding, truthEntity, com
         {parsed.confidence && <Chip tone="neutral">confidence: {parsed.confidence}</Chip>}
       </div>
       {!compact && <pre className="answer-text" style={{ marginTop: 8 }}>{answer || '(empty answer)'}</pre>}
-      {compact && parsed.diagnosis && <div style={{ marginTop: 6 }}>{parsed.diagnosis}</div>}
+      {compact && parsed.label && <div style={{ marginTop: 6 }}>{parsed.label}</div>}
     </div>
   );
 }

@@ -14,6 +14,7 @@ COPY pyproject.toml README.md ./
 COPY traceaudit/ ./traceaudit/
 RUN pip install --no-cache-dir .
 COPY --from=viewer /viewer/dist ./viewer/dist
+COPY examples/ ./examples/
 COPY data/ ./data/
 # Public defaults: visitors may analyse traces and run audits on the site's Anthropic key within the caps below.
 ENV TRACEAUDIT_ANONYMOUS=all \
@@ -26,4 +27,4 @@ ENV TRACEAUDIT_ANONYMOUS=all \
 EXPOSE 8080
 VOLUME ["/data"]
 HEALTHCHECK --interval=30s --timeout=5s CMD python3 -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/api/health', timeout=4).status==200 else 1)"
-CMD ["sh", "-c", "traceaudit serve --root /data --static /app/viewer/dist --host 0.0.0.0 --port ${PORT:-8080} ${TRACEAUDIT_TOKENS:+--tokens \"$TRACEAUDIT_TOKENS\"}"]
+CMD ["sh", "-c", "traceaudit serve --root /data --static /app/viewer/dist --host 0.0.0.0 --port ${PORT:-8080} --examples /app/examples ${TRACEAUDIT_TOKENS:+--tokens \"$TRACEAUDIT_TOKENS\"}"]

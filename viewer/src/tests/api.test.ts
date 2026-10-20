@@ -16,10 +16,12 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('createApi', () => {
   it('joins the base URL and sends the bearer header only when a token is set', async () => {
-    const { fn, calls } = fetchStub(() => ok({ version: '0.2.0', lexicon_version: '1.0.0', modes: [], clients: ['sim'], anonymous: 'analyse', workspace: 'public' }));
+    const { fn, calls } = fetchStub(() => ok({ version: '0.2.0', lexicon_version: null, modes: [], clients: ['sim'], anonymous: 'analyse', workspace: 'public', domain: null, sections: [] }));
     const withToken = createApi({ base: 'http://127.0.0.1:8080/', token: 'abc' }, fn);
     const h = await withToken.health();
     expect(h.version).toBe('0.2.0');
+    expect(h.domain).toBeNull();
+    expect(h.sections).toEqual([]);
     expect(calls[0].url).toBe('http://127.0.0.1:8080/api/health');
     expect((calls[0].init.headers as Record<string, string>).Authorization).toBe('Bearer abc');
 
@@ -49,6 +51,22 @@ describe('createApi', () => {
     expect(calls[1].url).toBe('/api/jobs/job%201');
   });
 
+  it('addresses lexicons by id and posts case-set uploads', async () => {
+    const { fn, calls } = fetchStub((url) => url.endsWith('/api/uploads') ? ok({ id: 'up-1', name: 'Ops cases', n_cases: 2, n_perturbations: 1, approved: true, source: 'upload' }, 201) : ok({ version: '0.1.0', entities: [], findings: [] }));
+    const api = createApi({ base: '', token: '' }, fn);
+    await api.lexicon('example:incident-triage');
+    expect(calls[0].url).toBe('/api/lexicon?id=example%3Aincident-triage');
+    const set = await api.createUpload({ name: 'Ops cases', cases: '{"case_id":"C1"}\n', approved: true });
+    expect(set.id).toBe('up-1');
+    expect(calls[1].init.method).toBe('POST');
+    expect(JSON.parse(calls[1].init.body as string)).toEqual({ name: 'Ops cases', cases: '{"case_id":"C1"}\n', approved: true });
+  });
+
+  it('explains a missing lexicon in plain language', () => {
+    expect(describeError(new ApiError(400, 'lexicon_required', 'lexicon_id is required'))).toMatch(/Choose a lexicon first/);
+    expect(describeError(new ApiError(404, 'lexicon_not_found', 'unknown lexicon x'))).toMatch(/no longer on the service/);
+  });
+
   it('turns the error shape into an ApiError with code and message', async () => {
     const { fn } = fetchStub(() => ok({ error: { code: 'not_approved', message: 'Case set data has not been approved' } }, 403));
     const api = createApi({ base: '', token: '' }, fn);
@@ -72,7 +90,7 @@ describe('createApi', () => {
 });
 
 describe('operator keys and limits', () => {
-  const base: Health = { version: '0.3.0', lexicon_version: '1.0.0', modes: ['analyse', 'audit'], clients: ['sim', 'ollama', 'anthropic'], anonymous: 'analyse', workspace: 'public' };
+  const base: Health = { version: '0.3.0', lexicon_version: null, modes: ['analyse', 'audit'], clients: ['sim', 'ollama', 'anthropic'], anonymous: 'analyse', workspace: 'public', domain: null, sections: [] };
 
   it('maps the limit error codes to plain language and leaves other codes alone', () => {
     expect(describeError(new ApiError(400, 'key_required', 'client.api_key is required'))).toMatch(/needs your own API key/);

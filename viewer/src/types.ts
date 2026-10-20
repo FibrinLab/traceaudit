@@ -1,19 +1,12 @@
-// Types derived from the real export bundle (specs 01, 12) and the demo data in runs/demo/export.
+// Types derived from the export bundle format (specs 01, 12). Domain-neutral: documents, findings and answer
+// categories all come from the bundle's lexicon.
 
 /** A document section id (the key of `reports`); any string, chosen by the lexicon's `sections`. */
 export type ReportName = string;
 /** One source document of a case, in display order. */
 export interface Section { id: string; title: string }
-/** The built-in haematology sections: the fallback when a bundle or lexicon carries no `sections`. */
-export const REPORT_ORDER: string[] = ['clinical', 'morphology', 'flow_cytometry', 'cytogenetics', 'molecular'];
-export const REPORT_TITLES: Record<string, string> = {
-  clinical: 'Clinical summary',
-  morphology: 'Morphology',
-  flow_cytometry: 'Flow cytometry',
-  cytogenetics: 'Cytogenetics',
-  molecular: 'Molecular',
-};
 
+/** The source documents of a case: section id → text. */
 export type Reports = Record<ReportName, string>;
 export type Polarity = 'pos' | 'neg';
 export type Effort = 'low' | 'medium' | 'high';
@@ -180,7 +173,7 @@ export interface CaseRecord {
   reports: Reports;
   truth: Record<string, Polarity>;
   finding_spans: Record<string, FindingSpan[]>;
-  /** Document sections in order; absent in older bundles (then the five built-in titles apply). */
+  /** Document sections in order; absent in older bundles (then the document keys, humanised, serve as titles). */
   sections?: Section[] | null;
 }
 

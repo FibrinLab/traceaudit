@@ -6,11 +6,10 @@ import { buildAnalyseRequest, hasAnyDocument, sectionIndex, sectionTitle, sectio
 import { buildSingleTraceBundle } from '../lib/analyseBundle';
 import { ReportPane } from '../components/ReportPane';
 import { lexiconLabel, type AnalyseResponse } from '../lib/api';
-import type { CaseFile, Section } from '../types';
+import type { Section } from '../types';
 
 const incident = JSON.parse(readFileSync(resolve(__dirname, '../../public/examples/incident-trace.json'), 'utf8')) as { documents: Record<string, string>; reasoning: string; answer: string };
 const incidentLexicon = JSON.parse(readFileSync(resolve(__dirname, '../../public/examples/lexicon-incident-triage.json'), 'utf8')) as { domain: string; version: string; sections: Section[]; entities: Array<{ id: string; display: string }>; findings: Array<{ id: string; display: string; kind: string }> };
-const cll = JSON.parse(readFileSync(resolve(__dirname, '../../public/demo/cases/CLL-001.json'), 'utf8')) as CaseFile;
 
 describe('sections', () => {
   it('uses the declared sections in order and humanises undeclared keys', () => {
@@ -18,43 +17,44 @@ describe('sections', () => {
     expect(secs.map((s) => s.id)).toEqual(['alerts', 'logs', 'deploys', 'extra_notes']);
     expect(secs.map((s) => s.title)).toEqual(['Alerts', 'Logs', 'Deploy history', 'Extra notes']);
     expect(sectionTitle(incidentLexicon.sections, 'deploys')).toBe('Deploy history');
+    expect(sectionTitle(incidentLexicon.sections, 'deploy_log')).toBe('Deploy log');
     expect(sectionIndex(incidentLexicon.sections, 'logs')).toBe(1);
     expect(sectionIndex(incidentLexicon.sections, 'nope')).toBe(Number.MAX_SAFE_INTEGER);
     expect(titleFromId('deploy-history')).toBe('Deploy history');
   });
 
-  it('falls back to the five built-in titles for bundles without sections', () => {
-    const secs = sectionsFor(cll.case.reports, undefined);
-    expect(secs.map((s) => s.id)).toEqual(['clinical', 'morphology', 'flow_cytometry', 'cytogenetics', 'molecular']);
-    expect(secs[2].title).toBe('Flow cytometry');
-    expect(sectionsFor({ morphology: 'm', clinical: 'c' }, null).map((s) => s.id)).toEqual(['clinical', 'morphology']);
-    expect(sectionsFor({}, null)).toHaveLength(5);
+  it('falls back to the document keys, in their own order and humanised, when nothing declares sections', () => {
+    const secs = sectionsFor({ ticket: 't', chat_log: 'c', 'runbook-notes': 'r' }, undefined);
+    expect(secs.map((s) => s.id)).toEqual(['ticket', 'chat_log', 'runbook-notes']);
+    expect(secs.map((s) => s.title)).toEqual(['Ticket', 'Chat log', 'Runbook notes']);
+    expect(sectionsFor({}, null)).toEqual([]);
+    expect(sectionsFor(null, [{ id: 'a', title: '' }])).toEqual([{ id: 'a', title: 'A' }]);
   });
 });
 
 describe('buildAnalyseRequest', () => {
-  it('sends documents in section order with titles, keeping empty documents, and lexicon_id only for non-default lexicons', () => {
-    const req = buildAnalyseRequest({ documents: { logs: incident.documents.logs, alerts: incident.documents.alerts }, sections: incidentLexicon.sections, reasoning: incident.reasoning, answer: incident.answer, lexiconId: 'lex-abc', entity: 'BAD_DEPLOY' });
+  it('sends documents in section order with titles, keeping empty documents, and the chosen lexicon_id', () => {
+    const req = buildAnalyseRequest({ documents: { logs: incident.documents.logs, alerts: incident.documents.alerts }, sections: incidentLexicon.sections, reasoning: incident.reasoning, answer: incident.answer, lexiconId: 'example:incident-triage', entity: 'BAD_DEPLOY' });
     expect(Object.keys(req.documents!)).toEqual(['alerts', 'logs', 'deploys']);
     expect(req.documents!.deploys).toBe('');
     expect(req.titles).toEqual({ alerts: 'Alerts', logs: 'Logs', deploys: 'Deploy history' });
-    expect(req.lexicon_id).toBe('lex-abc');
+    expect(req.lexicon_id).toBe('example:incident-triage');
     expect(req.entity).toBe('BAD_DEPLOY');
-    expect(req.reports).toBeUndefined();
     expect(req.truth).toBeUndefined();
-    const dflt = buildAnalyseRequest({ documents: { clinical: 'c' }, sections: [{ id: 'clinical', title: 'Clinical summary' }], reasoning: 'r', answer: 'a', lexiconId: 'default' });
-    expect(dflt.lexicon_id).toBeUndefined();
-    expect(dflt.entity).toBeUndefined();
-    const extra = buildAnalyseRequest({ documents: { other: 'o' }, sections: [], reasoning: 'r', answer: 'a' });
-    expect(extra.documents).toEqual({ other: 'o' });
-    expect(extra.titles).toEqual({ other: 'Other' });
+    const uploaded = buildAnalyseRequest({ documents: { notes: 'n' }, sections: [{ id: 'notes', title: 'Notes' }], reasoning: 'r', answer: 'a', lexiconId: 'lex-abc' });
+    expect(uploaded.lexicon_id).toBe('lex-abc');
+    expect(uploaded.entity).toBeUndefined();
+    const none = buildAnalyseRequest({ documents: { other: 'o' }, sections: [], reasoning: 'r', answer: 'a' });
+    expect(none.lexicon_id).toBeUndefined();
+    expect(none.documents).toEqual({ other: 'o' });
+    expect(none.titles).toEqual({ other: 'Other' });
     expect(hasAnyDocument({ a: '  ', b: '' })).toBe(false);
     expect(hasAnyDocument({ a: 'x' })).toBe(true);
   });
 
   it('labels lexicons by domain and source', () => {
-    expect(lexiconLabel({ id: 'default', name: 'haematology', domain: 'haematology', version: '1', sections: [], n_findings: 0, n_entities: 0, source: 'built-in' })).toBe('Haematology (built-in)');
-    expect(lexiconLabel({ id: 'lex-1', name: 'incident-triage', domain: 'incident-triage', version: '1', sections: [], n_findings: 0, n_entities: 0, source: 'upload' })).toBe('Incident triage (uploaded)');
+    expect(lexiconLabel({ id: 'example:incident-triage', name: 'incident-triage', domain: 'incident-triage', version: '1', sections: [], n_findings: 0, n_entities: 0, source: 'example' })).toBe('Incident triage (example)');
+    expect(lexiconLabel({ id: 'lex-1', name: null, domain: 'incident-triage', version: '1', sections: [], n_findings: 0, n_entities: 0, source: 'upload' })).toBe('Incident triage (uploaded)');
     expect(lexiconLabel({ id: 'lex-2', name: 'Ops', domain: 'incident-triage', version: '1', sections: [], n_findings: 0, n_entities: 0, source: 'upload' })).toBe('Ops (uploaded)');
   });
 });
@@ -66,9 +66,9 @@ describe('sections-driven rendering', () => {
     expect(container.textContent).toContain('Release 2026.10.20-3');
   });
 
-  it('ReportPane falls back to the five built-in titles for a bundle case without sections', () => {
-    const { container } = render(<ReportPane reports={cll.case.reports} />);
-    expect([...container.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Clinical summary', 'Morphology', 'Flow cytometry', 'Cytogenetics', 'Molecular']);
+  it('ReportPane falls back to humanised document keys for a bundle case without sections', () => {
+    const { container } = render(<ReportPane reports={{ ticket: 'T-1 opened', chat_log: 'ops: looking' }} />);
+    expect([...container.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Ticket', 'Chat log']);
   });
 
   it('the analysed bundle carries the response sections and lexicon display names', () => {
