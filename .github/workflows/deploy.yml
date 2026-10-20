@@ -1,0 +1,51 @@
+name: deploy
+# Deploys to Cloudflare on every push to main: the viewer to Pages, the service to a Container worker.
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN (Workers + Pages + Containers edit) and CLOUDFLARE_ACCOUNT_ID.
+# The Anthropic key is a Worker secret set once (wrangler secret put ANTHROPIC_API_KEY); it is not touched here.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: { group: deploy, cancel-in-progress: false }
+
+jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.c.outputs.ok }}
+    steps:
+      - id: c
+        run: echo "ok=${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}" >> "$GITHUB_OUTPUT"
+
+  pages:
+    needs: check-secrets
+    if: needs.check-secrets.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: viewer } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npm test -- --run
+      - run: npm run build
+      - run: npx wrangler@4 pages deploy dist --project-name traceaudit --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  container:
+    needs: check-secrets
+    if: needs.check-secrets.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: cloudflare } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
