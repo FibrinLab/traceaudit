@@ -1,7 +1,9 @@
 // Typed client for the `traceaudit serve` HTTP API (specs/17-service.md §3).
 // No React here so it can be unit-tested with a stubbed fetch.
 import type { Claim, GroundingRecord, LexiconEntity, LexiconFinding, Polarity, ReasoningMap, Reports, Section } from '../types';
+import { parseLedgerResult, type LedgerRequest, type LedgerResult } from './ledger';
 export type { Reports };
+export type { LedgerRequest, LedgerResult };
 
 export interface ApiSettings {
   /** Origin or prefix of the service, e.g. `http://127.0.0.1:8080`. Empty means same origin. */
@@ -220,6 +222,8 @@ export interface ApiClient {
   /** Upload a case set (JSONL text); resolves to the new case set as `/api/case-sets` lists it. */
   createUpload: (req: UploadCreate) => Promise<CaseSet>;
   analyse: (req: AnalyseRequest) => Promise<AnalyseResponse>;
+  /** Audit a structured trace artefact (`{markdown}` or `{case, trace}`) against its fact ledger. No model is called. */
+  auditLedger: (req: LedgerRequest) => Promise<LedgerResult>;
   createJob: (req: JobCreate) => Promise<{ job_id: string }>;
   listJobs: () => Promise<JobSummary[]>;
   getJob: (id: string) => Promise<Job>;
@@ -260,6 +264,7 @@ export function createApi(settings: ApiSettings, fetchImpl: typeof fetch = (...a
     caseSets: () => request<CaseSet[]>('/api/case-sets'),
     createUpload: (req) => request<CaseSet>('/api/uploads', json(req)),
     analyse: (req) => request<AnalyseResponse>('/api/analyse', json(req)),
+    auditLedger: async (req) => parseLedgerResult(await request<unknown>('/api/ledger', json(req))),
     createJob: (req) => request<{ job_id: string }>('/api/jobs', json(req)),
     listJobs: () => request<JobSummary[]>('/api/jobs'),
     getJob: (id) => request<Job>(`/api/jobs/${encodeURIComponent(id)}`),

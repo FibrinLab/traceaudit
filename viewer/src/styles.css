@@ -360,3 +360,73 @@ textarea.answer { min-height: 90px; }
 .kv dt { color: var(--text-2); }
 .kv dd { margin: 0; overflow-wrap: anywhere; }
 dialog form .field.block input { width: 100%; }
+
+/* Fact ledger (Analyse → Audit a structured trace) */
+textarea.ledger { min-height: 260px; font-size: var(--fs-0); line-height: 1.5; }
+.ledger-jump a { font-size: var(--fs-0); color: var(--text-2); text-decoration: none; }
+.ledger-jump a:hover { color: var(--accent); text-decoration: underline; }
+.ledger-block h2 { margin: 0; }
+.ledger-block .panel-head { align-items: flex-start; margin-bottom: 12px; }
+.verdict-strip { display: flex; gap: 28px 40px; flex-wrap: wrap; align-items: flex-start; }
+.verdict-value { font-size: var(--fs-3) !important; letter-spacing: -0.02em !important; }
+.check-chips .chip.check { cursor: pointer; background: transparent; }
+.check-chips .chip.check:hover { background: var(--ink-3); }
+.check-chips .chip.check[aria-expanded="true"] { outline: 2px solid var(--focus); outline-offset: 1px; }
+.check-detail { margin-top: 10px; padding: 10px 14px; border: var(--hairline); border-left: 3px solid var(--line-strong); border-radius: var(--radius); background: var(--ink-3); }
+.check-detail.empty { display: none; }
+/* Fact chips are buttons: hover or focus highlights the fact row, click jumps to it. */
+.chip.fact-chip { cursor: pointer; background: transparent; max-width: 100%; text-align: left; }
+.chip.fact-chip:hover, .chip.fact-chip.is-hl { background: var(--focus-wash); }
+.chip.fact-chip[disabled] { cursor: not-allowed; opacity: 0.6; }
+.chip.fact-chip .fact-kv { color: var(--text-2); overflow-wrap: anywhere; }
+.chip.fact-chip.good .fact-kv, .chip.fact-chip.bad .fact-kv, .chip.fact-chip.warn .fact-kv { color: inherit; opacity: 0.85; }
+.chip.outline { border-style: dashed; }
+.chip.neutral.fact-chip { color: var(--text); }
+.ledger-section + .ledger-section { margin-top: 10px; }
+.ledger-section h3 { margin: 10px 0 2px; }
+.ledger-seg { padding: 8px 0 8px 12px; border-left: 2px solid var(--line); margin: 4px 0; }
+.ledger-seg.quiet { border-left-style: dashed; }
+.ledger-seg .seg-text { margin: 0 0 6px; max-width: 80ch; line-height: 1.5; }
+ul.uncited { list-style: none; margin: 6px 0 0; padding: 0; color: var(--unsupported); font-size: var(--fs-0); }
+ul.uncited li { padding: 2px 0; }
+ul.uncited li .icon { font-weight: 700; margin-right: 4px; }
+table.ledger-table tr.group th { padding: 12px 10px 4px; color: var(--text); font-weight: 700; border-bottom: 1px solid var(--line-strong); background: var(--ink-2); }
+table.ledger-table tr.group th .sep { color: var(--text-2); margin: 0 2px; font-weight: 400; }
+table.ledger-table td.mark-cell, table.ledger-table th.mark-cell { text-align: center; width: 28px; padding-left: 4px; padding-right: 4px; }
+table.ledger-table th.mark-cell { font-weight: 700; color: var(--text); }
+table.ledger-table .mk { color: var(--line-strong); }
+table.ledger-table .mk.on { color: var(--accent); }
+table.ledger-table td.evidence { color: var(--text-2); max-width: 36ch; overflow-wrap: anywhere; }
+table.ledger-table td.evidence .btn { margin-left: 4px; vertical-align: baseline; }
+table.ledger-table tr.fact-row td:first-child { position: relative; }
+table.ledger-table tr.fact-row.ignored td:first-child { box-shadow: inset 3px 0 0 var(--unsupported); }
+table.ledger-table tr.fact-row.ignored.untested td:first-child { box-shadow: inset 3px 0 0 var(--line-strong); }
+table.ledger-table tr.fact-row.disagrees td:nth-child(3) { color: var(--contradicted); }
+table.ledger-table tbody tr.fact-row.is-hl td { background: var(--focus-wash); }
+table.ledger-table tbody tr.fact-row.is-selected td { background: var(--focus-wash); }
+table.ledger-table tbody tr.fact-row.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+table.ledger-table tr.fact-row:focus { outline: none; }
+table.ledger-table tr.fact-row:focus-visible td { outline: 2px solid var(--focus); outline-offset: -2px; }
+.ledger-reasoning { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--gutter) 28px; align-items: start; }
+@media (max-width: 1000px) { .ledger-reasoning { grid-template-columns: 1fr; } }
+.ledger-reasoning .thinking { max-width: none; }
+.ledger-reasoning .thinking .chip { vertical-align: baseline; padding: 0 7px; line-height: 1.35; margin: 0 1px; }
+table.differential tr.favoured td { background: var(--focus-wash); }
+table.differential tr.criteria-row td { background: var(--ink-3); border-bottom: 1px solid var(--line-strong); }
+table.differential .criteria-counts { white-space: nowrap; }
+ul.criteria, ul.fact-list { margin: 0; padding-left: 0; list-style: none; }
+ul.criteria li, ul.fact-list li { padding: 3px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+ul.fact-list li { border-bottom: var(--hairline); padding: 6px 0; }
+ul.fact-list li:last-child { border-bottom: 0; }
+.ablation { display: flex; flex-direction: column; gap: 16px; }
+.before-after { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.before-after .arrow { font-size: var(--fs-4); color: var(--text-2); line-height: 1; }
+/* Coverage: one square per case fact */
+.cov-strip { flex-wrap: wrap; overflow: visible; gap: 3px; }
+.cov-strip button { width: 16px; height: 16px; border-radius: 3px; border: 1px solid var(--line-strong); background: var(--ink-3); }
+.cov-strip button.cov-cited, .legend i.cov-cited { background: var(--accent-fill); border-color: var(--accent-fill); }
+.cov-strip button.cov-referenced, .legend i.cov-referenced { background: transparent; border: 2px solid var(--accent); }
+.cov-strip button.cov-ignored, .legend i.cov-ignored { background: var(--unsupported); border-color: var(--unsupported); }
+.cov-strip button.cov-untested, .legend i.cov-untested { background: var(--ink-3); border-color: var(--line-strong); }
+.cov-strip button.is-hl, .cov-strip button:hover { outline: 2px solid var(--focus); outline-offset: 1px; }
+.legend .key i.sq { width: 12px; height: 12px; border: 1px solid var(--line-strong); }

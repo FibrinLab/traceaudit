@@ -1,0 +1,2480 @@
+{
+ "case_id": "case_003",
+ "truth": "CLL/SLL",
+ "decision": "CLL/SLL",
+ "candidates": [
+  "CLL/SLL",
+  "FL",
+  "HCL",
+  "LPL/WM",
+  "MCL",
+  "SBLPN",
+  "SDRPL",
+  "SMZL"
+ ],
+ "checks": [
+  {
+   "id": "citations_exist",
+   "title": "Every cited id exists",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "citations_agree",
+   "title": "Cited facts are stated with their recorded value",
+   "status": "PASS",
+   "detail": "16 agree, 0 disagree, 3 unverifiable"
+  },
+  {
+   "id": "segments_cited",
+   "title": "Every informative segment carries a citation",
+   "status": "PASS",
+   "detail": "0 informative segment(s) without citations"
+  },
+  {
+   "id": "report_contract",
+   "title": "Report contract valid (no engine warnings)",
+   "status": "FAIL",
+   "detail": "citation_contract_warning"
+  },
+  {
+   "id": "nothing_dropped",
+   "title": "Nothing informative deleted by post-processing",
+   "status": "FAIL",
+   "detail": "1 segment(s) dropped"
+  },
+  {
+   "id": "summary_structure",
+   "title": "Summary has Diagnosis, Summary and Additional comments",
+   "status": "FAIL",
+   "detail": "missing: diagnosis"
+  },
+  {
+   "id": "decision_matches_truth",
+   "title": "Delivered answer matches ground truth",
+   "status": "PASS",
+   "detail": "CLL/SLL vs CLL/SLL"
+  },
+  {
+   "id": "decision_survived",
+   "title": "Raw answer survived post-processing unchanged",
+   "status": "PASS",
+   "detail": "CLL/SLL -> CLL/SLL"
+  },
+  {
+   "id": "thinking_present",
+   "title": "Thinking returned",
+   "status": "PASS",
+   "detail": "1658 characters"
+  },
+  {
+   "id": "thinking_considers_alternatives",
+   "title": "Thinking considered more than one candidate answer",
+   "status": "FAIL",
+   "detail": "named: CLL/SLL"
+  },
+  {
+   "id": "thinking_ids_valid",
+   "title": "Thinking cites only allowed ids",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "thinking_agrees",
+   "title": "Facts restated in thinking match their recorded values",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "rationale_agrees",
+   "title": "Rationale decision agrees with the delivered answer",
+   "status": "PASS",
+   "detail": "CLL/SLL vs CLL/SLL"
+  },
+  {
+   "id": "rationale_matches_truth",
+   "title": "Rationale decision matches ground truth",
+   "status": "PASS",
+   "detail": "CLL/SLL vs CLL/SLL"
+  },
+  {
+   "id": "one_favoured",
+   "title": "Exactly one favoured answer and it equals the decision",
+   "status": "PASS",
+   "detail": "CLL/SLL"
+  },
+  {
+   "id": "differential_complete",
+   "title": "Differential covers every candidate",
+   "status": "PASS",
+   "detail": "8 listed"
+  },
+  {
+   "id": "rationale_ids_valid",
+   "title": "Every rationale citation exists",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "contradicting_evidence_informative",
+   "title": "Contradicting citations point at informative facts",
+   "status": "FAIL",
+   "detail": "HCL: p_25 (villous_projections = Not mentioned); SDRPL: p_25 (villous_projections = Not mentioned)"
+  },
+  {
+   "id": "criteria_cited",
+   "title": "Reference essential criteria cited for the favoured answer",
+   "status": "FAIL",
+   "detail": "cited fields: definition; expected w_65"
+  },
+  {
+   "id": "favoured_criteria_met",
+   "title": "No essential criterion of the favoured answer is marked not met",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "coverage",
+   "title": "Every patient/context fact was referenced in thinking, report or rationale",
+   "status": "FAIL",
+   "detail": "39 ignored, 28 of them informative"
+  },
+  {
+   "id": "coverage_informative",
+   "title": "Every informative patient/context fact was referenced",
+   "status": "FAIL",
+   "detail": "p_12 Lambda=Weak, p_27 ARID1A_variant=Negative, p_28 BCL2_variant=Negative, p_29 BIRC3_variant=Negative, p_31 BRAF_nonV600E_variant=Negative, p_32 BTK_variant=Negative, p_33 CARD11_variant=Negative, p_34 CCND3_variant=Negative, p_36 CREBBP_variant=Negative, p_37 CXCR4_variant=Negative, p_38 EP300_variant=Negative, p_39 EZH2_variant=Negative"
+  },
+  {
+   "id": "discriminators_load_bearing",
+   "title": "Stated discriminators are load-bearing (answer changes without them)",
+   "status": "FAIL",
+   "detail": "CLL/SLL -> CLL/SLL after removing 5 fact(s)"
+  },
+  {
+   "id": "discriminators_in_summary",
+   "title": "Stated discriminators overlap the delivered summary citations",
+   "status": "PASS",
+   "detail": "jaccard 0.333; shared p_55, p_57"
+  }
+ ],
+ "metrics": {
+  "facts": 111,
+  "patient_facts": 61,
+  "context_facts": 8,
+  "reference_facts": 42,
+  "cited_in_report": 19,
+  "cited_agree": 16,
+  "cited_disagree": 0,
+  "cited_unverifiable": 3,
+  "thinking_chars": 1658,
+  "thinking_ids": 22,
+  "thinking_fields": 28,
+  "candidates_named_in_thinking": {
+   "CLL/SLL": 1
+  },
+  "ignored": 39,
+  "ignored_informative": 28,
+  "checks_failed": 9,
+  "checks_total": 24
+ },
+ "sections": [
+  {
+   "title": "ICD codes:",
+   "segments": [
+    {
+     "text": "ICD-O-3: 9823/3 Chronic lymphocytic leukaemia / small lymphocytic lymphoma",
+     "citation_ids": [
+      "w_63"
+     ],
+     "cited": [
+      {
+       "id": "w_63",
+       "grade": "reference",
+       "field": "icd_o_coding",
+       "value": "9823/3 Chronic lymphocytic leukaemia / small lymphocytic lymphoma",
+       "candidate": "CLL/SLL"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    },
+    {
+     "text": "ICD-11: 2A82.0Z Chronic lymphocytic leukaemia or small lymphocytic lymphoma",
+     "citation_ids": [
+      "w_64"
+     ],
+     "cited": [
+      {
+       "id": "w_64",
+       "grade": "reference",
+       "field": "icd_11_coding",
+       "value": "2A82.0Z Chronic lymphocytic leukaemia or small lymphocytic lymphoma",
+       "candidate": "CLL/SLL"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  },
+  {
+   "title": "Summary of diagnosis:",
+   "segments": [
+    {
+     "text": "Summary: IGHV unmutated; TP53 aberration present.",
+     "citation_ids": [
+      "p_54",
+      "p_57"
+     ],
+     "cited": [
+      {
+       "id": "p_54",
+       "grade": "agree",
+       "field": "IGHV_mutated",
+       "value": "unmutated",
+       "stated": "unmutated"
+      },
+      {
+       "id": "p_57",
+       "grade": "not_mentioned",
+       "field": "del_17p",
+       "value": "Positive",
+       "stated": null
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    },
+    {
+     "text": "Additional comments: del(11q) detected.",
+     "citation_ids": [
+      "p_55"
+     ],
+     "cited": [
+      {
+       "id": "p_55",
+       "grade": "agree",
+       "field": "del_11q",
+       "value": "Positive",
+       "stated": "pos"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  },
+  {
+   "title": "Immunophenotyping:",
+   "segments": [
+    {
+     "text": "CD5+, CD19+, CD20+, CD23+, CD200+, CD43+; CD10 negative; CD81 weak; CD79b weak; ROR1 negative.",
+     "citation_ids": [
+      "p_1",
+      "p_2",
+      "p_3",
+      "p_4",
+      "p_6",
+      "p_9",
+      "p_10",
+      "p_5",
+      "p_8",
+      "p_7"
+     ],
+     "cited": [
+      {
+       "id": "p_1",
+       "grade": "agree",
+       "field": "CD5",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_2",
+       "grade": "agree",
+       "field": "CD19",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_3",
+       "grade": "agree",
+       "field": "CD20",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_4",
+       "grade": "agree",
+       "field": "CD23",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_6",
+       "grade": "agree",
+       "field": "CD200",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_9",
+       "grade": "agree",
+       "field": "CD43",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_10",
+       "grade": "agree",
+       "field": "CD10",
+       "value": "Negative",
+       "stated": "neg"
+      },
+      {
+       "id": "p_5",
+       "grade": "agree",
+       "field": "CD81",
+       "value": "Weak",
+       "stated": "pos"
+      },
+      {
+       "id": "p_8",
+       "grade": "agree",
+       "field": "CD79b",
+       "value": "Weak",
+       "stated": "pos"
+      },
+      {
+       "id": "p_7",
+       "grade": "agree",
+       "field": "ROR1",
+       "value": "Negative",
+       "stated": "neg"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  },
+  {
+   "title": "Morphology:",
+   "segments": [
+    {
+     "text": "Small mature B cells; no prominent nucleoli.",
+     "citation_ids": [
+      "p_23",
+      "p_24",
+      "p_22"
+     ],
+     "cited": [
+      {
+       "id": "p_23",
+       "grade": "unverifiable",
+       "field": "small_size",
+       "value": "Positive",
+       "stated": null
+      },
+      {
+       "id": "p_24",
+       "grade": "not_mentioned",
+       "field": "smear_cell",
+       "value": "Positive",
+       "stated": null
+      },
+      {
+       "id": "p_22",
+       "grade": "agree",
+       "field": "prominent_nucleoli",
+       "value": "Negative",
+       "stated": "neg"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  },
+  {
+   "title": "Molecular:",
+   "segments": [
+    {
+     "text": "ATM variant detected.",
+     "citation_ids": [
+      "p_26"
+     ],
+     "cited": [
+      {
+       "id": "p_26",
+       "grade": "agree",
+       "field": "ATM_variant",
+       "value": "Positive",
+       "stated": "pos"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  },
+  {
+   "title": "Cytogenetics:",
+   "segments": [
+    {
+     "text": "del(11q) and del(17p) present.",
+     "citation_ids": [
+      "p_55",
+      "p_57"
+     ],
+     "cited": [
+      {
+       "id": "p_55",
+       "grade": "agree",
+       "field": "del_11q",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_57",
+       "grade": "agree",
+       "field": "del_17p",
+       "value": "Positive",
+       "stated": "pos"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "id": "p_1",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD5",
+   "value": "Positive",
+   "evidence": "positive for CD5",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_2",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD19",
+   "value": "Positive",
+   "evidence": "positive for CD5 CD19",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_3",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD20",
+   "value": "Positive",
+   "evidence": "positive for CD5 CD19 CD20",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_4",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD23",
+   "value": "Positive",
+   "evidence": "positive for CD5 CD19 CD20 CD23",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_5",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD81",
+   "value": "Weak",
+   "evidence": "weak CD81",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_6",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD200",
+   "value": "Positive",
+   "evidence": "positive for CD5 CD19 CD20 CD23 CD43 weak CD81 CD200",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_7",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "ROR1",
+   "value": "Negative",
+   "evidence": "negative for ROR1",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_8",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD79b",
+   "value": "Weak",
+   "evidence": "weak CD79b",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_9",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD43",
+   "value": "Positive",
+   "evidence": "positive for CD5 CD19 CD20 CD23 CD43",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_10",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD10",
+   "value": "Negative",
+   "evidence": "negative for ROR1 CD10",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_11",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "Kappa",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_12",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "Lambda",
+   "value": "Weak",
+   "evidence": "weak lambda expression",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_13",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD11c",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_14",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD25",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_15",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD103",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_16",
+   "source": "patient",
+   "section": "immunophenotyping",
+   "field": "CD123",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_17",
+   "source": "patient",
+   "section": "morphology",
+   "field": "clefted_nucleus",
+   "value": "Not mentioned",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_18",
+   "source": "patient",
+   "section": "morphology",
+   "field": "cll_sll_phenotype",
+   "value": "Not mentioned",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_19",
+   "source": "patient",
+   "section": "morphology",
+   "field": "large_size",
+   "value": "Negative",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_20",
+   "source": "patient",
+   "section": "morphology",
+   "field": "medium_size",
+   "value": "Not mentioned",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_21",
+   "source": "patient",
+   "section": "morphology",
+   "field": "prolymphocyte",
+   "value": "Not mentioned",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_22",
+   "source": "patient",
+   "section": "morphology",
+   "field": "prominent_nucleoli",
+   "value": "Negative",
+   "evidence": "inconspicuous nucleoli",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_23",
+   "source": "patient",
+   "section": "morphology",
+   "field": "small_size",
+   "value": "Positive",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_24",
+   "source": "patient",
+   "section": "morphology",
+   "field": "smear_cell",
+   "value": "Positive",
+   "evidence": "Frequent smudge cells are present.",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_25",
+   "source": "patient",
+   "section": "morphology",
+   "field": "villous_projections",
+   "value": "Not mentioned",
+   "evidence": "small mature lymphoid cells",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_26",
+   "source": "patient",
+   "section": "molecular",
+   "field": "ATM_variant",
+   "value": "Positive",
+   "evidence": "Likely pathogenic missense variant in ATM c.9353dup p.(Variant206) at 10.1% VAF detected by NGS.",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_27",
+   "source": "patient",
+   "section": "molecular",
+   "field": "ARID1A_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected in the regions analysed within the ARID1A, BCL2, BIRC3, BRAF, BTK, CARD11, CCND3, CD79B, CREBBP, CXCR4, EP300, EZH2, FOXO1, KLF2, MAP2K1, MEF2B, MYD88, NOTCH1, NOTCH2, PLCG2, NRAS, KRAS, HRAS, SF3B1, TP53 genes.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_28",
+   "source": "patient",
+   "section": "molecular",
+   "field": "BCL2_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_29",
+   "source": "patient",
+   "section": "molecular",
+   "field": "BIRC3_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_30",
+   "source": "patient",
+   "section": "molecular",
+   "field": "BRAF_V600E_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_31",
+   "source": "patient",
+   "section": "molecular",
+   "field": "BRAF_nonV600E_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_32",
+   "source": "patient",
+   "section": "molecular",
+   "field": "BTK_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_33",
+   "source": "patient",
+   "section": "molecular",
+   "field": "CARD11_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_34",
+   "source": "patient",
+   "section": "molecular",
+   "field": "CCND3_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_35",
+   "source": "patient",
+   "section": "molecular",
+   "field": "CD79B_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_36",
+   "source": "patient",
+   "section": "molecular",
+   "field": "CREBBP_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_37",
+   "source": "patient",
+   "section": "molecular",
+   "field": "CXCR4_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_38",
+   "source": "patient",
+   "section": "molecular",
+   "field": "EP300_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_39",
+   "source": "patient",
+   "section": "molecular",
+   "field": "EZH2_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_40",
+   "source": "patient",
+   "section": "molecular",
+   "field": "FOXO1_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_41",
+   "source": "patient",
+   "section": "molecular",
+   "field": "KLF2_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_42",
+   "source": "patient",
+   "section": "molecular",
+   "field": "MAP2K1_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_43",
+   "source": "patient",
+   "section": "molecular",
+   "field": "MEF2B_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_44",
+   "source": "patient",
+   "section": "molecular",
+   "field": "MYD88_L265P_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_45",
+   "source": "patient",
+   "section": "molecular",
+   "field": "MYD88_nonL265P_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_46",
+   "source": "patient",
+   "section": "molecular",
+   "field": "NOTCH1_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_47",
+   "source": "patient",
+   "section": "molecular",
+   "field": "NOTCH2_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_48",
+   "source": "patient",
+   "section": "molecular",
+   "field": "PLCG2_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_49",
+   "source": "patient",
+   "section": "molecular",
+   "field": "NRAS_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_50",
+   "source": "patient",
+   "section": "molecular",
+   "field": "KRAS_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_51",
+   "source": "patient",
+   "section": "molecular",
+   "field": "HRAS_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_52",
+   "source": "patient",
+   "section": "molecular",
+   "field": "SF3B1_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_53",
+   "source": "patient",
+   "section": "molecular",
+   "field": "TP53_variant",
+   "value": "Negative",
+   "evidence": "No pathogenic/likely pathogenic variants were detected.",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_54",
+   "source": "patient",
+   "section": "molecular",
+   "field": "IGHV_mutated",
+   "value": "unmutated",
+   "evidence": "this case belongs to the IG-unmutated category",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_55",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "del_11q",
+   "value": "Positive",
+   "evidence": "clonal loss of ATM (at 11q22.3)",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_56",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "del_13q",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_57",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "del_17p",
+   "value": "Positive",
+   "evidence": "clonal loss of TP53 (at 17p13.1)",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "p_58",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "del_7q",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_59",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "gain_of_12",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_60",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "t_11_14",
+   "value": "Negative",
+   "evidence": "no evidence of a t(11;14)(q13;q32) translocation",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_61",
+   "source": "patient",
+   "section": "cytogenetics",
+   "field": "t_14_18",
+   "value": "Not performed",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "untested",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "c_104",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "hb",
+   "value": "132",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "c_105",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "plt",
+   "value": "232",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "c_106",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "neut",
+   "value": "4.9",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "c_107",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "wbc",
+   "value": "149.7",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "c_108",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "lymph",
+   "value": "143.2",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "other",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "c_109",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "paraprotein",
+   "value": "Absent",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "c_110",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "splenomegaly",
+   "value": "Absent",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "c_111",
+   "source": "context",
+   "section": "clinical_context",
+   "field": "lymphadenopathy",
+   "value": "Present",
+   "evidence": "",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_62",
+   "source": "who",
+   "section": "CLL/SLL",
+   "field": "definition",
+   "value": "Chronic lymphocytic leukaemia / small lymphocytic lymphoma (CLL/SLL) is a B-cell lymphoma comprising monomorphic small mature B cells that frequently coexpress CD5 and CD23.",
+   "evidence": "",
+   "candidate": "CLL/SLL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_63",
+   "source": "who",
+   "section": "CLL/SLL",
+   "field": "icd_o_coding",
+   "value": "9823/3 Chronic lymphocytic leukaemia / small lymphocytic lymphoma",
+   "evidence": "",
+   "candidate": "CLL/SLL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_64",
+   "source": "who",
+   "section": "CLL/SLL",
+   "field": "icd_11_coding",
+   "value": "2A82.0Z Chronic lymphocytic leukaemia or small lymphocytic lymphoma",
+   "evidence": "",
+   "candidate": "CLL/SLL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_65",
+   "source": "who",
+   "section": "CLL/SLL",
+   "field": "essential_diagnostic_criteria",
+   "value": "See #32055.",
+   "evidence": "",
+   "candidate": "CLL/SLL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_66",
+   "source": "who",
+   "section": "CLL/SLL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "See #32055.",
+   "evidence": "",
+   "candidate": "CLL/SLL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_67",
+   "source": "who",
+   "section": "FL",
+   "field": "definition",
+   "value": "Follicular lymphoma (FL) is a neoplasm of germinal-centre (GC) B cells with varying proportions of centrocytes and centroblasts.",
+   "evidence": "",
+   "candidate": "FL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_68",
+   "source": "who",
+   "section": "FL",
+   "field": "icd_o_coding",
+   "value": "9690/3 Follicular lymphoma",
+   "evidence": "",
+   "candidate": "FL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_69",
+   "source": "who",
+   "section": "FL",
+   "field": "icd_11_coding",
+   "value": "2A80.Z Follicular lymphoma, unspecified",
+   "evidence": "",
+   "candidate": "FL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_70",
+   "source": "who",
+   "section": "FL",
+   "field": "essential_diagnostic_criteria",
+   "value": "Essential: B-cell lymphoma composed of varying proportions of centrocytes and/or centroblasts; immunophenotype compatible.",
+   "evidence": "",
+   "candidate": "FL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_71",
+   "source": "who",
+   "section": "FL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "Desirable: at least partly follicular growth pattern; BCL2 or BCL6 rearrangements.",
+   "evidence": "",
+   "candidate": "FL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_72",
+   "source": "who",
+   "section": "HCL",
+   "field": "definition",
+   "value": "Hairy cell leukaemia (HCL) is an indolent mature B-cell neoplasm composed of neoplastic cells with abundant cytoplasm and characteristic hairy projections.",
+   "evidence": "",
+   "candidate": "HCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_73",
+   "source": "who",
+   "section": "HCL",
+   "field": "icd_o_coding",
+   "value": "9940/3 Hairy cell leukaemia",
+   "evidence": "",
+   "candidate": "HCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_74",
+   "source": "who",
+   "section": "HCL",
+   "field": "icd_11_coding",
+   "value": "2A82.2 Hairy cell leukaemia",
+   "evidence": "",
+   "candidate": "HCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_75",
+   "source": "who",
+   "section": "HCL",
+   "field": "essential_diagnostic_criteria",
+   "value": "characteristic morphology in a blood or marrow smear; immunophenotype CD11c, CD25, CD103.",
+   "evidence": "",
+   "candidate": "HCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_76",
+   "source": "who",
+   "section": "HCL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "clonal BRAF p.V600E mutation; positivity for CD123, CD200 (bright), cyclin D1.",
+   "evidence": "",
+   "candidate": "HCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_77",
+   "source": "who",
+   "section": "LPL/WM",
+   "field": "definition",
+   "value": "Lymphoplasmacytic lymphoma (LPL) is a neoplasm comprising small B lymphocytes, plasmacytoid lymphocytes, and plasma cells.",
+   "evidence": "",
+   "candidate": "LPL/WM",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_78",
+   "source": "who",
+   "section": "LPL/WM",
+   "field": "icd_o_coding",
+   "value": "9671/3 Lymphoplasmacytic lymphoma",
+   "evidence": "",
+   "candidate": "LPL/WM",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_79",
+   "source": "who",
+   "section": "LPL/WM",
+   "field": "icd_11_coding",
+   "value": "2A85.4 Lymphoplasmacytic lymphoma",
+   "evidence": "",
+   "candidate": "LPL/WM",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_80",
+   "source": "who",
+   "section": "LPL/WM",
+   "field": "essential_diagnostic_criteria",
+   "value": "Essential: significant bone marrow infiltration by clonal small lymphocytes with plasmacytoid and/or plasma cell differentiation; IgM+.",
+   "evidence": "",
+   "candidate": "LPL/WM",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_81",
+   "source": "who",
+   "section": "LPL/WM",
+   "field": "desirable_diagnostic_criteria",
+   "value": "Desirable: detection of MYD88 p.L265P; CXCR4 variant; monoclonal IgM.",
+   "evidence": "",
+   "candidate": "LPL/WM",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_82",
+   "source": "who",
+   "section": "MCL",
+   "field": "definition",
+   "value": "Mantle cell lymphoma (MCL) is a mature B-cell neoplasm typically composed of small to medium-sized monomorphic cells expressing CD5, SOX11, and cyclin D1.",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_83",
+   "source": "who",
+   "section": "MCL",
+   "field": "icd_o_coding",
+   "value": "9673/3 Mantle cell lymphoma",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_84",
+   "source": "who",
+   "section": "MCL",
+   "field": "icd_o_coding",
+   "value": "9673/3 Mantle cell lymphoma",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_85",
+   "source": "who",
+   "section": "MCL",
+   "field": "icd_o_coding",
+   "value": "9673/3 Mantle cell lymphoma",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_86",
+   "source": "who",
+   "section": "MCL",
+   "field": "icd_11_coding",
+   "value": "2A85.5 Mantle cell lymphoma",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_87",
+   "source": "who",
+   "section": "MCL",
+   "field": "essential_diagnostic_criteria",
+   "value": "Cyclin D1\u2013positive MCL Essential: lymphoma cells of B lineage (positive for CD20 and usually CD5); cyclin D1 positivity.",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_88",
+   "source": "who",
+   "section": "MCL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "Cyclin D1\u2013positive MCL Desirable: SOX11 expression positivity.",
+   "evidence": "",
+   "candidate": "MCL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_89",
+   "source": "who",
+   "section": "SBLPN",
+   "field": "definition",
+   "value": "Splenic B-cell lymphoma/leukaemia with prominent nucleoli (SBLPN) is a splenic B-cell neoplasm with some but not all of the features of hairy cell leukaemia.",
+   "evidence": "",
+   "candidate": "SBLPN",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_90",
+   "source": "who",
+   "section": "SBLPN",
+   "field": "icd_o_coding",
+   "value": "9591/3 Splenic B-cell lymphoma/leukaemia with prominent nucleoli",
+   "evidence": "",
+   "candidate": "SBLPN",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_91",
+   "source": "who",
+   "section": "SBLPN",
+   "field": "icd_11_coding",
+   "value": "2A82.3 Splenic B-cell lymphoma or leukaemia, unclassifiable",
+   "evidence": "",
+   "candidate": "SBLPN",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_92",
+   "source": "who",
+   "section": "SBLPN",
+   "field": "essential_diagnostic_criteria",
+   "value": "Essential: circulating medium-sized lymphoid cells with prominent nucleoli or convoluted nuclei.",
+   "evidence": "",
+   "candidate": "SBLPN",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_93",
+   "source": "who",
+   "section": "SBLPN",
+   "field": "desirable_diagnostic_criteria",
+   "value": "Desirable: diffuse involvement of the splenic red pulp; absence of BRAF mutation.",
+   "evidence": "",
+   "candidate": "SBLPN",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_94",
+   "source": "who",
+   "section": "SDRPL",
+   "field": "definition",
+   "value": "Splenic diffuse red pulp small B-cell lymphoma (SDRPL) is a small B-cell lymphoma involving the spleen, bone marrow, and peripheral blood.",
+   "evidence": "",
+   "candidate": "SDRPL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_95",
+   "source": "who",
+   "section": "SDRPL",
+   "field": "icd_o_coding",
+   "value": "9591/3 Splenic diffuse red pulp small B-cell lymphoma",
+   "evidence": "",
+   "candidate": "SDRPL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_96",
+   "source": "who",
+   "section": "SDRPL",
+   "field": "icd_11_coding",
+   "value": "2A82.Y Other specified mature B-cell neoplasm with leukaemic behaviour",
+   "evidence": "",
+   "candidate": "SDRPL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_97",
+   "source": "who",
+   "section": "SDRPL",
+   "field": "essential_diagnostic_criteria",
+   "value": "diffuse infiltration of the spleen by monomorphic small B cells; peripheral blood with circulating small cells with villous projections.",
+   "evidence": "",
+   "candidate": "SDRPL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_98",
+   "source": "who",
+   "section": "SDRPL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "absence of BRAF p.V600E mutation; absence of lymphadenopathy.",
+   "evidence": "",
+   "candidate": "SDRPL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_99",
+   "source": "who",
+   "section": "SMZL",
+   "field": "definition",
+   "value": "Splenic marginal zone lymphoma (SMZL) is an indolent mature B-cell neoplasm primarily presenting in the spleen, often with villous lymphocytes in the peripheral blood.",
+   "evidence": "",
+   "candidate": "SMZL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_100",
+   "source": "who",
+   "section": "SMZL",
+   "field": "icd_o_coding",
+   "value": "9689/3 Splenic marginal zone lymphoma",
+   "evidence": "",
+   "candidate": "SMZL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_101",
+   "source": "who",
+   "section": "SMZL",
+   "field": "icd_11_coding",
+   "value": "2A82.Y Splenic marginal zone B-cell lymphoma",
+   "evidence": "",
+   "candidate": "SMZL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "w_102",
+   "source": "who",
+   "section": "SMZL",
+   "field": "essential_diagnostic_criteria",
+   "value": "small B-cell lymphoma involving bone marrow and/or peripheral blood, composed of small lymphoid cells with villous processes; positive for IgM and IgD, negative for BCL6, ANXA1, CD103.",
+   "evidence": "",
+   "candidate": "SMZL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": true,
+   "ignored": false
+  },
+  {
+   "id": "w_103",
+   "source": "who",
+   "section": "SMZL",
+   "field": "desirable_diagnostic_criteria",
+   "value": "neoplastic cells that are negative for CD5 and CD10.",
+   "evidence": "",
+   "candidate": "SMZL",
+   "polarity": "other",
+   "informative": false,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  }
+ ],
+ "thinking": {
+  "text": "We need to produce integrated haematopathology report. Determine predicted_diagnosis.\n\nGiven evidence: immunophenotyping shows CD5+, CD19+, CD20+, CD23+, CD81 weak, CD200 positive, ROR1 negative, CD79b weak, CD43 positive, CD10 negative. Morphology: small_size positive, smear_cell positive, large_size negative, medium_size not mentioned, prolymphocyte not mentioned, prominent_nucleoli negative. So small mature B cells with CD5 and CD23 positivity typical of CLL/SLL. Also IGHV unmutated (p_54). del(11q) positive, del(17p) positive. t(11;14) negative. So fits CLL/SLL.\n\nAlso context: WBC 149.7, lymph 143.2 high, no paraprotein, splenomegaly absent but lymphadenopathy present. That could be SLL (nodal). But immunophenotype and cytogenetics support CLL/SLL. The presence of del(17p) indicates poor prognosis.\n\nThus predicted_diagnosis: CLL/SLL.\n\nNow produce sections:\n\nICD codes: use WHO evidence w_63, w_64.\n\nSummary of diagnosis: \"IGHV unmutated; TP53 aberration present.\" citation ids: p_54 (IGHV) and p_57 (del17p). Also maybe p_53 for TP53 variant negative but del17p positive indicates TP53 aberration. Use p_57.\n\nAdditional comments: \"del(11q) detected.\" citation id p_55.\n\nImmunophenotyping: \"CD5+, CD19+, CD20+, CD23+, CD200+, CD43+; CD10 negative; CD81 weak; CD79b weak; ROR1 negative.\" citation ids: p_1, p_2, p_3, p_4, p_6, p_9, p_10, p_5, p_8, p_7.\n\nMorphology: \"Small mature B cells; no prominent nucleoli.\" Use citations p_23, p_24, p_19, p_22.\n\nMolecular: ATM variant positive (p_26). Also TP53 variant negative (p_53) but del17p present.\n\nCytogenetics: del(11q) positive, del(17p) positive, t(11;14) negative (p_60).\n\nNow produce JSON.\n",
+  "ids": [
+   "p_1",
+   "p_10",
+   "p_19",
+   "p_2",
+   "p_22",
+   "p_23",
+   "p_24",
+   "p_26",
+   "p_3",
+   "p_4",
+   "p_5",
+   "p_53",
+   "p_54",
+   "p_55",
+   "p_57",
+   "p_6",
+   "p_60",
+   "p_7",
+   "p_8",
+   "p_9",
+   "w_63",
+   "w_64"
+  ],
+  "candidates": [
+   "CLL/SLL"
+  ]
+ },
+ "rationale": {
+  "decision": "CLL/SLL",
+  "confidence": "high",
+  "key_findings": [
+   {
+    "modality": "immunophenotyping",
+    "description": "CD5 positivity",
+    "ids": [
+     "p_1"
+    ]
+   },
+   {
+    "modality": "immunophenotyping",
+    "description": "CD23 positivity",
+    "ids": [
+     "p_4"
+    ]
+   },
+   {
+    "modality": "morphology",
+    "description": "Small mature B\u2011cell morphology (small size, smear cell positive)",
+    "ids": [
+     "p_23",
+     "p_24"
+    ]
+   },
+   {
+    "modality": "molecular",
+    "description": "ATM gene variant present",
+    "ids": [
+     "p_26"
+    ]
+   },
+   {
+    "modality": "cytogenetics",
+    "description": "del(11q) cytogenetic abnormality",
+    "ids": [
+     "p_55"
+    ]
+   },
+   {
+    "modality": "cytogenetics",
+    "description": "del(17p) cytogenetic abnormality",
+    "ids": [
+     "p_57"
+    ]
+   },
+   {
+    "modality": "clinical_context",
+    "description": "Marked lymphocytosis (lymph count 143.2 \u00d710\u2079/L, WBC 149.7 \u00d710\u2079/L)",
+    "ids": [
+     "c_107",
+     "c_108"
+    ]
+   },
+   {
+    "modality": "clinical_context",
+    "description": "Lymphadenopathy present",
+    "ids": [
+     "c_111"
+    ]
+   }
+  ],
+  "differential": [
+   {
+    "diagnosis": "CLL/SLL",
+    "verdict": "favoured",
+    "supporting": [
+     "p_1",
+     "p_4",
+     "p_23",
+     "p_24",
+     "p_26",
+     "p_55",
+     "p_57",
+     "c_107",
+     "c_108",
+     "c_111"
+    ],
+    "contradicting": [],
+    "rationale": "The patient shows the classic immunophenotype (CD5+, CD23+) and small mature B\u2011cell morphology, with cytogenetic abnormalities (del11q, del17p) and high lymphocytosis typical of CLL/SLL.",
+    "criteria": [
+     {
+      "criterion": "CD5 positivity",
+      "status": "met",
+      "ids": [
+       "w_62",
+       "p_1"
+      ]
+     },
+     {
+      "criterion": "CD23 positivity",
+      "status": "met",
+      "ids": [
+       "w_62",
+       "p_4"
+      ]
+     },
+     {
+      "criterion": "Small mature B\u2011cell morphology",
+      "status": "met",
+      "ids": [
+       "w_62",
+       "p_23"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "FL",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "p_10",
+     "p_23"
+    ],
+    "rationale": "Absence of germinal\u2011center markers (CD10 negative) and lack of follicular morphology make FL unlikely.",
+    "criteria": [
+     {
+      "criterion": "CD10 positivity (GC marker)",
+      "status": "not_met",
+      "ids": [
+       "w_70",
+       "p_10"
+      ]
+     },
+     {
+      "criterion": "BCL6 or MEF2B expression",
+      "status": "not_assessable",
+      "ids": [
+       "w_70"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "HCL",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "p_30",
+     "p_25"
+    ],
+    "rationale": "BRAF mutation is absent and villous projections were not described, arguing against HCL.",
+    "criteria": [
+     {
+      "criterion": "BRAF V600E mutation",
+      "status": "not_met",
+      "ids": [
+       "w_75",
+       "p_30"
+      ]
+     },
+     {
+      "criterion": "Villous cytoplasmic projections",
+      "status": "not_assessable",
+      "ids": [
+       "w_75",
+       "p_25"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "LPL/WM",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "c_109",
+     "p_23"
+    ],
+    "rationale": "No IgM paraprotein and no plasmacytoid morphology exclude LPL/WM.",
+    "criteria": [
+     {
+      "criterion": "IgM monoclonal component",
+      "status": "not_met",
+      "ids": [
+       "w_80",
+       "c_109"
+      ]
+     },
+     {
+      "criterion": "Plasmacytoid differentiation",
+      "status": "not_assessable",
+      "ids": [
+       "w_80"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "MCL",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "p_4"
+    ],
+    "rationale": "CD23 positivity and lack of cyclin D1 data make MCL unlikely.",
+    "criteria": [
+     {
+      "criterion": "Cyclin D1 positivity",
+      "status": "not_assessable",
+      "ids": [
+       "w_87"
+      ]
+     },
+     {
+      "criterion": "SOX11 expression",
+      "status": "not_assessable",
+      "ids": [
+       "w_87"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "SBLPN",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "p_23"
+    ],
+    "rationale": "The cells are small and lack prominent nucleoli, inconsistent with SBLPN.",
+    "criteria": [
+     {
+      "criterion": "Medium\u2011sized cells with prominent nucleoli",
+      "status": "not_met",
+      "ids": [
+       "w_92",
+       "p_23"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "SDRPL",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "c_110",
+     "p_25"
+    ],
+    "rationale": "Absence of splenomegaly and lack of villous projections argue against SDRPL.",
+    "criteria": [
+     {
+      "criterion": "Villous cytoplasmic projections",
+      "status": "not_assessable",
+      "ids": [
+       "w_97",
+       "p_25"
+      ]
+     },
+     {
+      "criterion": "BRAF V600E mutation absent",
+      "status": "met",
+      "ids": [
+       "w_97",
+       "p_30"
+      ]
+     }
+    ]
+   },
+   {
+    "diagnosis": "SMZL",
+    "verdict": "unlikely",
+    "supporting": [],
+    "contradicting": [
+     "p_1",
+     "c_109"
+    ],
+    "rationale": "The patient is CD5 positive and IgM negative, which excludes SMZL.",
+    "criteria": [
+     {
+      "criterion": "IgM positivity",
+      "status": "not_met",
+      "ids": [
+       "w_102",
+       "c_109"
+      ]
+     },
+     {
+      "criterion": "CD5 negativity",
+      "status": "not_met",
+      "ids": [
+       "w_102",
+       "p_1"
+      ]
+     }
+    ]
+   }
+  ],
+  "discriminators": [
+   {
+    "text": "CD5+ and CD23+ immunophenotype with small mature B\u2011cell morphology",
+    "ids": [
+     "p_1",
+     "p_4",
+     "p_23"
+    ]
+   },
+   {
+    "text": "Presence of del(11q) and del(17p) cytogenetic abnormalities",
+    "ids": [
+     "p_55",
+     "p_57"
+    ]
+   }
+  ],
+  "unresolved": [
+   "Absolute B\u2011cell count not provided to confirm CLL versus SLL",
+   "Lymph node histology not available"
+  ],
+  "would_change": [
+   "If CD23 were negative or if the cells expressed CD10 and BCL6, FL would become more likely.",
+   "Detection of a BRAF V600E mutation or villous projections would support HCL.",
+   "Identification of IgM monoclonal protein or plasmacytoid differentiation would favor LPL/WM."
+  ]
+ },
+ "ablation": {
+  "removed_ids": [
+   "p_1",
+   "p_4",
+   "p_23",
+   "p_55",
+   "p_57"
+  ],
+  "decision_before": "CLL/SLL",
+  "decision_after": "CLL/SLL",
+  "changed": false
+ }
+}

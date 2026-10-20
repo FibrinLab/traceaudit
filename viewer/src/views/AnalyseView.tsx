@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { Chip } from '../components/Shared';
 
 /** Sub-navigation shared by the Analyse pages and the jobs pages. */
-export function AnalyseNav({ active }: { active: 'chooser' | 'trace' | 'audit' | 'jobs' }) {
+export type AnalysePageId = 'chooser' | 'trace' | 'audit' | 'ledger' | 'jobs';
+export function AnalyseNav({ active }: { active: AnalysePageId }) {
   const tabs: Array<[typeof active, string, string]> = [
     ['chooser', '#/analyse', 'Overview'],
     ['trace', '#/analyse/trace', 'Analyse a trace'],
+    ['ledger', '#/analyse/ledger', 'Fact ledger'],
     ['audit', '#/analyse/audit', 'Audit a model'],
     ['jobs', '#/jobs', 'Jobs'],
   ];
@@ -16,7 +18,7 @@ export function AnalyseNav({ active }: { active: 'chooser' | 'trace' | 'audit' |
   );
 }
 
-export function AnalysePage({ active, title, lede, children, wide = false }: { active: 'chooser' | 'trace' | 'audit' | 'jobs'; title: string; lede?: ReactNode; children: ReactNode; wide?: boolean }) {
+export function AnalysePage({ active, title, lede, children, wide = false }: { active: AnalysePageId; title: string; lede?: ReactNode; children: ReactNode; wide?: boolean }) {
   return (
     <div className={wide ? '' : 'narrow'}>
       <AnalyseNav active={active} />
@@ -27,7 +29,7 @@ export function AnalysePage({ active, title, lede, children, wide = false }: { a
   );
 }
 
-/** `#/analyse`: choose between the two modes of the service. */
+/** `#/analyse`: choose between the three modes of the service. */
 export function AnalyseView() {
   return (
     <AnalysePage active="chooser" title="Does the reasoning hold up?" lede="traceaudit grades every factual claim in a model's reasoning against the source documents it was given, then checks whether its answer changes when the documents do. Any domain: bring your own lexicon.">
@@ -36,6 +38,11 @@ export function AnalyseView() {
           <h2>Analyse a trace</h2>
           <p>Paste the documents, the reasoning and the answer; see each claim graded against the documents.</p>
           <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">Text only.</span></div>
+        </a>
+        <a className="choice-card" href="#/analyse/ledger">
+          <h2>Audit a structured trace</h2>
+          <p>Paste a trace artefact with facts and citations; every citation is checked against its fact.</p>
+          <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">Fact ledger, report, reasoning, rationale, ablation.</span></div>
         </a>
         <a className="choice-card" href="#/analyse/audit">
           <h2>Audit a model</h2>

@@ -8,7 +8,7 @@ export type Route =
   | { name: 'rate'; index: number | null }
   | { name: 'cohort' }
   | { name: 'review'; caseId: string }
-  | { name: 'analyse'; page: 'chooser' | 'trace' | 'audit' }
+  | { name: 'analyse'; page: 'chooser' | 'trace' | 'audit' | 'ledger' }
   | { name: 'jobs' }
   | { name: 'job'; jobId: string }
   | { name: 'notfound'; path: string };
@@ -35,7 +35,7 @@ export function parseHash(hash: string): Route {
     case 'review': return parts[1] ? { name: 'review', caseId: parts[1] } : { name: 'notfound', path };
     case 'analyse':
       if (!parts[1]) return { name: 'analyse', page: 'chooser' };
-      if (parts[1] === 'trace' || parts[1] === 'audit') return { name: 'analyse', page: parts[1] };
+      if (parts[1] === 'trace' || parts[1] === 'audit' || parts[1] === 'ledger') return { name: 'analyse', page: parts[1] };
       return { name: 'notfound', path };
     case 'jobs': return parts[1] ? { name: 'job', jobId: parts[1] } : { name: 'jobs' };
     default: return { name: 'notfound', path };

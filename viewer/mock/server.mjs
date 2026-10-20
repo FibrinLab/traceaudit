@@ -13,6 +13,8 @@
 //   GET  /api/lexicons    the starter lexicons shipped as examples (`source: "example"`, e.g. `example:incident-triage`,
 //                         read from public/examples/) then the workspace's uploads (`source: "upload"`, POST `{lexicon, name?}`).
 //   GET  /api/lexicon?id= one lexicon's display data; 400 lexicon_required without an id, 404 lexicon_not_found otherwise.
+//   POST /api/ledger      `{markdown}` or `{case, trace}` → the canned fact-ledger audit in mock/fixtures/ledger-result.json
+//                         (produced by `traceaudit ledger audit tests/fixtures/enable_trace_case_003.md --json`).
 //   POST /api/analyse     400 lexicon_required without a usable `lexicon_id`; otherwise a small lexical grader scores the
 //                         text against the chosen lexicon, so any domain gets a sensible result.
 //   GET  /api/case-sets   empty until POST /api/uploads `{name, cases: <jsonl>, approved}` adds one (kept in memory).
@@ -32,6 +34,7 @@ import { makeIncidentBundle } from '../src/tests/fixtures/incidentBundle.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const EXAMPLES = resolve(here, '../public/examples');
 const DIST = resolve(here, '../dist');
+const LEDGER_FIXTURE = resolve(here, 'fixtures/ledger-result.json');
 const PORT = Number(process.env.MOCK_PORT ?? 8787);
 const TOKEN = process.env.MOCK_TOKEN ?? null;
 const VERSION = '0.3.0-mock';
@@ -381,6 +384,15 @@ const server = createServer(async (req, res) => {
         try { body = JSON.parse(await readBody(req) || '{}'); } catch { return sendError(res, 400, 'bad_json', 'Request body is not valid JSON'); }
         const [code, out] = createUpload(body);
         return sendJson(res, code, out);
+      }
+      if (req.method === 'POST' && path === '/api/ledger') {
+        let body;
+        try { body = JSON.parse(await readBody(req) || '{}'); } catch { return sendError(res, 400, 'bad_json', 'Request body is not valid JSON'); }
+        const hasMarkdown = typeof body.markdown === 'string' && body.markdown.trim();
+        const hasStructured = body.case && typeof body.case === 'object' && body.trace && typeof body.trace === 'object';
+        if (!hasMarkdown && !hasStructured) return sendError(res, 400, 'bad_request', 'Send {markdown} (the trace artefact text) or {case, trace}');
+        const canned = JSON.parse(await readFile(LEDGER_FIXTURE, 'utf8'));
+        return sendJson(res, 200, canned);
       }
       if (req.method === 'POST' && path === '/api/analyse') {
         let body;

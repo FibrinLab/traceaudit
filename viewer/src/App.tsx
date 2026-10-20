@@ -15,6 +15,7 @@ import { ReviewView } from './views/ReviewView';
 import { AnalyseView } from './views/AnalyseView';
 import { AnalyseTraceView } from './views/AnalyseTraceView';
 import { AuditView } from './views/AuditView';
+import { AnalyseLedgerView } from './views/AnalyseLedgerView';
 import { JobsView } from './views/JobsView';
 import { JobView } from './views/JobView';
 import { ApiSettingsButton } from './components/ApiSettings';
@@ -154,7 +155,7 @@ function titleFor(route: Route): string {
     case 'rate': return 'Rating — traceaudit';
     case 'cohort': return 'Cohort — traceaudit';
     case 'review': return `Review ${route.caseId} — traceaudit`;
-    case 'analyse': return route.page === 'trace' ? 'Analyse a trace — traceaudit' : route.page === 'audit' ? 'Audit a model — traceaudit' : 'Analyse — traceaudit';
+    case 'analyse': return route.page === 'trace' ? 'Analyse a trace — traceaudit' : route.page === 'audit' ? 'Audit a model — traceaudit' : route.page === 'ledger' ? 'Fact ledger — traceaudit' : 'Analyse — traceaudit';
     case 'jobs': return 'Jobs — traceaudit';
     case 'job': return `Job ${route.jobId} — traceaudit`;
     default: return 'traceaudit Trace Viewer';
@@ -177,7 +178,7 @@ function RouteView({ route }: { route: Route }) {
     case 'rate': return <RateView index={route.index} />;
     case 'cohort': return <CohortView />;
     case 'review': return <ReviewView caseId={route.caseId} />;
-    case 'analyse': return route.page === 'trace' ? <AnalyseTraceView /> : route.page === 'audit' ? <AuditView /> : <AnalyseView />;
+    case 'analyse': return route.page === 'trace' ? <AnalyseTraceView /> : route.page === 'audit' ? <AuditView /> : route.page === 'ledger' ? <AnalyseLedgerView /> : <AnalyseView />;
     case 'jobs': return <JobsView />;
     case 'job': return <JobView jobId={route.jobId} />;
     case 'notfound': return <div className="narrow"><h1>Not found</h1><p className="muted">No view at <code>{route.path}</code>. <a href="#/analyse">Go to Analyse</a>.</p></div>;
