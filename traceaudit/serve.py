@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
-from . import __version__, experiment, export, extract, grounding, lexicon as lex_mod, perturb, pipeline, segment
+from . import __version__, experiment, export, extract, ledger as ledger_mod, ledger_adapters, lexicon as lex_mod, perturb, pipeline, segment
 from .clients import make_client
 from .schema import (EFFORTS, Case, Review, Trace, load_cases, load_perturbations, read_jsonl, validate_case,
                      validate_perturbation, write_jsonl)
@@ -342,7 +342,6 @@ class Service:
 
     # ---- fact ledger (structured traces with citations)
     def ledger_audit(self, body: dict) -> dict:
-        from . import ledger as ledger_mod
         from .importers import parse_markdown
         if isinstance(body.get("markdown"), str) and body["markdown"].strip():
             if len(body["markdown"]) > 2_000_000:
@@ -409,25 +408,26 @@ class Service:
         case.truth = truth
         trace = Trace("ANL-001|base|medium|0", "ANL-001", "base", "medium", 0, body.get("model") or "submitted", reasoning, answer)
         claims = segment.segment(reasoning, trace.trace_key, lx)
-        spans = extract.finding_spans(case, lx)
-        rec = grounding.ground(trace, truth, claims, spans, entity, grounding.LexicalVerifier(), lx)
-        pa = grounding.parse_answer(answer, lx)
-        g = rec.to_dict()
-        return {
-            "case": {"case_id": case.case_id, "entity": entity, "subtype": None, "flags": case.flags.to_dict(), "reports": case.reports,  # entity null = not stated
-                     "truth": truth, "finding_spans": spans, "sections": case.section_list_dicts()},
+        # the text path is an adapter onto the fact ledger: documents -> facts, factual claims -> cited segments
+        case_ledger = ledger_adapters.case_to_ledger(case, lx, truth_overrides=(oracle == "truth"))
+        trace_ledger = ledger_adapters.trace_to_ledger(trace, claims, lx, case_ledger)
+        result = ledger_mod.audit(case_ledger, trace_ledger, lx)
+        spans = case_ledger.meta.get("spans", {})
+        documents = [{"id": k, "title": t, "text": case.reports.get(k) or "",
+                      "facts": [{"id": fid, "start": sp["start"], "end": sp["end"]} for fid, sp in spans.items() if sp["report"] == k]}
+                     for k, t in case.section_list()]
+        result.update({
+            "documents": documents,
             "lexicon": {"id": body.get("lexicon_id") or "default", "domain": lx.domain, "version": lx.version,
                         "entities": [{"id": e["id"], "display": e["display"]} for e in lx.data["entities"]],
                         "findings": [{"id": f["id"], "display": f["display"], "kind": f["kind"]} for f in lx.data["findings"]]},
-            "trace": {"trace_key": trace.trace_key, "variant": "base", "effort": "medium", "run": 0, "reasoning": reasoning, "answer": answer,
-                      "retrieved": [], "meta": {"error": None}},
-            "claims": [c.to_dict() for c in claims],
-            "grounding": g,
-            "map": export.build_map(claims, g.get("answer_entity", "UNRESOLVED"), lx) if claims else None,
-            "parsed_answer": {"entity": pa.entity, "entity_raw": pa.entity_raw, "subtype": pa.subtype, "hedged": pa.hedged,
-                              "entities_named": pa.entities_named, "diagnosis_line": pa.diagnosis_line},
+            "answer": {"text": answer, "entity": trace_ledger.report.decision, "entity_raw": trace_ledger.meta.get("entity_raw"),
+                       "subtype": trace_ledger.meta.get("subtype"), "hedged": trace_ledger.meta.get("hedged"),
+                       "entities_named": trace_ledger.meta.get("entities_named"), "claims": trace_ledger.meta.get("claims"),
+                       "factual_claims": trace_ledger.meta.get("factual_claims")},
             "oracle": oracle, "warnings": sorted(set(warnings)), "lexicon_version": lx.version, "domain": lx.domain,
-        }
+        })
+        return result
 
     # ---- jobs
     def submit(self, workspace: str, body: dict) -> Job:

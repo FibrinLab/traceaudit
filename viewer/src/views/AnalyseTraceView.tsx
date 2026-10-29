@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { useStore } from '../store';
 import type { Lexicon, Section } from '../types';
 import { describeError, lexiconLabel, titleFromDomain, type AnalyseRequest, type AnalyseResponse, type LexiconDisplay, type LexiconMeta } from '../lib/api';
 import { useApi } from '../lib/useApiSettings';
-import { analyseExport, buildSingleTraceBundle } from '../lib/analyseBundle';
+import { FACT_STATUS_TEXT, analyseExport, documentHighlights, type FactStatus } from '../lib/analyse';
 import { buildAnalyseRequest, hasAnyDocument } from '../lib/documents';
 import { downloadJson } from '../lib/download';
-import { entityDisplay } from '../lib/format';
-import { hrefTrace, navigate } from '../lib/router';
+import { entityDisplay, findingDisplay, pct } from '../lib/format';
+import { ReportPane } from '../components/ReportPane';
 import { Banner, Chip } from '../components/Shared';
-import { GroundingBody } from './GroundingView';
+import { LedgerBlock, LedgerResultView, type LedgerCtx } from './AnalyseLedgerView';
 import { AnalysePage } from './AnalyseView';
 
 /** The starter lexicon every service lists, and the matching trace packaged with the viewer. */
@@ -22,7 +21,6 @@ type Busy = 'idle' | 'example' | 'upload' | 'analyse';
 
 export function AnalyseTraceView() {
   const api = useApi();
-  const { setBundle } = useStore();
   const [lexicons, setLexicons] = useState<LexiconMeta[] | null>(null);
   const [lexiconId, setLexiconId] = useState('');
   const [lexicon, setLexicon] = useState<LexiconDisplay | null>(null);
@@ -59,8 +57,13 @@ export function AnalyseTraceView() {
   const inScope = useMemo(() => (lexicon?.entities ?? []).filter((e) => e.in_scope !== false), [lexicon]);
   const chosen = !!lexiconId;
 
-  const built = useMemo(() => result ? buildSingleTraceBundle(result.req, result.res, lexicon ?? FALLBACK_LEXICON) : null, [result, lexicon]);
-  const lex: Lexicon = built?.bundle.index.lexicon ?? { version: 'unknown', entities: [], findings: [] };
+  /** Display names: the response's own lexicon when it carries one, else the one fetched for the form. */
+  const lex: Lexicon = useMemo(() => {
+    const l = result?.res.lexicon;
+    if (l) return { version: l.version, entities: l.entities.map((e) => ({ id: e.id, display: e.display, in_scope: true })), findings: l.findings };
+    const f = lexicon ?? FALLBACK_LEXICON;
+    return { version: f.version, entities: f.entities, findings: f.findings };
+  }, [result, lexicon]);
 
   const setDoc = (id: string, value: string) => setDocuments((d) => ({ ...d, [id]: value }));
   const chooseLexicon = (id: string) => { setLexiconId(id); setEntity(''); setResult(null); setError(null); };
@@ -123,17 +126,10 @@ export function AnalyseTraceView() {
 
   const exportJson = () => {
     if (!result) return;
-    downloadJson(`analyse-${result.res.case?.case_id ?? 'trace'}-${result.at.replace(/[:.]/g, '-')}.json`,
+    downloadJson(`analyse-${result.res.case_id ?? 'trace'}-${result.at.replace(/[:.]/g, '-')}.json`,
       analyseExport(result.req, result.res, { api_base: api.settings.base || 'same origin', lexicon_version: result.res.lexicon?.version ?? lexicon?.version ?? null, lexicon_id: lexiconId, domain: result.res.domain ?? domain, analysed_at: result.at }));
   };
-  const openInViewer = () => {
-    if (!built) return;
-    setBundle(built.bundle);
-    navigate(hrefTrace(built.traceKey, 'grounding'));
-  };
 
-  const g = result?.res.grounding ?? null;
-  const parsed = result?.res.parsed_answer ?? null;
   const working = busy !== 'idle';
   const lexiconHelp = lexiconError ? `Lexicon unavailable: ${lexiconError}`
     : meta ? `${titleFromDomain(meta.domain)}, version ${meta.version}: ${meta.n_entities} categories, ${meta.n_findings} findings, ${meta.sections.length} document section${meta.sections.length === 1 ? '' : 's'}.`
@@ -141,7 +137,7 @@ export function AnalyseTraceView() {
         : 'The vocabulary the service grades against: its document sections, findings and answer categories. The service has no default.';
 
   return (
-    <AnalysePage active="trace" title="Analyse a trace" wide lede="Choose the lexicon for your domain, then paste the documents the model saw, its reasoning and its final answer. The service grades every factual claim against the documents and draws the reasoning constellation. No model is called.">
+    <AnalysePage active="trace" title="Analyse a trace" wide lede="Choose the lexicon for your domain, then paste the documents the model saw, its reasoning and its final answer. The documents become a ledger of facts; every factual claim in the reasoning cites the facts it restates and is graded against them. No model is called.">
       <form className="panel" aria-labelledby="analyse-form-title" onSubmit={(e) => { e.preventDefault(); void analyse(); }}>
         <div className="panel-head">
           <h2 id="analyse-form-title" style={{ margin: 0 }}>Inputs</h2>
@@ -208,31 +204,63 @@ export function AnalyseTraceView() {
         </div>
       </form>
 
-      {result && built && (
+      {result && (
         <section aria-labelledby="analyse-result-title" style={{ marginTop: 24 }}>
           <div className="panel-head">
             <h2 id="analyse-result-title" style={{ margin: 0 }}>Result</h2>
             <div className="row small">
+              <nav aria-label="Result blocks" className="row small ledger-jump">
+                {[['documents', 'Documents'], ['verdict', 'Verdict'], ['report', 'Claims'], ['ledger', 'Ledger'], ['reasoning', 'Reasoning'], ['coverage', 'Coverage']].map(([id, label]) => <a key={id} href={`#ledger-${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(`ledger-${id}`)?.scrollIntoView({ block: 'start' }); }}>{label}</a>)}
+              </nav>
               <button type="button" className="btn small" onClick={exportJson}>Export result JSON</button>
-              <button type="button" className="btn small" onClick={openInViewer} title="Load this trace as a one-trace bundle and open the full trace views">Open in trace views</button>
             </div>
           </div>
           {result.res.oracle === 'extracted'
-            ? <Banner tone="info">Oracle: extracted from the documents. No truth table was supplied, so each claim is graded against what the documents themselves state; findings no document mentions grade as unsupported.</Banner>
-            : <Banner tone="info">Oracle: the supplied truth table.</Banner>}
-          {result.res.warnings?.map((w) => <Banner key={w} tone="warn">{w}</Banner>)}
-          <div className="row small" style={{ margin: '8px 0 12px' }} aria-label="Summary of the analysis">
-            {(result.res.domain ?? domain) && <Chip tone="neutral">domain {result.res.domain ?? domain}</Chip>}
-            <Chip tone="neutral">{built.trace.claims.length} claims</Chip>
-            {!g && parsed?.entity && <Chip tone="neutral"><span className="entity">Parsed: {entityDisplay(lex, parsed.entity)}</span></Chip>}
-            {parsed?.subtype && <Chip tone="neutral">subtype {parsed.subtype}</Chip>}
-            {!g && parsed?.hedged && <Chip tone="warn" icon="≈">hedged</Chip>}
-            {!entity && result.res.case?.entity && result.res.case.entity !== 'OTHER' && <Chip tone="neutral">expected answer taken from the documents: {entityDisplay(lex, result.res.case.entity)}</Chip>}
-            {lexiconError && <Chip tone="warn" icon="!">lexicon unavailable, ids shown raw</Chip>}
-          </div>
-          <GroundingBody trace={built.trace} caseFile={built.caseFile} lexicon={lex} reportsTitle="Documents, as submitted" />
+            ? <Banner tone="info">Oracle: extracted from the documents. No truth table was supplied, so the facts are what the documents themselves state; a finding no document mentions has no fact to cite and is listed as an uncited assertion.</Banner>
+            : <Banner tone="info">Oracle: the supplied truth table. A fact whose document wording differs from the table takes the table's value.</Banner>}
+          {result.res.warnings.map((w) => <Banner key={w} tone="warn">{w}</Banner>)}
+          <AnalyseSummary res={result.res} lex={lex} domain={result.res.domain ?? domain} expectedFromForm={!!entity} lexiconError={lexiconError} />
+          <LedgerResultView result={result.res} hideAbsent lead={(ctx) => <DocumentsBlock res={result.res} lex={lex} ctx={ctx} />} />
         </section>
       )}
     </AnalysePage>
+  );
+}
+
+/** Headline chips: the grounding rate (agreeing citations over graded citations), the claim counts and the parsed answer. */
+function AnalyseSummary({ res, lex, domain, expectedFromForm, lexiconError }: { res: AnalyseResponse; lex: Lexicon; domain: string | null; expectedFromForm: boolean; lexiconError: string | null }) {
+  const a = res.answer;
+  const m = res.metrics;
+  return (
+    <div className="row small" style={{ margin: '8px 0 12px' }} aria-label="Summary of the analysis">
+      {domain && <Chip tone="neutral">domain {domain}</Chip>}
+      <Chip tone={res.headline.grounding_rate == null ? 'neutral' : res.headline.grounding_rate >= 0.9 ? 'good' : res.headline.grounding_rate >= 0.6 ? 'warn' : 'bad'} title="Agreeing citations over every graded citation">grounding {pct(res.headline.grounding_rate, 0)}</Chip>
+      {a && <Chip tone="neutral">{a.factual_claims} factual of {a.claims} claims</Chip>}
+      <Chip tone="neutral">{m.cited_agree} agree · {m.cited_disagree} disagree · {m.cited_unverifiable} unverifiable</Chip>
+      {res.headline.uncited_assertions > 0 && <Chip tone="warn" icon="!">{res.headline.uncited_assertions} uncited assertion{res.headline.uncited_assertions === 1 ? '' : 's'}</Chip>}
+      {a?.entity && a.entity !== 'UNRESOLVED' && <Chip tone="neutral"><span className="entity">Answer: {entityDisplay(lex, a.entity)}</span></Chip>}
+      {a && (!a.entity || a.entity === 'UNRESOLVED') && <Chip tone="warn" icon="?">answer not resolved to a category</Chip>}
+      {a?.subtype && <Chip tone="neutral">subtype {a.subtype}</Chip>}
+      {a?.hedged && <Chip tone="warn" icon="≈">hedged</Chip>}
+      {!expectedFromForm && res.truth && <Chip tone="neutral">expected answer: {entityDisplay(lex, res.truth)}</Chip>}
+      {lexiconError && <Chip tone="warn" icon="!">lexicon unavailable, ids shown raw</Chip>}
+    </div>
+  );
+}
+
+const DOC_LEGEND: FactStatus[] = ['agree', 'disagree', 'unverifiable', 'referenced', 'ignored', 'context'];
+const LEGEND_CLASS: Record<FactStatus, string> = { agree: 'supported', disagree: 'contradicted', unverifiable: 'unsupported', referenced: 'mention', ignored: 'other', context: 'cue' };
+
+/** The documents as submitted, every fact's evidence highlighted by how the reasoning treated it; a click jumps to the fact's row. */
+function DocumentsBlock({ res, lex, ctx }: { res: AnalyseResponse; lex: Lexicon; ctx: LedgerCtx }) {
+  const reports = useMemo(() => Object.fromEntries(res.documents.map((d) => [d.id, d.text])), [res.documents]);
+  const sections: Section[] = useMemo(() => res.documents.map((d) => ({ id: d.id, title: d.title })), [res.documents]);
+  const highlights = useMemo(() => documentHighlights(res, { highlight: ctx.highlight, findingDisplay: (f) => findingDisplay(lex, f) }), [res, ctx.highlight, lex]);
+  const n = res.documents.reduce((k, d) => k + d.facts.length, 0);
+  return (
+    <LedgerBlock id="documents" title="Documents, as submitted" sub={`${n} fact${n === 1 ? '' : 's'} found in ${res.documents.length} document${res.documents.length === 1 ? '' : 's'}. Each highlight is a fact; hover a chip or row to find it here, click a highlight to jump to its row.`}
+      aside={<div className="legend" aria-label="Highlight meanings">{DOC_LEGEND.map((st) => <span key={st} className={`hl hl-${LEGEND_CLASS[st]}`} title={FACT_STATUS_TEXT[st]} style={{ cursor: 'default' }}>{st}</span>)}</div>}>
+      <ReportPane reports={reports} sections={sections} highlights={highlights} scrollTo={ctx.selected} onHighlightClick={ctx.scrollToFact} emptyText="Empty." />
+    </LedgerBlock>
   );
 }

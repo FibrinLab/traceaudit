@@ -3,9 +3,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 import { buildAnalyseRequest, hasAnyDocument, sectionIndex, sectionTitle, sectionsFor, titleFromId } from '../lib/documents';
-import { buildSingleTraceBundle } from '../lib/analyseBundle';
 import { ReportPane } from '../components/ReportPane';
-import { lexiconLabel, type AnalyseResponse } from '../lib/api';
+import { lexiconLabel } from '../lib/api';
+import { documentHighlights, parseAnalyseResponse } from '../lib/analyse';
+import analysed from '../../mock/fixtures/analyse-result.json';
 import type { Section } from '../types';
 
 const incident = JSON.parse(readFileSync(resolve(__dirname, '../../public/examples/incident-trace.json'), 'utf8')) as { documents: Record<string, string>; reasoning: string; answer: string };
@@ -71,20 +72,14 @@ describe('sections-driven rendering', () => {
     expect([...container.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Ticket', 'Chat log']);
   });
 
-  it('the analysed bundle carries the response sections and lexicon display names', () => {
-    const res: AnalyseResponse = {
-      case: { case_id: 'ANL-001', entity: 'BAD_DEPLOY', reports: incident.documents, truth: {}, finding_spans: {}, sections: incidentLexicon.sections },
-      lexicon: { id: 'lex-1', domain: incidentLexicon.domain, version: incidentLexicon.version, entities: incidentLexicon.entities.map((e) => ({ id: e.id, display: e.display })), findings: incidentLexicon.findings.map((f) => ({ id: f.id, display: f.display, kind: f.kind })) },
-      domain: incidentLexicon.domain,
-      claims: [], grounding: null, map: null, parsed_answer: { entity: 'BAD_DEPLOY' }, oracle: 'extracted',
-    };
-    const req = buildAnalyseRequest({ documents: incident.documents, sections: incidentLexicon.sections, reasoning: incident.reasoning, answer: incident.answer, lexiconId: 'lex-1' });
-    const built = buildSingleTraceBundle(req, res, { version: 'unknown', entities: [], findings: [] });
-    expect(built.caseFile.case.sections).toEqual(incidentLexicon.sections);
-    expect(Object.keys(built.caseFile.case.reports)).toEqual(['alerts', 'logs', 'deploys']);
-    expect(built.bundle.index.lexicon.entities.find((e) => e.id === 'BAD_DEPLOY')?.display).toBe('Faulty deployment');
-    expect(built.bundle.index.run.manifest.notes).toContain('domain: incident-triage');
-    const { container } = render(<ReportPane reports={built.caseFile.case.reports} sections={built.caseFile.case.sections} />);
+  it('the analysed documents render as sections with one highlight per fact, in the lexicon\'s section order', () => {
+    const res = parseAnalyseResponse(analysed);
+    expect(res.documents.map((d) => [d.id, d.title])).toEqual(incidentLexicon.sections.map((s) => [s.id, s.title]));
+    const reports = Object.fromEntries(res.documents.map((d) => [d.id, d.text]));
+    const highlights = documentHighlights(res);
+    const { container } = render(<ReportPane reports={reports} sections={res.documents} highlights={highlights} />);
     expect([...container.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Alerts', 'Logs', 'Deploy history']);
+    expect(container.querySelectorAll('mark[data-hl-id]')).toHaveLength(res.facts.length);
+    expect(container.textContent).toContain('Release 2026.10.20-3');
   });
 });

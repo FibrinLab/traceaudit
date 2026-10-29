@@ -43,7 +43,7 @@ What a researcher gets, for any domain:
 |---|---|
 | Describe the domain | a lexicon (upload in the app, or a file); validated on load |
 | Get cases | upload documents with known answers (`traceaudit cases build`), or write a generator like the haematology one |
-| Check a single output | Analyse tab or `POST /api/analyse`: every factual claim graded against the documents, answer parsed, reasoning graph |
+| Check a single output | Analyse tab or `POST /api/analyse`: the documents become a fact ledger; every factual claim in the reasoning cites the facts it restates and is graded against them; answer parsed |
 | Audit a structured trace | `POST /api/ledger` or `traceaudit ledger audit`: citations graded against facts, coverage, differential and criteria checks, ablation verdict ([specs/18-fact-ledger.md](specs/18-fact-ledger.md)) |
 | Probe a model on ledger cases | `traceaudit ledger perturb|run|ablate|score`: decisive edits, anchor loss, neutral edits, authority cues and the discriminator ablation on facts with ids; path A prompts any client with `ledger-v1`, path B exports variants for your own engine and imports its artefacts ([specs/19-ledger-probes.md](specs/19-ledger-probes.md)) |
 | Audit a model | counterfactual edits derived from the lexicon's own discriminator table (or authored rows), neutral edits, authority cues, three reasoning efforts, 5 runs |

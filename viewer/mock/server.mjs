@@ -15,8 +15,10 @@
 //   GET  /api/lexicon?id= one lexicon's display data; 400 lexicon_required without an id, 404 lexicon_not_found otherwise.
 //   POST /api/ledger      `{markdown}` or `{case, trace}` → the canned fact-ledger audit in mock/fixtures/ledger-result.json
 //                         (produced by `traceaudit ledger audit tests/fixtures/enable_trace_case_003.md --json`).
-//   POST /api/analyse     400 lexicon_required without a usable `lexicon_id`; otherwise a small lexical grader scores the
-//                         text against the chosen lexicon, so any domain gets a sensible result.
+//   POST /api/analyse     400 lexicon_required without a usable `lexicon_id`; the packaged example inputs get the real
+//                         service's result (mock/fixtures/analyse-result.json, from `POST /api/analyse` on
+//                         examples/incident-trace.json with the incident-triage lexicon); anything else is graded by a
+//                         small lexical grader into the same shape: a fact-ledger result plus `documents` with fact spans.
 //   GET  /api/case-sets   empty until POST /api/uploads `{name, cases: <jsonl>, approved}` adds one (kept in memory).
 //   Jobs advance one status per GET /api/jobs/:id poll (queued → running → scoring → exporting → done); a finished job's
 //   bundle (`/api/jobs/:id/bundle/*`) and files are generated from the synthetic incident-triage fixture, so the Cohort and
@@ -35,6 +37,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const EXAMPLES = resolve(here, '../public/examples');
 const DIST = resolve(here, '../dist');
 const LEDGER_FIXTURE = resolve(here, 'fixtures/ledger-result.json');
+const ANALYSE_FIXTURE = resolve(here, 'fixtures/analyse-result.json');
 const PORT = Number(process.env.MOCK_PORT ?? 8787);
 const TOKEN = process.env.MOCK_TOKEN ?? null;
 const VERSION = '0.3.0-mock';
@@ -166,70 +169,107 @@ function health() {
   };
 }
 
-/** A small lexical grader: one claim per sentence, findings matched by alias, graded against the documents. */
-function genericAnalyse(body, lx, documents, oracle) {
-  const docLower = Object.fromEntries(Object.entries(documents).map(([k, v]) => [k, (v || '').toLowerCase()]));
+/** A small lexical grader into the fact-ledger shape: every finding stated in a document is a fact (alias found,
+ *  polarity from the surrounding negation); every sentence of the reasoning that names a finding is a segment citing
+ *  that finding's fact, graded agree/disagree by comparing polarities. */
+function genericAnalyse(body, lx, documents, sections, oracle) {
+  const docs = sections.map((sec) => ({ id: sec.id, title: sec.title, text: documents[sec.id] || '' }));
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const aliasesOf = (f) => [f.display, ...(f.aliases ?? [])].filter(Boolean).map((a) => a.toLowerCase());
-  const negated = (f, text) => (f.neg_phrases ?? []).some((p) => text.includes(p.toLowerCase())) || new RegExp(`\\b(no|not|normal|absent|negative)\\b[^.]{0,40}(${aliasesOf(f).map((a) => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'i').test(text);
-  /** Where a finding is stated: by alias (polarity from the surrounding sentence) or by one of its negative phrasings. */
-  const locate = (f) => {
-    for (const [k, v] of Object.entries(docLower)) {
-      for (const a of aliasesOf(f)) { const i = v.indexOf(a); if (i >= 0) return { report: k, start: i, end: i + a.length, surface: documents[k].slice(i, i + a.length), polarity: negated(f, v) ? 'neg' : 'pos' }; }
-      for (const p of (f.neg_phrases ?? []).map((x) => x.toLowerCase())) { const i = v.indexOf(p); if (i >= 0) return { report: k, start: i, end: i + p.length, surface: documents[k].slice(i, i + p.length), polarity: 'neg' }; }
+  const negated = (f, text) => (f.neg_phrases ?? []).some((p) => text.includes(p.toLowerCase())) || new RegExp(`\\b(no|not|normal|absent|negative)\\b[^.]{0,40}(${aliasesOf(f).map(esc).join('|')})`, 'i').test(text);
+  const word = (pol) => (pol === 'neg' ? 'Negative' : 'Positive');
+  const truth = oracle === 'truth' ? body.truth : {};
+  // facts, in document order
+  const facts = []; const spans = {};
+  for (const d of docs) {
+    const low = d.text.toLowerCase();
+    const found = [];
+    for (const f of lx.findings) {
+      let hit = null;
+      for (const a of aliasesOf(f)) { const i = low.indexOf(a); if (i >= 0 && (!hit || i < hit.start)) hit = { start: i, end: i + a.length, polarity: negated(f, low) ? 'neg' : 'pos' }; }
+      for (const p of (f.neg_phrases ?? []).map((x) => x.toLowerCase())) { const i = low.indexOf(p); if (i >= 0 && (!hit || i < hit.start)) hit = { start: i, end: i + p.length, polarity: 'neg' }; }
+      if (hit) found.push({ f, ...hit });
     }
-    return null;
-  };
-  const truth = {}; const finding_spans = {};
-  for (const f of lx.findings) {
-    const loc = locate(f);
-    if (!loc) continue;
-    truth[f.id] = loc.polarity; finding_spans[f.id] = [loc];
+    found.sort((a, b) => a.start - b.start);
+    for (const h of found) {
+      const id = `p_${facts.length + 1}`;
+      const polarity = truth[h.f.id] ?? h.polarity;
+      facts.push({ id, source: 'patient', section: d.id, field: h.f.id, value: word(polarity), evidence: d.text.slice(h.start, h.end), candidate: null, polarity, informative: true,
+        referenced_in_thinking: false, cited_in_report: false, cited_in_rationale: false, ignored: false });
+      spans[id] = { report: d.id, start: h.start, end: h.end };
+    }
   }
-  if (oracle === 'truth') Object.assign(truth, body.truth);
-  const reasoning = body.reasoning; const claims = []; let id = 0;
-  const re = /[^.!?\n]+[.!?]?/g; let m;
+  const byField = new Map();
+  for (const f of facts) if (!byField.has(f.field)) byField.set(f.field, f);
+  // segments: the reasoning's sentences that state a finding
+  const reasoning = body.reasoning; const lowR = reasoning.toLowerCase();
+  const segments = []; let agree = 0, disagree = 0, uncitedAssertions = 0, uncitedSegments = 0;
+  const re = /[^.!?\n]+[.!?]?/g; let m; let nClaims = 0;
   while ((m = re.exec(reasoning))) {
-    const lead = m[0].length - m[0].trimStart().length; const text = m[0].trim(); if (!text) continue;
-    const start = m.index + lead, end = start + text.length, lower = text.toLowerCase();
+    const text = m[0].trim(); if (!text) continue;
+    nClaims++;
+    const lower = text.toLowerCase();
     const hits = lx.findings.filter((f) => aliasesOf(f).some((a) => lower.includes(a)));
-    const inference = /\b(therefore|so|suggests?|likely|consistent with|points to|maybe|probably|conclude|root cause)\b/i.test(text);
-    const type = hits.length ? 'factual' : inference ? 'inferential' : 'other';
-    const evidence = []; const assertions = [];
+    if (!hits.length) continue;
+    const cited = []; const uncited = []; const citation_ids = [];
     for (const f of hits) {
-      const claimed = negated(f, lower) ? 'neg' : 'pos';
-      const span = finding_spans[f.id]?.[0] ?? null;
-      evidence.push({ finding_id: f.id, claimed, truth: truth[f.id] ?? null, report: span?.report ?? null, span: span ? [span.start, span.end] : null });
-      const a = aliasesOf(f).find((x) => lower.includes(x)); const ai = lower.indexOf(a);
-      assertions.push({ finding_id: f.id, polarity: claimed, start: start + ai, end: start + ai + a.length, surface: text.slice(ai, ai + a.length) });
+      const stated = negated(f, lower) ? 'neg' : 'pos';
+      const fact = byField.get(f.id);
+      if (!fact) { uncited.push({ field: f.id, stated, fact_id: null, value: null, grade: 'unknown_fact' }); uncitedAssertions++; continue; }
+      const grade = fact.polarity === stated ? 'agree' : 'disagree';
+      if (grade === 'agree') agree++; else disagree++;
+      citation_ids.push(fact.id); fact.cited_in_report = true;
+      cited.push({ id: fact.id, grade, field: fact.field, value: fact.value, stated });
     }
-    const label = type !== 'factual' ? null : evidence.some((e) => e.truth !== null && e.truth !== e.claimed) ? 'contradicted' : evidence.some((e) => e.truth === null) ? 'unsupported' : 'supported';
-    const entities = lx.entities.filter((e) => [e.display, ...(e.aliases ?? [])].some((a) => a && lower.includes(a.toLowerCase()))).map((e) => e.id);
-    claims.push({ trace_key: 'ANL-001|base|medium|0', claim_id: id++, paragraph_id: 0, start, end, text, type, flags: [], assertions, label, evidence, knowledge_check: null, entities });
+    if (!citation_ids.length) uncitedSegments++;
+    segments.push({ text, citation_ids, cited, uncited_assertions: uncited, informative: true });
   }
+  for (const f of facts) {
+    const def = lx.findings.find((x) => x.id === f.field);
+    f.referenced_in_thinking = !!def && aliasesOf(def).some((a) => lowR.includes(a));
+    f.ignored = !f.cited_in_report && !f.referenced_in_thinking;
+  }
+  // answer and candidates
+  const names = (e) => [e.display, ...(e.aliases ?? [])].filter(Boolean).map((a) => a.toLowerCase());
   const ansLower = (body.answer || '').toLowerCase();
-  const ent = lx.entities.find((e) => [e.display, ...(e.aliases ?? [])].some((a) => a && ansLower.includes(a.toLowerCase()))) ?? null;
-  const factual = claims.filter((c) => c.type === 'factual');
-  const n = (lab) => factual.filter((c) => c.label === lab).length;
-  const grounding = {
-    trace_key: 'ANL-001|base|medium|0', case_id: 'ANL-001', variant: 'base', effort: 'medium', run: 0,
-    n_claims: claims.length, n_factual: factual.length, n_knowledge: 0, n_inferential: claims.filter((c) => c.type === 'inferential').length, n_other: claims.filter((c) => c.type === 'other').length,
-    n_supported: n('supported'), n_contradicted: n('contradicted'), n_unsupported: n('unsupported'), n_ambiguous: 0,
-    grounding_rate: factual.length ? n('supported') / factual.length : null,
-    contradicted_findings: [...new Set(factual.filter((c) => c.label === 'contradicted').flatMap((c) => c.evidence.map((e) => e.finding_id)))],
-    unsupported_findings: [...new Set(factual.filter((c) => c.label === 'unsupported').flatMap((c) => c.evidence.map((e) => e.finding_id)))],
-    answer_entity: ent?.id ?? null, answer_entity_raw: ent?.display ?? null, answer_subtype: null, answer_hedged: /\b(maybe|possibly|might|unsure|indeterminate)\b/i.test(body.answer || ''),
-    answer_correct: body.entity && ent ? ent.id === body.entity : null, trace_conclusion_entity: ent?.id ?? null, trace_answer_agree: null,
-    knowledge_consistent: 0, knowledge_inconsistent: 0, knowledge_abstain: 0, error: null,
+  const ent = lx.entities.find((e) => names(e).some((a) => ansLower.includes(a))) ?? null;
+  const decision = ent?.id ?? 'UNRESOLVED';
+  const candidates = lx.entities.filter((e) => !e.parent).map((e) => e.id);
+  const named = lx.entities.filter((e) => !e.parent && names(e).some((a) => lowR.includes(a))).map((e) => e.id);
+  const truthEntity = body.entity || null;
+  const ignored = facts.filter((f) => f.ignored);
+  const checks = [];
+  const check = (id, title, ok, detail = '') => checks.push({ id, title, status: ok ? 'PASS' : 'FAIL', detail });
+  check('citations_exist', 'Every cited id exists', true);
+  check('citations_agree', 'Cited facts are stated with their recorded value', disagree === 0, `${agree} agree, ${disagree} disagree, 0 unverifiable`);
+  check('segments_cited', 'Every informative segment carries a citation', uncitedSegments === 0, `${uncitedSegments} informative segment(s) without citations`);
+  check('nothing_dropped', 'Nothing informative deleted by post-processing', true);
+  if (truthEntity) check('decision_matches_truth', 'Delivered answer matches ground truth', decision === truthEntity, `${decision} vs ${truthEntity}`);
+  check('thinking_present', 'Thinking returned', reasoning.trim().length > 0, `${reasoning.length} characters`);
+  check('thinking_considers_alternatives', 'Thinking considered more than one candidate answer', new Set(named).size > 1, 'named: ' + (named.join(', ') || 'none'));
+  check('thinking_ids_valid', 'Thinking cites only allowed ids', true);
+  check('thinking_agrees', 'Facts restated in thinking match their recorded values', disagree === 0);
+  check('coverage', 'Every patient/context fact was referenced in thinking, report or rationale', ignored.length === 0, `${ignored.length} ignored, ${ignored.length} of them informative`);
+  check('coverage_informative', 'Every informative patient/context fact was referenced', ignored.length === 0, ignored.slice(0, 12).map((f) => `${f.id} ${f.field}=${f.value}`).join(', '));
+  const graded = agree + disagree;
+  const metrics = {
+    facts: facts.length, patient_facts: facts.length, context_facts: 0, reference_facts: 0,
+    cited_in_report: facts.filter((f) => f.cited_in_report).length, cited_agree: agree, cited_disagree: disagree, cited_unverifiable: 0,
+    uncited_assertions: uncitedAssertions, grounding_rate: graded ? agree / graded : null,
+    thinking_chars: reasoning.length, thinking_ids: 0, thinking_fields: facts.filter((f) => f.referenced_in_thinking).length,
+    candidates_named_in_thinking: Object.fromEntries(named.map((c) => [c, 1])), ignored: ignored.length, ignored_informative: ignored.length,
+    checks_failed: checks.filter((c) => c.status === 'FAIL').length, checks_total: checks.length,
   };
-  // A reasoning map: claims chained in order, the last one concluding in the answer.
-  const nodes = claims.map((c) => ({ id: `c${c.claim_id}`, claim_id: c.claim_id, type: c.type, label: c.label, flags: [], text: c.text, findings: c.assertions.map((a) => a.finding_id), entities: c.entities, paragraph_id: 0, break: c.label === 'contradicted' }));
-  nodes.push({ id: 'answer', claim_id: null, type: 'answer', label: null, flags: [], text: (body.answer || '').split('\n')[0], findings: [], entities: ent ? [ent.id] : [], paragraph_id: null, break: false });
-  const edges = claims.slice(1).map((c, i) => ({ source: `c${i}`, target: `c${c.claim_id}`, kind: 'chain' }));
-  if (claims.length) edges.push({ source: `c${claims.length - 1}`, target: 'answer', kind: 'conclusion' });
-  return { claims, grounding, truth, finding_spans, map: { nodes, edges, heuristic: true }, parsed_answer: { entity: ent?.id ?? null, entity_raw: ent?.display ?? null, subtype: null, hedged: grounding.answer_hedged, confidence: (/Confidence:\s*(\w+)/i.exec(body.answer || '') ?? [])[1]?.toLowerCase() ?? null } };
+  return {
+    case_id: 'ANL-001', truth: truthEntity, decision, candidates, checks, metrics,
+    sections: [{ title: 'Factual claims', segments }], facts,
+    thinking: { text: reasoning, ids: [], candidates: named }, rationale: null, ablation: null,
+    documents: docs.map((d) => ({ ...d, facts: Object.entries(spans).filter(([, sp]) => sp.report === d.id).map(([id, sp]) => ({ id, start: sp.start, end: sp.end })) })),
+    answer: { text: body.answer || '', entity: decision, entity_raw: ent?.display ?? null, subtype: null, hedged: /\b(maybe|possibly|might|unsure|indeterminate)\b/i.test(body.answer || ''), entities_named: ent ? [ent.id] : [], claims: nClaims, factual_claims: segments.length },
+  };
 }
 
-function analyse(body) {
+async function analyse(body) {
   if (!body.lexicon_id || typeof body.lexicon_id !== 'string') return [400, { error: { code: 'lexicon_required', message: 'lexicon_id is required: choose an example lexicon or upload one' } }];
   const lx = lexicons.get(body.lexicon_id);
   if (!lx) return [404, { error: { code: 'lexicon_not_found', message: `unknown lexicon ${body.lexicon_id}` } }];
@@ -247,12 +287,13 @@ function analyse(body) {
   if (typeof body.answer !== 'string' || !body.answer.trim()) return [400, { error: { code: 'bad_request', message: 'answer is required: paste the model\'s final answer' } }];
   const oracle = body.truth && typeof body.truth === 'object' && Object.keys(body.truth).length ? 'truth' : 'extracted';
   const lexiconOut = { id: lx.id, domain: lx.domain, version: lx.version, entities: lx.entities.map((e) => ({ id: e.id, display: e.display })), findings: lx.findings.map((f) => ({ id: f.id, display: f.display, kind: f.kind })) };
-  const r = genericAnalyse(body, lx, documents, oracle);
-  const entity = body.entity || r.grounding.answer_entity || 'OTHER';
-  return [200, {
-    case: { case_id: 'ANL-001', entity, subtype: null, flags: { discordant: false, incomplete: false, atypical_features: [], missing_modalities: [] }, reports: documents, truth: r.truth, finding_spans: r.finding_spans, sections },
-    lexicon: lexiconOut, claims: r.claims, grounding: r.grounding, map: r.map, parsed_answer: r.parsed_answer, oracle, warnings: [], lexicon_version: lx.version, domain: lx.domain,
-  }];
+  // The packaged example, unchanged, gets the real service's answer so the page shows exactly what `traceaudit serve` returns.
+  if (lx.id === 'example:incident-triage' && oracle === 'extracted' && !body.entity) {
+    const canned = JSON.parse(await readFile(ANALYSE_FIXTURE, 'utf8'));
+    if (canned.thinking?.text === body.reasoning && canned.documents.every((d) => (documents[d.id] || '') === d.text)) return [200, { ...canned, lexicon: { ...canned.lexicon, id: lx.id } }];
+  }
+  const r = genericAnalyse(body, lx, documents, sections, oracle);
+  return [200, { ...r, lexicon: lexiconOut, oracle, warnings: [], lexicon_version: lx.version, domain: lx.domain }];
 }
 
 // ---- jobs ----------------------------------------------------------------------------------------
@@ -397,7 +438,7 @@ const server = createServer(async (req, res) => {
       if (req.method === 'POST' && path === '/api/analyse') {
         let body;
         try { body = JSON.parse(await readBody(req) || '{}'); } catch { return sendError(res, 400, 'bad_json', 'Request body is not valid JSON'); }
-        const [code, out] = analyse(body);
+        const [code, out] = await analyse(body);
         return sendJson(res, code, out);
       }
       if (req.method === 'POST' && path === '/api/jobs') {

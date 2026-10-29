@@ -6,6 +6,12 @@
   grader file and blind per-rater files; `traceaudit ledger agreement` reports inter-rater (Cohen's kappa, Gwet AC1)
   and grader-vs-consensus agreement with case-clustered bootstrap CIs and the acceptance verdict. New `stats.cohen_kappa`,
   `stats.gwet_ac1`, `stats.per_class_pr`; `docs/labelling-guide.md` for raters.
+- The text path is an adapter onto the fact ledger (`traceaudit.ledger_adapters`): documents become facts
+  with evidence spans, factual claims become cited segments. `POST /api/analyse` now returns the ledger
+  result plus `documents[]` with fact spans, `lexicon`, `answer`, `oracle`, `warnings`, `domain`; the
+  `claims`, `grounding`, `map` and `parsed_answer` keys are gone. Ledger metrics gain `grounding_rate` and
+  `uncited_assertions`. The Analyse-a-trace page renders the ledger blocks under a documents pane whose
+  highlights are the facts; the single-trace bundle adapter and its "Open in trace views" button are removed.
 
 ## 0.2.0 (2026-10-20)
 

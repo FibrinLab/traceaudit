@@ -120,15 +120,20 @@ export function AnalyseLedgerView() {
 
 // ---- result page -------------------------------------------------------------------------------------
 
-interface Ctx {
+/** Hover and selection state shared by every block: hovering a chip, row or highlight marks the fact everywhere;
+ *  clicking jumps to its ledger row. Exported so the Analyse-a-trace page's documents pane can take part. */
+export interface LedgerCtx {
   facts: Map<string, Fact>;
   highlight: string | null;
   selected: string | null;
   setHighlight: (id: string | null) => void;
   scrollToFact: (id: string) => void;
 }
+type Ctx = LedgerCtx;
 
-export function LedgerResultView({ result }: { result: LedgerResult }) {
+/** The ledger result page. `lead` renders first, with the shared fact context (the text path puts its documents there);
+ *  `hideAbsent` drops the rationale and ablation blocks when the result has none (free text never carries them). */
+export function LedgerResultView({ result, lead, hideAbsent = false }: { result: LedgerResult; lead?: (ctx: LedgerCtx) => ReactNode; hideAbsent?: boolean }) {
   const [highlight, setHighlight] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<LedgerFilter>('all');
@@ -154,18 +159,19 @@ export function LedgerResultView({ result }: { result: LedgerResult }) {
 
   return (
     <div className="stack ledger-result" style={{ gap: 24 }}>
+      {lead?.(ctx)}
       <VerdictStrip result={result} />
       <ReportWithCitations result={result} ctx={ctx} />
       <FactLedgerTable result={result} ctx={ctx} visible={visible} filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} disagreeing={disagreeing} />
       <ReasoningBlock result={result} ctx={ctx} />
-      <RationaleBlock result={result} ctx={ctx} />
-      <AblationBlock result={result} ctx={ctx} />
+      {(!hideAbsent || result.rationale) && <RationaleBlock result={result} ctx={ctx} />}
+      {(!hideAbsent || result.ablation) && <AblationBlock result={result} ctx={ctx} />}
       <CoverageStrip result={result} ctx={ctx} />
     </div>
   );
 }
 
-function Block({ id, title, sub, children, aside }: { id: string; title: string; sub?: ReactNode; children: ReactNode; aside?: ReactNode }) {
+export function LedgerBlock({ id, title, sub, children, aside }: { id: string; title: string; sub?: ReactNode; children: ReactNode; aside?: ReactNode }) {
   return (
     <section className="panel ledger-block" id={`ledger-${id}`} aria-labelledby={`ledger-${id}-title`}>
       <div className="panel-head">
@@ -185,7 +191,7 @@ function VerdictStrip({ result }: { result: LedgerResult }) {
   const match = decision != null && truth != null ? decision === truth : null;
   const openCheck = checks.find((c) => c.id === open) ?? null;
   return (
-    <Block id="verdict" title="Verdict" sub={`${metrics.facts} facts: ${metrics.patient_facts} patient, ${metrics.context_facts} context, ${metrics.reference_facts} reference · ${metrics.cited_in_report} cited in the report`}>
+    <LedgerBlock id="verdict" title="Verdict" sub={`${metrics.facts} facts: ${metrics.patient_facts} patient, ${metrics.context_facts} context, ${metrics.reference_facts} reference · ${metrics.cited_in_report} cited in the report`}>
       <div className="verdict-strip">
         <div className="tile">
           <span className="label">Decision</span>
@@ -225,7 +231,7 @@ function VerdictStrip({ result }: { result: LedgerResult }) {
           </>
         )}
       </div>
-    </Block>
+    </LedgerBlock>
   );
 }
 
@@ -267,7 +273,7 @@ function FactChip({ id, ctx, warn, compact = false }: { id: string; ctx: Ctx; wa
 function ReportWithCitations({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
   const m = result.metrics;
   return (
-    <Block id="report" title="Report with citations" sub={<>{m.cited_in_report} citations: <span style={{ color: 'var(--supported)' }}>{m.cited_agree} agree</span>, <span style={{ color: 'var(--contradicted)' }}>{m.cited_disagree} disagree</span>, <span style={{ color: 'var(--unsupported)' }}>{m.cited_unverifiable} unverifiable</span>. Hover a chip to find its fact; click to jump to it.</>}
+    <LedgerBlock id="report" title="Report with citations" sub={<>{m.cited_in_report} citations: <span style={{ color: 'var(--supported)' }}>{m.cited_agree} agree</span>, <span style={{ color: 'var(--contradicted)' }}>{m.cited_disagree} disagree</span>, <span style={{ color: 'var(--unsupported)' }}>{m.cited_unverifiable} unverifiable</span>. Hover a chip to find its fact; click to jump to it.</>}
       aside={<GradeLegend />}>
       {result.sections.length === 0 && <p className="muted">The artefact carries no delivered report.</p>}
       {result.sections.map((s, si) => (
@@ -290,7 +296,7 @@ function ReportWithCitations({ result, ctx }: { result: LedgerResult; ctx: Ctx }
           ))}
         </div>
       ))}
-    </Block>
+    </LedgerBlock>
   );
 }
 
@@ -323,7 +329,7 @@ function FactLedgerTable({ result, ctx, visible, filter, setFilter, search, setS
   const toggle = (id: string) => setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
-    <Block id="ledger" title="Fact ledger" sub={`${visible.length} of ${result.facts.length} facts shown · ${result.metrics.ignored} ignored, ${result.metrics.ignored_informative} of them informative. Marks: T referenced in thinking, R cited in report, A cited in rationale, I informative.`}>
+    <LedgerBlock id="ledger" title="Fact ledger" sub={`${visible.length} of ${result.facts.length} facts shown · ${result.metrics.ignored} ignored, ${result.metrics.ignored_informative} of them informative. Marks: T referenced in thinking, R cited in report, A cited in rationale, I informative.`}>
       <div className="filters" style={{ marginBottom: 12 }}>
         <div className="row" role="group" aria-label="Filter facts" style={{ gap: 6 }}>
           {LEDGER_FILTERS.map(([id, label]) => (
@@ -377,7 +383,7 @@ function FactLedgerTable({ result, ctx, visible, filter, setFilter, search, setS
           {visible.length === 0 && <tbody><tr><td colSpan={8} className="muted">No facts match this filter.</td></tr></tbody>}
         </table>
       </div>
-    </Block>
+    </LedgerBlock>
   );
 }
 
@@ -393,9 +399,9 @@ function ReasoningBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
   const tokens = useMemo(() => thinking ? tokeniseThinking(thinking.text, ctx.facts.keys(), allCandidates) : [], [thinking, ctx.facts, allCandidates]);
   const counts = useMemo(() => thinking ? candidateCounts(thinking.text, allCandidates) : {}, [thinking, allCandidates]);
   const named = allCandidates.filter((c) => (counts[c] ?? 0) > 0 || thinking?.candidates.includes(c));
-  if (!thinking) return <Block id="reasoning" title="Reasoning"><p className="muted">The artefact carries no reasoning text.</p></Block>;
+  if (!thinking) return <LedgerBlock id="reasoning" title="Reasoning"><p className="muted">The artefact carries no reasoning text.</p></LedgerBlock>;
   return (
-    <Block id="reasoning" title="Reasoning" sub={`${result.metrics.thinking_chars.toLocaleString()} characters · ${result.metrics.thinking_ids} fact ids named · ${named.length} of ${allCandidates.length} candidates named. Click an id to jump to its fact.`}>
+    <LedgerBlock id="reasoning" title="Reasoning" sub={`${result.metrics.thinking_chars.toLocaleString()} characters · ${result.metrics.thinking_ids} fact ids named · ${named.length} of ${allCandidates.length} candidates named. Click an id to jump to its fact.`}>
       <div className="ledger-reasoning">
         <div className="trace-text thinking" aria-label="Thinking text">
           {tokens.map((t, i) => t.kind === 'text' ? <span key={i}>{t.text}</span>
@@ -423,7 +429,7 @@ function ReasoningBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
           {named.length <= 1 && allCandidates.length > 1 && <p className="small muted" style={{ marginTop: 8 }}>Only one candidate is named: the thinking did not weigh alternatives.</p>}
         </aside>
       </div>
-    </Block>
+    </LedgerBlock>
   );
 }
 
@@ -440,11 +446,11 @@ const criterionMeta = (s: string) => CRITERION[s] ?? { tone: 'neutral', icon: '�
 function RationaleBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const r = result.rationale;
-  if (!r) return <Block id="rationale" title="Rationale"><p className="muted">The artefact carries no rationale.</p></Block>;
+  if (!r) return <LedgerBlock id="rationale" title="Rationale"><p className="muted">The artefact carries no rationale.</p></LedgerBlock>;
   const toggle = (d: string) => setOpen((s) => { const n = new Set(s); if (n.has(d)) n.delete(d); else n.add(d); return n; });
   const ids = (list: string[]) => list.map((id) => <FactChip key={id} id={id} ctx={ctx} compact />);
   return (
-    <Block id="rationale" title="Rationale" sub={<>Rationale decision <strong>{r.decision ?? '—'}</strong>{r.confidence ? <>, confidence {r.confidence}</> : null}. Contradicting chips carry ⚠ when the fact is not informative.</>}>
+    <LedgerBlock id="rationale" title="Rationale" sub={<>Rationale decision <strong>{r.decision ?? '—'}</strong>{r.confidence ? <>, confidence {r.confidence}</> : null}. Contradicting chips carry ⚠ when the fact is not informative.</>}>
       <div className="table-scroll">
         <table className="data differential">
           <thead>
@@ -508,7 +514,7 @@ function RationaleBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
           {r.would_change.length ? <ul className="fact-list">{r.would_change.map((u, i) => <li key={i}>{u}</li>)}</ul> : <p className="muted">Not stated.</p>}
         </div>
       </div>
-    </Block>
+    </LedgerBlock>
   );
 }
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -517,9 +523,9 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 function AblationBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
   const a = result.ablation;
-  if (!a) return <Block id="ablation" title="Ablation"><p className="muted">The artefact carries no ablation.</p></Block>;
+  if (!a) return <LedgerBlock id="ablation" title="Ablation"><p className="muted">The artefact carries no ablation.</p></LedgerBlock>;
   return (
-    <Block id="ablation" title="Ablation" sub="The stated discriminators were removed from the facts and the decision re-derived.">
+    <LedgerBlock id="ablation" title="Ablation" sub="The stated discriminators were removed from the facts and the decision re-derived.">
       <div className="ablation">
         <div>
           <div className="small muted" style={{ marginBottom: 4 }}>Removed facts ({a.removed_ids.length})</div>
@@ -540,7 +546,7 @@ function AblationBlock({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
           ? 'The decision changed without these facts: the rationale\'s discriminators carry the answer.'
           : 'The decision survived without these facts: the rationale\'s stated discriminators are not what the answer rests on.'}</p>
       </div>
-    </Block>
+    </LedgerBlock>
   );
 }
 
@@ -551,7 +557,7 @@ function CoverageStrip({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
   const counts = useMemo(() => coverageCounts(result.facts), [result.facts]);
   const total = caseFacts.length;
   return (
-    <Block id="coverage" title="Coverage" sub={`One square per patient or context fact, in ledger order (${total}). Click a square to jump to the fact.`}
+    <LedgerBlock id="coverage" title="Coverage" sub={`One square per patient or context fact, in ledger order (${total}). Click a square to jump to the fact.`}
       aside={
         <div className="legend" aria-label="Coverage legend">
           {COVERAGE_ORDER.map((c) => <span key={c} className="key" title={COVERAGE_META[c].description}><i className={`sq cov-${c}`} /> {COVERAGE_META[c].text} <span className="num">{counts[c]}</span></span>)}
@@ -569,6 +575,6 @@ function CoverageStrip({ result, ctx }: { result: LedgerResult; ctx: Ctx }) {
       <p className="small muted" style={{ margin: '8px 0 0' }}>
         {total ? <>{counts.cited + counts.referenced} of {total} facts were used ({Math.round(((counts.cited + counts.referenced) / total) * 100)}%); {counts.ignored} informative fact{counts.ignored === 1 ? '' : 's'} went unused.</> : 'No patient or context facts.'}
       </p>
-    </Block>
+    </LedgerBlock>
   );
 }
