@@ -25,7 +25,10 @@ scope and the documents here set behaviour.
 | 14 | [Case generation](14-case-generation.md) | Structured truth → SIHMDS-style reports → review |
 | 15 | [Study protocol](15-study-protocol.md) | Sampling, rating study, pre-registration contents, deviations |
 | 16 | [Testing and CI](16-testing-ci.md) | Test plan, invariants enforced in CI, release gates |
-| 19 | [Grader validation](19-grader-validation.md) | Blind labelling of ledger citations, inter-rater and grader-vs-consensus agreement, acceptance rule |
+| 17 | [Service](17-service.md) | `traceaudit serve`: analyse, ledger and audit-job endpoints, tokens, operator key, viewer hosting |
+| 18 | [Fact ledger](18-fact-ledger.md) | Facts with ids, citations graded against facts, the 24 checks, importers, text path as adapter |
+| 19 | [Ledger probes](19-ledger-probes.md) | Decisive, anchor, neutral, authority and ablation probes on ledger cases; rendering, output contract, scoring, simulator grid |
+| 20 | [Grader validation](20-grader-validation.md) | Blind labelling of ledger citations, inter-rater and grader-vs-consensus agreement, acceptance rule |
 
 ## Scope note
 

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Grader validation (spec 19): `traceaudit ledger sample` writes a stratified sample of ledger citations as a
+- Grader validation (spec 20): `traceaudit ledger sample` writes a stratified sample of ledger citations as a
   grader file and blind per-rater files; `traceaudit ledger agreement` reports inter-rater (Cohen's kappa, Gwet AC1)
   and grader-vs-consensus agreement with case-clustered bootstrap CIs and the acceptance verdict. New `stats.cohen_kappa`,
   `stats.gwet_ac1`, `stats.per_class_pr`; `docs/labelling-guide.md` for raters.

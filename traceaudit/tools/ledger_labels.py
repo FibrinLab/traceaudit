@@ -1,4 +1,4 @@
-"""Blind labelling and agreement for the ledger grader (spec 19).
+"""Blind labelling and agreement for the ledger grader (spec 20).
 
 `ledger.grade_segment` grades every citation by rule and reports no error of its own. To measure that error, two
 raters label a sample of citations without seeing the grader's grade, disagreements are adjudicated, and the
@@ -221,7 +221,7 @@ def agreement(rater_rows: dict[str, list[dict]], grader_rows: list[dict], adjudi
     """Inter-rater agreement, consensus, and grader vs consensus with case-clustered bootstrap CIs.
 
     Consensus per item: the raters' label when they all agree; otherwise the adjudicated label; otherwise a strict
-    majority (three or more raters); otherwise unresolved and excluded. Acceptance (spec 19): the grader's kappa with
+    majority (three or more raters); otherwise unresolved and excluded. Acceptance (spec 20): the grader's kappa with
     the consensus is at least the mean pairwise inter-rater kappa minus `margin`."""
     grader = {r["item_id"]: r for r in grader_rows}
     items = sorted(grader)

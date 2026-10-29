@@ -1,4 +1,4 @@
-# 19 — Grader validation
+# 20 — Grader validation
 
 Status: draft v0.1 · Modules: `traceaudit.tools.ledger_labels`, `traceaudit.stats` · CLI: `traceaudit ledger sample`, `traceaudit ledger agreement`
 
