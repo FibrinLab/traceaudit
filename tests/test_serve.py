@@ -58,12 +58,25 @@ def test_analyse_extracted_oracle(server, by_case):
             "answer": "Integrated diagnosis: Chronic lymphocytic leukaemia"}
     st, out = call(base, "POST", "/api/analyse", body)
     assert st == 200 and out["oracle"] == "extracted"
-    assert out["case"]["truth"] == c.truth
-    labels = [cl["label"] for cl in out["claims"] if cl["type"] == "factual"]
-    assert labels == ["supported", "unsupported"]
-    assert out["grounding"]["answer_entity"] == "CLL_SLL" and out["map"]["nodes"][-1]["type"] == "answer"
+    # the text path now returns a ledger result: facts from the documents, factual claims as cited segments
+    assert {f["field"]: f["value"].lower()[:3] for f in out["facts"]} == {k: v for k, v in c.truth.items()}
+    assert out["decision"] == "CLL_SLL" and out["truth"] is None and "CLL_SLL" in out["candidates"]
+    assert "claims" not in out and "grounding" not in out and "map" not in out and "parsed_answer" not in out
+    segs = out["sections"][0]["segments"]
+    assert [[x["grade"] for x in s["cited"]] for s in segs] == [["agree", "agree"], []]
+    assert segs[1]["uncited_assertions"][0]["grade"] == "unknown_fact"  # CD103 is stated in no document: unsupported in the old labels
+    assert out["metrics"]["grounding_rate"] == 1.0 and out["metrics"]["uncited_assertions"] == 1
+    status = {ch["id"]: ch["status"] for ch in out["checks"]}
+    assert status["citations_agree"] == "PASS" and status["segments_cited"] == "FAIL"
+    assert [d["id"] for d in out["documents"]] == ["clinical", "morphology", "flow_cytometry", "cytogenetics", "molecular"]
+    evidence = {f["id"]: f["evidence"] for f in out["facts"]}
+    for d in out["documents"]:
+        for sp in d["facts"]:
+            assert d["text"][sp["start"]:sp["end"]] == evidence[sp["id"]]
+    assert out["answer"]["entity"] == "CLL_SLL" and out["answer"]["hedged"] is False and out["answer"]["claims"] == 3
     st, out2 = call(base, "POST", "/api/analyse", {**body, "truth": {"CD5": "neg"}})
-    assert out2["oracle"] == "truth" and out2["claims"][0]["label"] == "contradicted"
+    assert out2["oracle"] == "truth" and out2["sections"][0]["segments"][0]["cited"][0]["grade"] == "disagree"
+    assert out2["metrics"]["cited_disagree"] == 1 and out2["metrics"]["grounding_rate"] == 0.5
 
 
 def test_analyse_validation(server):
@@ -72,6 +85,12 @@ def test_analyse_validation(server):
     assert st == 400 and out["error"]["code"] == "bad_request"
     st, out = call(base, "POST", "/api/analyse", {"reports": {"clinical": "x" * 60000}, "reasoning": "", "answer": ""})
     assert st == 400 and out["error"]["code"] == "too_large"
+    st, out = call(base, "POST", "/api/analyse", {"reports": {"clinical": "CD5 positive."}, "reasoning": ["not", "text"], "answer": ""})
+    assert st == 400 and out["error"]["code"] == "bad_request"
+    # an empty reasoning is still a ledger result: no segments, the checks that need thinking fail
+    st, out = call(base, "POST", "/api/analyse", {"reports": {"clinical": "CD5 positive."}, "reasoning": "", "answer": ""})
+    assert st == 200 and out["sections"][0]["segments"] == [] and out["metrics"]["grounding_rate"] is None
+    assert {c["id"]: c["status"] for c in out["checks"]}["thinking_present"] == "FAIL" and out["decision"] == "UNRESOLVED"
 
 
 def test_auth_gating(server):
@@ -196,10 +215,12 @@ def test_custom_lexicon_and_documents(server):
     assert [x["id"] for x in lst][:1] == ["default"] and any(x["id"] == meta["id"] for x in lst) and any(x["id"] == "example:incident-triage" for x in lst)
     ex = json.loads(Path(__file__).resolve().parents[1].joinpath("examples", "incident-trace.json").read_text())
     st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": meta["id"]})
-    assert st == 200 and out["domain"] == "incident-triage"
-    assert [s["id"] for s in out["case"]["sections"]] == ["alerts", "logs", "deploys"]
-    assert out["grounding"]["answer_entity"] == "BAD_DEPLOY"
-    assert [c["label"] for c in out["claims"] if c["type"] == "factual"] == ["supported", "contradicted", "supported"]
+    assert st == 200 and out["domain"] == "incident-triage" and out["lexicon"]["id"] == meta["id"]
+    assert [(d["id"], d["title"]) for d in out["documents"]] == [("alerts", "Alerts"), ("logs", "Logs"), ("deploys", "Deploy history")]
+    assert out["decision"] == "BAD_DEPLOY" and out["candidates"] == ["BAD_DEPLOY", "CAPACITY", "DATABASE", "DISK"]
+    # the old labels supported, contradicted, supported become citation grades
+    assert [[x["grade"] for x in s["cited"]] for s in out["sections"][0]["segments"]] == [["agree", "agree"], ["disagree"], ["agree"]]
+    assert out["metrics"]["grounding_rate"] == 0.75 and out["metrics"]["facts"] == 7
     st, out = call(base, "POST", "/api/lexicons", {"lexicon": "{\"version\": 1}"})
     assert st == 400 and out["error"]["code"] == "bad_lexicon"
     st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": "lex-nope"})
@@ -222,7 +243,7 @@ def test_bare_server_has_no_built_in_domain(tmp_path, sample_cases):
         st, out = call(base, "POST", "/api/analyse", ex)
         assert st == 400 and out["error"]["code"] == "lexicon_required"
         st, out = call(base, "POST", "/api/analyse", {**ex, "lexicon_id": "example:incident-triage"})
-        assert st == 200 and out["domain"] == "incident-triage" and out["grounding"]["answer_entity"] == "BAD_DEPLOY"
+        assert st == 200 and out["domain"] == "incident-triage" and out["decision"] == "BAD_DEPLOY" and out["metrics"]["cited_disagree"] == 1
         # uploading cases needs a lexicon too; with the example it works and the sim audit runs on it
         st, out = call(base, "POST", "/api/uploads", {"name": "h", "cases": "\n".join(c.to_json() for c in sample_cases[:1]), "approved": True})
         assert st == 400 and out["error"]["code"] == "lexicon_required"

@@ -5,7 +5,8 @@ Status: draft v0.1 · Modules: `traceaudit.ledger`, `traceaudit.importers`
 The fact ledger is the structured core of trace analytics. It replaces "sentences
 graded against documents" with "citations graded against facts" wherever the
 pipeline under audit already emits facts with ids. The text path (spec 03–04)
-remains as the adapter that turns free-text documents into facts.
+is an adapter onto it (`traceaudit.ledger_adapters`), so free text and
+structured artefacts share one set of checks, one result shape and one viewer.
 
 ## 1. Records
 
@@ -17,6 +18,41 @@ remains as the adapter that turns free-text documents into facts.
 | `Ablation` | `removed_ids`, `decision_before`, `decision_after`, `changed` |
 | `LedgerCase` | `case_id`, `truth`, `candidates[]`, `facts[]`, `allowed_ids` |
 | `LedgerTrace` | `thinking`, `report`, `rationale?`, `ablation?` |
+
+**The text path as an adapter.** `ledger_adapters.case_to_ledger(case, lx)` makes
+one patient fact per polarised assertion the extractor finds in the documents
+(`extract.finding_spans`): ids `p_1..` in document order, `section` the document
+id, `field` the lexicon finding id, `value` the lexicon's polarity word
+(`Positive`/`Negative`), `evidence` the asserted text, with `meta["spans"]`
+holding `{report, start, end}` offsets so a viewer can highlight it. An authority
+cue appended to a document (schema `Cue`, rendered from the lexicon's
+`cue_templates`) becomes a context fact `c_1` with field
+`referrer_working_diagnosis`. Candidates are the lexicon's answer entities and
+`truth` the case's entity. `meta["lexicon_fields"]` tells `audit` that the fields
+are the lexicon's own finding ids, so it grades with that lexicon (its aliases,
+phrases, numeric rules and entity names) rather than a throwaway one built from
+the field names. `trace_to_ledger(trace, claims, lx, case_ledger)` makes the
+reasoning the thinking and the report one section, "Factual claims", with one
+segment per factual claim (`segment.segment`) citing, for every finding it
+asserts, the fact with the same polarity when the documents state the finding
+more than once, else the first fact for that field, so a contradicted claim
+cites the fact it contradicts and grades `disagree`. A finding no document
+states cites nothing and surfaces as an `unknown_fact` uncited assertion (and
+fails `segments_cited`). The decision is the parsed answer entity. With a
+supplied truth table (`truth_overrides`), the table is the oracle: a fact whose
+document polarity differs takes the table's value (the document's reading is
+kept in `meta["stated"]`) and a truth entry no document states becomes a fact
+without evidence.
+
+Metrics include `grounding_rate = cited_agree / (cited_agree + cited_disagree +
+cited_unverifiable)` (`null` when nothing was graded) and `uncited_assertions`,
+so the text path's headline survives. It differs from the old claim-level rate in
+two known ways: it counts citations rather than claims (a claim asserting two
+findings contributes two), and a fabricated finding lowers the old rate (an
+unsupported claim) but not this one (nothing to cite); `uncited_assertions` and
+`segments_cited` carry that signal instead. On the packaged haematology sample
+with the simulated model the two rates agree within 0.05
+(`tests/test_ledger_adapters.py`).
 
 Value polarity: `Positive/Present/Weak/Detected…` → `pos`; `Negative/Absent/Not detected…` → `neg`;
 `Not performed/Not mentioned…` → `untested`; anything else (numbers, `unmutated`) → `other`,
@@ -55,10 +91,13 @@ structures as plain JSON for pipelines that can emit them directly.
 ## 4. Surfaces
 
 - CLI: `traceaudit ledger audit <artefact.md> [--json]` prints the checks and metrics.
-- Service: `POST /api/ledger` with `{markdown}` or `{case, trace}` returns the full result.
+- Service: `POST /api/ledger` with `{markdown}` or `{case, trace}` returns the full result;
+  `POST /api/analyse` (free text) runs the adapters and returns the same result plus the
+  documents with each fact's span (spec 17 §3).
 - Viewer: `#/analyse/ledger` renders the verdict, the report with graded citation
   chips, the ledger table with coverage marks, the reasoning with clickable ids,
-  the rationale differential and the ablation.
+  the rationale differential and the ablation. `#/analyse/trace` renders the same
+  blocks for a free-text trace, under a documents pane whose highlights are the facts.
 
 ## 5. Relationship to the probes
 

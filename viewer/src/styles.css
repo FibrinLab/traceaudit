@@ -189,6 +189,8 @@ mark.hl, .claim { border-radius: 3px; padding: 1px 2px; color: var(--text); back
 .hl-mention .hl-icon, .hl-mention .hl-label { color: var(--text-2); }
 .hl-focus { background: var(--focus-wash); outline: 2px solid var(--focus); }
 .hl-other, .claim-other { border-bottom-color: var(--line); }
+.hl-click { cursor: pointer; }
+.hl-click:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .claim { cursor: pointer; }
 .claim:hover { outline: 1px solid var(--line-strong); }
 .claim[aria-pressed="true"] { outline: 2px solid var(--focus); background: var(--focus-wash); }

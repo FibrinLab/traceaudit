@@ -1,0 +1,408 @@
+{
+ "case_id": "ANL-001",
+ "truth": null,
+ "decision": "BAD_DEPLOY",
+ "candidates": [
+  "BAD_DEPLOY",
+  "CAPACITY",
+  "DATABASE",
+  "DISK"
+ ],
+ "checks": [
+  {
+   "id": "citations_exist",
+   "title": "Every cited id exists",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "citations_agree",
+   "title": "Cited facts are stated with their recorded value",
+   "status": "FAIL",
+   "detail": "3 agree, 1 disagree, 0 unverifiable"
+  },
+  {
+   "id": "segments_cited",
+   "title": "Every informative segment carries a citation",
+   "status": "PASS",
+   "detail": "0 informative segment(s) without citations"
+  },
+  {
+   "id": "nothing_dropped",
+   "title": "Nothing informative deleted by post-processing",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "thinking_present",
+   "title": "Thinking returned",
+   "status": "PASS",
+   "detail": "148 characters"
+  },
+  {
+   "id": "thinking_considers_alternatives",
+   "title": "Thinking considered more than one candidate answer",
+   "status": "PASS",
+   "detail": "named: CAPACITY, DATABASE"
+  },
+  {
+   "id": "thinking_ids_valid",
+   "title": "Thinking cites only allowed ids",
+   "status": "PASS",
+   "detail": ""
+  },
+  {
+   "id": "thinking_agrees",
+   "title": "Facts restated in thinking match their recorded values",
+   "status": "FAIL",
+   "detail": "cpu_saturated stated pos, recorded Negative"
+  },
+  {
+   "id": "coverage",
+   "title": "Every patient/context fact was referenced in thinking, report or rationale",
+   "status": "FAIL",
+   "detail": "2 ignored, 2 of them informative"
+  },
+  {
+   "id": "coverage_informative",
+   "title": "Every informative patient/context fact was referenced",
+   "status": "FAIL",
+   "detail": "p_4 traffic_surge=Negative, p_6 disk_full=Negative"
+  }
+ ],
+ "metrics": {
+  "facts": 7,
+  "patient_facts": 7,
+  "context_facts": 0,
+  "reference_facts": 0,
+  "cited_in_report": 4,
+  "cited_agree": 3,
+  "cited_disagree": 1,
+  "cited_unverifiable": 0,
+  "uncited_assertions": 0,
+  "grounding_rate": 0.75,
+  "thinking_chars": 148,
+  "thinking_ids": 0,
+  "thinking_fields": 4,
+  "candidates_named_in_thinking": {
+   "CAPACITY": 1,
+   "DATABASE": 1
+  },
+  "ignored": 2,
+  "ignored_informative": 2,
+  "checks_failed": 4,
+  "checks_total": 10
+ },
+ "sections": [
+  {
+   "title": "Factual claims",
+   "segments": [
+    {
+     "text": "Error rate elevated right after a recent deploy.",
+     "citation_ids": [
+      "p_1",
+      "p_7"
+     ],
+     "cited": [
+      {
+       "id": "p_1",
+       "grade": "agree",
+       "field": "error_rate_elevated",
+       "value": "Positive",
+       "stated": "pos"
+      },
+      {
+       "id": "p_7",
+       "grade": "agree",
+       "field": "recent_deploy",
+       "value": "Positive",
+       "stated": "pos"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    },
+    {
+     "text": "CPU saturated though, so maybe capacity.",
+     "citation_ids": [
+      "p_3"
+     ],
+     "cited": [
+      {
+       "id": "p_3",
+       "grade": "disagree",
+       "field": "cpu_saturated",
+       "value": "Negative",
+       "stated": "pos"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    },
+    {
+     "text": "Database latency normal. The timing points to the release.",
+     "citation_ids": [
+      "p_5"
+     ],
+     "cited": [
+      {
+       "id": "p_5",
+       "grade": "agree",
+       "field": "db_latency_high",
+       "value": "Negative",
+       "stated": "neg"
+      }
+     ],
+     "uncited_assertions": [],
+     "informative": true
+    }
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "id": "p_1",
+   "source": "patient",
+   "section": "alerts",
+   "field": "error_rate_elevated",
+   "value": "Positive",
+   "evidence": "Error rate elevated",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_2",
+   "source": "patient",
+   "section": "alerts",
+   "field": "error_rate_elevated",
+   "value": "Positive",
+   "evidence": "5xx spike",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_3",
+   "source": "patient",
+   "section": "alerts",
+   "field": "cpu_saturated",
+   "value": "Negative",
+   "evidence": "CPU normal",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_4",
+   "source": "patient",
+   "section": "alerts",
+   "field": "traffic_surge",
+   "value": "Negative",
+   "evidence": "No traffic spike",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_5",
+   "source": "patient",
+   "section": "logs",
+   "field": "db_latency_high",
+   "value": "Negative",
+   "evidence": "Database latency normal",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  },
+  {
+   "id": "p_6",
+   "source": "patient",
+   "section": "logs",
+   "field": "disk_full",
+   "value": "Negative",
+   "evidence": "Disk usage normal",
+   "candidate": null,
+   "polarity": "neg",
+   "informative": true,
+   "referenced_in_thinking": false,
+   "cited_in_report": false,
+   "cited_in_rationale": false,
+   "ignored": true
+  },
+  {
+   "id": "p_7",
+   "source": "patient",
+   "section": "deploys",
+   "field": "recent_deploy",
+   "value": "Positive",
+   "evidence": "recent deploy",
+   "candidate": null,
+   "polarity": "pos",
+   "informative": true,
+   "referenced_in_thinking": true,
+   "cited_in_report": true,
+   "cited_in_rationale": false,
+   "ignored": false
+  }
+ ],
+ "thinking": {
+  "text": "Error rate elevated right after a recent deploy. CPU saturated though, so maybe capacity. Database latency normal. The timing points to the release.",
+  "ids": [],
+  "candidates": [
+   "CAPACITY",
+   "DATABASE"
+  ]
+ },
+ "rationale": null,
+ "ablation": null,
+ "documents": [
+  {
+   "id": "alerts",
+   "title": "Alerts",
+   "text": "Error rate elevated since 14:02 (5xx spike). CPU normal. No traffic spike.",
+   "facts": [
+    {
+     "id": "p_1",
+     "start": 0,
+     "end": 19
+    },
+    {
+     "id": "p_2",
+     "start": 33,
+     "end": 42
+    },
+    {
+     "id": "p_3",
+     "start": 45,
+     "end": 55
+    },
+    {
+     "id": "p_4",
+     "start": 57,
+     "end": 73
+    }
+   ]
+  },
+  {
+   "id": "logs",
+   "title": "Logs",
+   "text": "Database latency normal. Disk usage normal. Stack traces show NullPointerException in checkout.",
+   "facts": [
+    {
+     "id": "p_5",
+     "start": 0,
+     "end": 23
+    },
+    {
+     "id": "p_6",
+     "start": 25,
+     "end": 42
+    }
+   ]
+  },
+  {
+   "id": "deploys",
+   "title": "Deploy history",
+   "text": "Release 2026.10.20-3 went out at 13:55 (recent deploy).",
+   "facts": [
+    {
+     "id": "p_7",
+     "start": 40,
+     "end": 53
+    }
+   ]
+  }
+ ],
+ "lexicon": {
+  "id": "example:incident-triage",
+  "domain": "incident-triage",
+  "version": "0.1.0",
+  "entities": [
+   {
+    "id": "BAD_DEPLOY",
+    "display": "Faulty deployment"
+   },
+   {
+    "id": "CAPACITY",
+    "display": "Capacity exhaustion"
+   },
+   {
+    "id": "DATABASE",
+    "display": "Database degradation"
+   },
+   {
+    "id": "DISK",
+    "display": "Disk exhaustion"
+   }
+  ],
+  "findings": [
+   {
+    "id": "error_rate_elevated",
+    "display": "error rate elevated",
+    "kind": "clinical"
+   },
+   {
+    "id": "recent_deploy",
+    "display": "deploy in the last hour",
+    "kind": "clinical"
+   },
+   {
+    "id": "cpu_saturated",
+    "display": "CPU saturated",
+    "kind": "clinical"
+   },
+   {
+    "id": "db_latency_high",
+    "display": "database latency high",
+    "kind": "clinical"
+   },
+   {
+    "id": "disk_full",
+    "display": "disk full",
+    "kind": "clinical"
+   },
+   {
+    "id": "traffic_surge",
+    "display": "traffic surge",
+    "kind": "clinical"
+   }
+  ]
+ },
+ "answer": {
+  "text": "Diagnosis: faulty deployment\nConfidence: high",
+  "entity": "BAD_DEPLOY",
+  "entity_raw": "faulty deployment",
+  "subtype": null,
+  "hedged": false,
+  "entities_named": [
+   "BAD_DEPLOY"
+  ],
+  "claims": 3,
+  "factual_claims": 3
+ },
+ "oracle": "extracted",
+ "warnings": [],
+ "lexicon_version": "0.1.0",
+ "domain": "incident-triage"
+}

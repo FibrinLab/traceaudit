@@ -192,8 +192,13 @@ def field_aliases(fieldname: str) -> list[str]:
 
 
 def lexicon_from_case(case: LedgerCase, base: Lexicon | None = None) -> Lexicon:
-    """A throwaway lexicon whose findings are the case's patient/context fields, so the text extractor can grade sentences."""
+    """A throwaway lexicon whose findings are the case's patient/context fields, so the text extractor can grade sentences.
+
+    A case whose fields *are* the base lexicon's finding ids (`meta["lexicon_fields"]`, set by `ledger_adapters`) is graded
+    with the base lexicon itself: same aliases, phrases, numeric rules and entity names as the text path."""
     from . import lexicon as lex_mod
+    if base is not None and case.meta.get("lexicon_fields"):
+        return base
     phrases = base.phrases if base else _default_phrases()
     polarity = base.polarity if base else _default_polarity()
     findings = []
@@ -299,11 +304,15 @@ def referenced_ids(text: str) -> set[str]:
 
 
 def facts_mentioned(text: str, case: LedgerCase, lx: Lexicon) -> set[str]:
-    """Fact ids whose field is named in the text (by alias), regardless of polarity."""
+    """Fact ids whose field is named in the text (by a field alias or one of the lexicon's aliases), regardless of polarity."""
     out: set[str] = set()
     low = text.lower()
+    named = {t.finding_id for t in lx.marker_tokens(text)}
     for f in case.facts:
         if f.source not in ("patient", "context"):
+            continue
+        if f.field in named:
+            out.add(f.id)
             continue
         for a in field_aliases(f.field):
             if len(a) >= 3 and re.search(r"(?<![A-Za-z0-9])" + re.escape(a.lower()) + r"(?![A-Za-z0-9])", low):
@@ -312,10 +321,16 @@ def facts_mentioned(text: str, case: LedgerCase, lx: Lexicon) -> set[str]:
     return out
 
 
-def candidates_named(text: str, case: LedgerCase) -> list[str]:
+def candidates_named(text: str, case: LedgerCase, lx: Lexicon | None = None) -> list[str]:
+    """Candidates the text names, in candidate order: by their own name (or a slash-separated part of it), or, when a
+    lexicon is given, by any of that lexicon's entity aliases."""
     low = text.lower()
     out = []
+    by_lexicon = {m.entity for m in lx.find_entities(text)} if lx is not None else set()
     for c in case.candidates:
+        if c in by_lexicon:
+            out.append(c)
+            continue
         for a in [c] + _candidate_aliases(c):
             if re.search(r"(?<![A-Za-z0-9])" + re.escape(a.lower()) + r"(?![A-Za-z0-9])", low):
                 out.append(c)
@@ -354,7 +369,7 @@ def audit(case: LedgerCase, trace: LedgerTrace, base_lexicon: Lexicon | None = N
                     disagreements += 1
                 elif c["grade"] in ("unverifiable", "not_mentioned"):
                     unverifiable += 1
-            uncited_assertions += sum(1 for u in g["uncited_assertions"] if u["grade"] != "agree" or True)
+            uncited_assertions += len(g["uncited_assertions"])
             if not seg.citation_ids and g["informative"]:
                 uncited_segments += 1
         graded_sections.append({"title": sec.title, "segments": gs})
@@ -388,7 +403,7 @@ def audit(case: LedgerCase, trace: LedgerTrace, base_lexicon: Lexicon | None = N
     # --- thinking
     thinking_ids = referenced_ids(trace.thinking)
     thinking_fields = facts_mentioned(trace.thinking, case, lx)
-    named = candidates_named(trace.thinking, case)
+    named = candidates_named(trace.thinking, case, lx)
     check("thinking_present", "Thinking returned", "PASS" if trace.thinking.strip() else "FAIL", f"{len(trace.thinking)} characters")
     check("thinking_considers_alternatives", "Thinking considered more than one candidate answer",
           "PASS" if len(set(named)) > 1 else "FAIL", "named: " + (", ".join(sorted(set(named))) or "none"))
@@ -481,6 +496,9 @@ def audit(case: LedgerCase, trace: LedgerTrace, base_lexicon: Lexicon | None = N
         "facts": len(case.facts), "patient_facts": sum(1 for f in case.facts if f.source == "patient"),
         "context_facts": sum(1 for f in case.facts if f.source == "context"), "reference_facts": sum(1 for f in case.facts if f.source == "who"),
         "cited_in_report": len(set(all_cited)), "cited_agree": agreements, "cited_disagree": disagreements, "cited_unverifiable": unverifiable,
+        "uncited_assertions": uncited_assertions,
+        # the text path's headline: agreeing citations over every graded citation (None when nothing was graded)
+        "grounding_rate": agreements / graded if (graded := agreements + disagreements + unverifiable) else None,
         "thinking_chars": len(trace.thinking), "thinking_ids": len(thinking_ids), "thinking_fields": len(thinking_fields),
         "candidates_named_in_thinking": dict(Counter(named)), "ignored": len(ignored), "ignored_informative": len(ignored_informative),
         "checks_failed": n_fail, "checks_total": len(checks),

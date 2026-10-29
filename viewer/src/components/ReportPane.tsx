@@ -18,10 +18,12 @@ interface Props {
   /** Extra content rendered under a given section (e.g. the "Edited: …" line). */
   footers?: Partial<Record<string, ReactNode>>;
   emptyText?: string;
+  /** When given, highlights with an id are clickable (and reachable by keyboard) and report that id. */
+  onHighlightClick?: (id: string) => void;
 }
 
 /** The source documents of a case, one section per heading, with inline highlights. */
-export function ReportPane({ reports, sections, highlights = [], scrollTo, title, footers, emptyText = 'Not provided.' }: Props) {
+export function ReportPane({ reports, sections, highlights = [], scrollTo, title, footers, emptyText = 'Not provided.', onHighlightClick }: Props) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!scrollTo || !root.current) return;
@@ -40,7 +42,7 @@ export function ReportPane({ reports, sections, highlights = [], scrollTo, title
           <section key={id} aria-labelledby={`rp-${id}`}>
             <h3 id={`rp-${id}`}>{heading}</h3>
             <div className="report-text">
-              {text ? <HighlightedText text={text} highlights={hs} /> : <span className="muted">{emptyText}</span>}
+              {text ? <HighlightedText text={text} highlights={hs} onClick={onHighlightClick} /> : <span className="muted">{emptyText}</span>}
             </div>
             {footers?.[id]}
           </section>
@@ -50,16 +52,19 @@ export function ReportPane({ reports, sections, highlights = [], scrollTo, title
   );
 }
 
-export function HighlightedText({ text, highlights }: { text: string; highlights: Highlight[] }) {
+export function HighlightedText({ text, highlights, onClick }: { text: string; highlights: Highlight[]; onClick?: (id: string) => void }) {
   const segs = segmentText(text, highlights);
   return (
     <>
       {segs.map((s, i) => {
         if (!s.highlight) return <span key={i}>{s.text}</span>;
         const h = s.highlight;
-        const cls = `hl hl-${h.kind}`;
+        const cls = `hl hl-${h.kind}${onClick && h.id ? ' hl-click' : ''}`;
+        const click = onClick && h.id ? () => onClick(h.id!) : undefined;
         return (
-          <mark key={i} className={cls} data-hl-id={s.isHead ? h.id : undefined} title={h.title}>
+          <mark key={i} className={cls} data-hl-id={s.isHead ? h.id : undefined} title={h.title}
+            role={click ? 'button' : undefined} tabIndex={click && s.isHead ? 0 : undefined} onClick={click}
+            onKeyDown={click ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); click(); } } : undefined}>
             {s.isHead && <span className="hl-icon" aria-hidden="true">{labelIcon(h.kind)}</span>}
             {s.text}
             {s.isHead && h.label && <span className="hl-label">{h.label}</span>}

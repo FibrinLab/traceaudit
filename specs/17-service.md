@@ -11,7 +11,7 @@ on-premises install inside a TRE.
 
 | Mode | Input | Output | Calls a model |
 |---|---|---|---|
-| `analyse` | reports, reasoning text, answer text (one trace) | claims, grounding, parsed answer, finding spans, reasoning map | no |
+| `analyse` | documents, reasoning text, answer text (one trace) | a fact-ledger result (spec 18): the documents' assertions as facts, the factual claims as cited segments graded against them, checks and metrics; plus the documents with each fact's evidence span | no |
 | `audit` | a model endpoint and key, a case set, efforts, runs | a full run directory, scored, exported as a viewer bundle | yes, the user's model |
 | `audit` with upload | as above plus the user's own cases/perturbations/lexicon | same | yes |
 
@@ -48,7 +48,7 @@ with 400/401/403/404/409/429/500.
 | `GET /api/health` | | `{ version, lexicon_version, domain, sections, modes, clients, anonymous, workspace, operator_keys[], limits{max_calls_per_job, max_calls_per_day, calls_used_today} }` |
 | `GET /api/lexicon` | | `{ version, entities[], findings[] }` (display fields only) |
 | `GET /api/case-sets` | | `[{ id, name, n_cases, n_perturbations, approved, source }]` — packaged sample, `data/` set if approved, plus uploads in the workspace |
-| `POST /api/analyse` | general form `{ documents{<section id>: text}, titles?, reasoning, answer, truth?, entity?, lexicon_id? }`; haematology shorthand `{ reports{clinical,…}, … }` still accepted | `{ case (with sections), lexicon{id,domain,version,entities,findings}, claims[], grounding, map, parsed_answer, oracle, domain }` where `oracle` is `"truth"` when supplied, else `"extracted"` (the documents' own assertions) |
+| `POST /api/analyse` | general form `{ documents{<section id>: text}, titles?, reasoning, answer, truth?, entity?, lexicon_id? }`; haematology shorthand `{ reports{clinical,…}, … }` still accepted | the `ledger.audit` result (spec 18 §1: `case_id, truth, decision, candidates, checks[], metrics{… grounding_rate, uncited_assertions}, sections[], facts[], thinking, rationale: null, ablation: null`) plus `documents[{ id, title, text, facts[{ id, start, end }] }]` (offsets into `text`), `lexicon{ id, domain, version, entities, findings }`, `answer{ text, entity, entity_raw, subtype, hedged, entities_named, claims, factual_claims }`, `oracle`, `warnings[]`, `domain`. `oracle` is `"truth"` when a truth table was supplied (its values override the documents' readings), else `"extracted"`. The text path is an adapter onto the ledger (`ledger_adapters`): one patient fact per assertion found in the documents, one context fact per authority cue, one segment per factual claim citing the facts it restates |
 | `GET /api/lexicons` | | the built-in lexicon plus uploads visible to the workspace: `[{ id, name, domain, version, sections, n_findings, n_entities, source }]` |
 | `POST /api/lexicons` | `{ lexicon: <json text>, name? }` | `201` meta; `400 bad_lexicon` when the loader rejects it |
 | `GET /api/lexicon?id=` | | `{ version, domain, sections, entities[], findings[] }` for one lexicon (default when `id` is omitted) |
@@ -83,8 +83,11 @@ job id via `POST /api/jobs/{id}/resume`, which re-requires the key).
 Routes `#/analyse` (chooser), `#/analyse/trace`, `#/analyse/audit`, `#/jobs`,
 `#/jobs/:id`. Settings hold the API base URL (default: same origin) and the
 bearer token (localStorage, never in URLs). The trace form posts to
-`/api/analyse` and renders the result with the existing grounding and
-constellation components from an in-memory single-trace bundle. The audit form
+`/api/analyse` and renders the fact-ledger result with the same blocks as
+`#/analyse/ledger` (verdict, claims with graded citations, ledger table,
+reasoning, coverage), under a documents pane in which every fact's evidence
+span is highlighted by how the reasoning treated it; a highlight jumps to the
+fact's row and a chip or row marks its highlight. The audit form
 lists case sets, takes the client kind, endpoint, model and key (password field,
 not persisted), efforts and runs, and submits a job; the jobs page polls every
 few seconds and, when done, opens the cohort view on the job's bundle.

@@ -1,9 +1,11 @@
 // Typed client for the `traceaudit serve` HTTP API (specs/17-service.md §3).
 // No React here so it can be unit-tested with a stubbed fetch.
-import type { Claim, GroundingRecord, LexiconEntity, LexiconFinding, Polarity, ReasoningMap, Reports, Section } from '../types';
+import type { LexiconEntity, LexiconFinding, Polarity, Reports, Section } from '../types';
 import { parseLedgerResult, type LedgerRequest, type LedgerResult } from './ledger';
+import { parseAnalyseResponse, type AnalyseResponse } from './analyse';
 export type { Reports };
 export type { LedgerRequest, LedgerResult };
+export type { AnalyseResponse, AnalyseDocument, AnalyseLexicon, AnalyseAnswer } from './analyse';
 
 export interface ApiSettings {
   /** Origin or prefix of the service, e.g. `http://127.0.0.1:8080`. Empty means same origin. */
@@ -98,22 +100,7 @@ export interface AnalyseRequest {
   /** An example or uploaded lexicon id. The service has no default: without a usable id it answers `lexicon_required`. */
   lexicon_id?: string;
 }
-export interface AnalyseCase { case_id: string; entity: string | null; reports: Reports; truth: Record<string, Polarity>; finding_spans: Record<string, import('../types').FindingSpan[]>; sections?: Section[] | null }
-export interface AnalyseLexicon { id: string; domain: string; version: string; entities: Array<{ id: string; display: string }>; findings: Array<{ id: string; display: string; kind: string }> }
-export interface ParsedAnswer { entity?: string | null; entity_raw?: string | null; subtype?: string | null; hedged?: boolean; confidence?: string | null; [k: string]: unknown }
-export interface AnalyseResponse {
-  case: AnalyseCase;
-  claims: Claim[];
-  grounding: GroundingRecord | null;
-  map: ReasoningMap | null;
-  parsed_answer: ParsedAnswer | null;
-  /** `truth` when the caller supplied truth, else `extracted` (the documents' own assertions). */
-  oracle: 'truth' | 'extracted';
-  /** The lexicon the analysis used, with display names for its categories and findings. */
-  lexicon?: AnalyseLexicon;
-  domain?: string;
-  warnings?: string[];
-}
+// The response is a fact-ledger result (`LedgerResult`) plus `documents` with each fact's evidence span; see lib/analyse.ts.
 
 export type JobStatus = 'queued' | 'running' | 'scoring' | 'exporting' | 'done' | 'failed' | 'cancelled' | 'interrupted';
 export const TERMINAL_STATUSES: ReadonlySet<JobStatus> = new Set<JobStatus>(['done', 'failed', 'cancelled', 'interrupted']);
@@ -221,6 +208,7 @@ export interface ApiClient {
   caseSets: () => Promise<CaseSet[]>;
   /** Upload a case set (JSONL text); resolves to the new case set as `/api/case-sets` lists it. */
   createUpload: (req: UploadCreate) => Promise<CaseSet>;
+  /** Analyse one free-text trace against its documents; resolves to a ledger result with the documents' fact spans. */
   analyse: (req: AnalyseRequest) => Promise<AnalyseResponse>;
   /** Audit a structured trace artefact (`{markdown}` or `{case, trace}`) against its fact ledger. No model is called. */
   auditLedger: (req: LedgerRequest) => Promise<LedgerResult>;
@@ -263,7 +251,7 @@ export function createApi(settings: ApiSettings, fetchImpl: typeof fetch = (...a
     uploadLexicon: (lexiconJson, name) => request<LexiconMeta>('/api/lexicons', json(name ? { lexicon: lexiconJson, name } : { lexicon: lexiconJson })),
     caseSets: () => request<CaseSet[]>('/api/case-sets'),
     createUpload: (req) => request<CaseSet>('/api/uploads', json(req)),
-    analyse: (req) => request<AnalyseResponse>('/api/analyse', json(req)),
+    analyse: async (req) => parseAnalyseResponse(await request<unknown>('/api/analyse', json(req))),
     auditLedger: async (req) => parseLedgerResult(await request<unknown>('/api/ledger', json(req))),
     createJob: (req) => request<{ job_id: string }>('/api/jobs', json(req)),
     listJobs: () => request<JobSummary[]>('/api/jobs'),
