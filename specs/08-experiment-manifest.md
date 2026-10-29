@@ -57,6 +57,30 @@ verifier (default `lexical`).
 packaged lexicon of the recorded version, prompt sha mismatch, model digest
 absent, `status != complete`, or `n_errors / n_traces > 0.02`.
 
+## 4a. Provenance hashes (29 Oct 2026)
+
+Hashes prove identity, not faithfulness: they show which prompt produced which trace and which
+inputs a run committed to, and say nothing about whether the reasoning matches the report (that
+is the probes' job, spec 06 and spec 19). Module `traceaudit.provenance`.
+
+- Every trace record carries `provenance`: `prompt_sha256 = sha256(system + "\x00" + user)` of
+  the exact strings sent to the client, `reasoning_sha256` and `answer_sha256` of the raw fields
+  as stored. An error trace keeps `prompt_sha256` only. A path-B import (spec 19) records
+  `reasoning_sha256`, `answer_sha256`, `artefact_sha256` of the source file and the fact-table
+  `fingerprint`; its `prompt_sha256` is `null` because traceaudit did not send the prompt.
+- The manifest carries `provenance.components` (the sha256 of prompt, cases, perturbations and
+  lexicon, `null` when absent) and `provenance.inputs_sha256 = sha256("\n".join(name=sha256|none))`
+  over those four in that order. [PRE-REG] `inputs_sha256` is the value to publish in the
+  pre-registration before any model is called; it fixes the variant set.
+- `traceaudit manifest verify <run_dir> [--cases F --perturbations F]` recomputes everything:
+  the prompt text stored in the manifest against `prompt.sha256`, the components against
+  `inputs_sha256`, the input files against their recorded hashes when they still exist at the
+  recorded paths, and each trace's reasoning and answer hashes. With `--cases` (and
+  `--perturbations`; `ablations.jsonl` in the run is added automatically) the variants are
+  re-rendered with the manifest's render settings and each prompt hash is rebuilt, which is the
+  check that no variant text reached the model; without them prompts count as *unverified*, not
+  failed. Exit 1 on any mismatch or on a run that predates these fields.
+
 ## 5. CLI
 
 ```
@@ -72,7 +96,7 @@ traceaudit report     <run_dir> [--format md|json]                   # human-rea
 traceaudit export     <run_dir> -o <dir> [--shard] [--include-raw] [--ratings ratings/…]
 traceaudit demo       [--out runs/demo]                              # SimulatedModel end-to-end on the packaged 6-case sample
 traceaudit validate-probes [--grid default|quick]                    # spec 10
-traceaudit manifest   check|show <run_dir>
+traceaudit manifest   check|show|verify <run_dir> [--cases F --perturbations F]
 traceaudit recall     <labelled_claims.jsonl> <run_dir>              # spec 03 §5
 ```
 

@@ -14,13 +14,14 @@ import re
 from pathlib import Path
 from typing import Callable, Iterable
 
-from . import experiment, ledger_io, ledger_perturb as LP, ledger_probes as LPR, stats
+from . import experiment, ledger_io, ledger_perturb as LP, ledger_probes as LPR, provenance, stats
 from .clients.base import ModelClient
 from .experiment import EFFORTS, Job, append_scoring, read_manifest, write_manifest
 from .importers import parse_markdown
 from .ledger import LedgerCase
 from .lexicon import Lexicon
 from .schema import Perturbation, Trace, load_perturbations, load_traces, read_jsonl, write_jsonl
+from .textutil import sha256_text
 
 RENDERER_VERSION = 1
 
@@ -65,11 +66,11 @@ def plan(cases: list[LedgerCase], perts: list[Perturbation], efforts: Iterable[s
 
 def manifest_for(run_id: str, client: ModelClient, prompt: dict, efforts: list[str], runs: int, seed: int, cases_path, perts_path,
                  n_cases: int, n_perts: int, filters: dict, sampling: dict, workers: int, notes: str = "", evidence: bool = True,
-                 base_lexicon: Lexicon | None = None) -> dict:
+                 base_lexicon: Lexicon | None = None, evidence_policy: str = "rewrite") -> dict:
     m = experiment.build_manifest(run_id, client, prompt, efforts, runs, seed, cases_path, perts_path, base_lexicon, n_cases, n_perts,
                                   filters, sampling, workers, notes)
     m["surface"] = "ledger"
-    m["render"] = {"evidence": evidence, "renderer_version": RENDERER_VERSION}
+    m["render"] = {"evidence": evidence, "evidence_policy": evidence_policy, "renderer_version": RENDERER_VERSION}
     m["phases"] = [{"name": "probes", "started": m["created"]}]
     m["inputs"]["ablations"] = None
     return m
@@ -187,8 +188,11 @@ def import_artefacts(paths: Iterable[str | Path], run_dir: str | Path, cases: li
         if tk in existing or any(t.trace_key == tk for t in traces):
             problems.append({"path": str(pth), "code": "DUPLICATE_TRACE_KEY", "trace_key": tk})
             continue
-        traces.append(Trace(tk, case_id, variant, eff, run_idx, model, lt.thinking, json.dumps(ledger_io.trace_to_dict(lt), ensure_ascii=False),
-                            server="external", prompt_id="external", extra={"format": "ledger-json", "source": "enable-md", "artefact": str(pth)}))
+        answer = json.dumps(ledger_io.trace_to_dict(lt), ensure_ascii=False)
+        prov = {"prompt_sha256": None, "reasoning_sha256": sha256_text(lt.thinking), "answer_sha256": sha256_text(answer),
+                "artefact_sha256": sha256_text(text), "fingerprint": ledger_io.fact_fingerprint(case_v)}
+        traces.append(Trace(tk, case_id, variant, eff, run_idx, model, lt.thinking, answer, server="external", prompt_id="external",
+                            extra={"format": "ledger-json", "source": "enable-md", "artefact": str(pth), "provenance": prov}))
         if lt.ablation is not None and variant == "base":
             view = views[(case_id, "base")]
             pa, _ = ledger_io.ledger_answer(lt, view.case, base_lexicon)
@@ -201,8 +205,11 @@ def import_artefacts(paths: Iterable[str | Path], run_dir: str | Path, cases: li
                                               {"engine_ablation": True})
                 atk = f"{case_id}|{p.variant}|{eff}|0"
                 if atk not in existing:
-                    traces.append(Trace(atk, case_id, p.variant, eff, 0, model, "", json.dumps(ledger_io.trace_to_dict(after)), server="external",
-                                        prompt_id="external", extra={"format": "ledger-json", "source": "engine-ablation", "artefact": str(pth)}))
+                    after_json = json.dumps(ledger_io.trace_to_dict(after))
+                    traces.append(Trace(atk, case_id, p.variant, eff, 0, model, "", after_json, server="external", prompt_id="external",
+                                        extra={"format": "ledger-json", "source": "engine-ablation", "artefact": str(pth),
+                                               "provenance": {"prompt_sha256": None, "reasoning_sha256": sha256_text(""), "answer_sha256": sha256_text(after_json),
+                                                              "artefact_sha256": sha256_text(text)}}))
     write_jsonl(run_dir / "traces.jsonl", traces, append=True)
     if engine_perts:
         path = run_dir / "ablations.jsonl"
@@ -212,6 +219,7 @@ def import_artefacts(paths: Iterable[str | Path], run_dir: str | Path, cases: li
         m = {"schema_version": 1, "run_id": run_dir.name, "created": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"), "status": "complete",
              "surface": "ledger", "model": {"tag": model, "server": "external", "client": "import"}, "prompt": {"id": "external", "sha256": None},
              "inputs": {"cases": None, "perturbations": None, "ablations": {"path": str(run_dir / "ablations.jsonl")} if engine_perts else None},
+             "provenance": provenance.manifest_provenance(None, None, None, None),
              "filters": {}, "notes": "imported artefacts", "scoring": [], "phases": [{"name": "import"}]}
         write_manifest(run_dir, m)
     else:

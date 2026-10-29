@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Provenance hashes (`traceaudit.provenance`): each trace records the sha256 of the exact prompt sent, of its raw
+  reasoning and of its raw answer (imports add the artefact hash); the manifest records `provenance.inputs_sha256`
+  over the prompt, cases, perturbations and lexicon hashes, the value to pre-register. `traceaudit manifest verify
+  RUN [--cases --perturbations]` recomputes all of them, rebuilding the prompts from the inputs when given.
+  Ledger manifests now record `render.evidence_policy`.
 - Grader validation (spec 20): `traceaudit ledger sample` writes a stratified sample of ledger citations as a
   grader file and blind per-rater files; `traceaudit ledger agreement` reports inter-rater (Cohen's kappa, Gwet AC1)
   and grader-vs-consensus agreement with case-clustered bootstrap CIs and the acceptance verdict. New `stats.cohen_kappa`,

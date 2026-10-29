@@ -535,7 +535,7 @@ def cmd_ledger_run(a) -> int:
         run_id = run_dir.name if RUN_ID_RE.match(run_dir.name) else experiment.new_run_id(random.Random(a.seed))
         manifest = PL.manifest_for(run_id, client, prompt, efforts, a.runs, a.seed, a.cases, a.perturbations, len(cases), len(perts),
                                    {"cases": a.cases_filter, "variants": a.variants, "allow_unreviewed": a.allow_unreviewed}, sampling, a.workers,
-                                   a.notes or "", not a.no_evidence, lx)
+                                   a.notes or "", not a.no_evidence, lx, a.evidence_policy)
     print(f"planned {len(jobs)} jobs -> {run_dir}", file=sys.stderr)
     try:
         counts = PL.run(jobs, client, run_dir, manifest, prompt, a.seed, workers=a.workers, redo_errors=a.redo_errors, force=a.force,
@@ -624,11 +624,45 @@ def cmd_ledger_agreement(a) -> int:
     return 0
 
 
+def _rendered_for_verify(a, manifest: dict) -> dict[str, str] | None:
+    """trace_key -> rendered case text, re-planned from the inputs so prompt hashes can be rebuilt."""
+    if not a.cases:
+        return None
+    from . import experiment
+    from .schema import load_perturbations
+    perts = load_perturbations(a.perturbations) if a.perturbations else []
+    abl = Path(a.run_dir) / "ablations.jsonl"
+    if abl.exists():
+        perts = perts + load_perturbations(abl)
+    runs = max(int((manifest.get("sampling") or {}).get("runs_per_variant") or 1), 1)
+    efforts = (manifest.get("sampling") or {}).get("efforts") or list(experiment.EFFORTS)
+    if manifest.get("surface") == "ledger":
+        from . import ledger_io, ledger_pipeline as PL
+        cases = ledger_io.load_cases(a.cases)
+        render = manifest.get("render") or {}
+        jobs = PL.plan(cases, perts, efforts, runs, 0, allow_unreviewed=True, right_cue_fraction=1.0, evidence=render.get("evidence", True),
+                       base_lexicon=lex_mod.load(a.lexicon) if a.lexicon else None, evidence_policy=render.get("evidence_policy", "rewrite"))
+    else:
+        from .schema import load_cases
+        cases = load_cases(a.cases)
+        jobs = experiment.plan(cases, perts, efforts, runs, 0, allow_unreviewed=True, lexicon=lex_mod.load(a.lexicon), right_cue_fraction=1.0)
+    return {j.trace_key: j.rendered for j in jobs}
+
+
 def cmd_manifest(a) -> int:
     from .experiment import manifest_check, read_manifest
     if a.action == "show":
         print(json.dumps(read_manifest(a.run_dir), indent=1))
         return 0
+    if a.action == "verify":
+        from .provenance import verify_run
+        rep = verify_run(a.run_dir, _rendered_for_verify(a, read_manifest(a.run_dir)))
+        print(json.dumps(rep, indent=1))
+        c = rep["counts"]
+        print(f"{'provenance ok' if rep['ok'] else 'provenance FAILED'}: {c['traces']} traces, reasoning {c['reasoning_ok']}, answer {c['answer_ok']}, "
+              f"prompt {c['prompt_ok']} verified / {c['prompt_unverified']} unverified"
+              + ("" if a.cases else " (pass --cases/--perturbations to rebuild prompts)"), file=sys.stderr)
+        return 0 if rep["ok"] else 1
     probs = manifest_check(a.run_dir, lex_mod.load(a.lexicon))
     for p in probs:
         print(p)
@@ -782,7 +816,10 @@ def build_parser() -> argparse.ArgumentParser:
     x = ls.add_parser("agreement", help="inter-rater and grader-vs-consensus agreement over a labels directory (spec 20)")
     x.add_argument("labels", help="directory with grader.jsonl and <rater>.jsonl"); x.add_argument("--adjudicated", default=None, help="jsonl of {item_id, human_grade}")
     x.add_argument("--B", type=int, default=2000); x.add_argument("--seed", type=int, default=20261029); x.set_defaults(fn=cmd_ledger_agreement)
-    s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
+    s = sub.add_parser("manifest", help="check, show or verify (recompute provenance hashes of) a run manifest")
+    s.add_argument("action", choices=["check", "show", "verify"]); s.add_argument("run_dir")
+    s.add_argument("--cases", help="verify: cases file, so prompt hashes can be rebuilt"); s.add_argument("--perturbations", help="verify: perturbations file")
+    s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p
 

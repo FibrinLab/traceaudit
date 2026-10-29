@@ -89,7 +89,11 @@ traceaudit agreement ratings/pilot-1 --judge runs/<run_id>/judge.jsonl
 
 Only cases and perturbations with `review.status: approved` are run; drafts need
 `--allow-unreviewed`. Every run writes a manifest (model digest, prompt hash, lexicon
-hash, seeds); `traceaudit manifest check <run_dir>` enforces completeness.
+hash, seeds, and an `inputs_sha256` that commits to the case and perturbation files); every
+trace records the sha256 of the exact prompt it was sent and of its raw reasoning and answer.
+`traceaudit manifest check <run_dir>` enforces completeness and `traceaudit manifest verify
+<run_dir> --cases … --perturbations …` recomputes every hash, so a reviewer can confirm the
+released traces are the ones produced from the registered inputs.
 
 ## Run it as a service
 

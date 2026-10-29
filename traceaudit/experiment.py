@@ -21,6 +21,7 @@ from .clients.base import ClientError, GenerateRequest, ModelClient
 from .lexicon import Lexicon
 from .schema import (EFFORTS, Case, Perturbation, Retrieved, Trace, TraceMeta, make_trace_key, read_jsonl, write_jsonl)
 from .textutil import sha256_file, sha256_text
+from . import provenance
 
 PROMPTS_DIR = Path(__file__).with_name("prompts")
 
@@ -144,6 +145,9 @@ def build_manifest(run_id: str, client: ModelClient, prompt: dict, efforts: list
                               "sha256": sha256_file(perturbations_path) if perturbations_path else None, "n": n_perts},
             "lexicon": {"path": str(lexicon.path), "version": lexicon.version, "sha256": lexicon.sha256()} if lexicon else None,
         },
+        "provenance": provenance.manifest_provenance(prompt["sha256"], sha256_file(cases_path) if cases_path else None,
+                                                     sha256_file(perturbations_path) if perturbations_path else None,
+                                                     lexicon.sha256() if lexicon else None),
         "filters": filters, "notes": notes, "scoring": [],
     }
 
@@ -276,13 +280,15 @@ def run_experiment(jobs: list[Job], client: ModelClient, run_dir: str | Path, ma
                     trace = Trace(trace_key=job.trace_key, case_id=job.case_id, variant=job.variant, effort=job.effort, run=job.run,
                                   model=model_tag or "", reasoning=resp.reasoning, answer=resp.answer, server=manifest["model"].get("server"),
                                   prompt_id=prompt["id"], retrieved=[Retrieved(r.doc_id, r.chunk_id, r.text, r.score) for r in resp.retrieved],
-                                  raw=resp.raw, meta=meta)
+                                  raw=resp.raw, meta=meta,
+                                  extra={"provenance": provenance.trace_hashes(req.system, req.user, resp.reasoning, resp.answer)})
                     ok = True
                 except ClientError as e:
                     meta.error = str(e)
                     trace = Trace(trace_key=job.trace_key, case_id=job.case_id, variant=job.variant, effort=job.effort, run=job.run,
                                   model=model_tag or "", reasoning="", answer="", server=manifest["model"].get("server"),
-                                  prompt_id=prompt["id"], meta=meta)
+                                  prompt_id=prompt["id"], meta=meta,
+                                  extra={"provenance": {"prompt_sha256": provenance.prompt_sha256(req.system, req.user)}})
                     ok = False
                 with lock:
                     with open(out_path, "a", encoding="utf-8") as f:
