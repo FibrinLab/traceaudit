@@ -56,6 +56,13 @@ def parse_answer(answer: str, lexicon: Lexicon | None = None) -> ParsedAnswer:
     if ents:
         first = ents[0]
         pa.entity, pa.subtype, pa.entity_raw = first.entity, first.subtype, first.text
+    elif focus:
+        # an answer that names the entity by its id (e.g. "Diagnosis: BAD_DEPLOY") rather than by an alias
+        key = re.sub(r"[\s_\-/]+", "", focus.strip().rstrip(".").lower())
+        by_key = {re.sub(r"[\s_\-/]+", "", eid.lower()): eid for eid in lx.answer_entities()}
+        if key in by_key:
+            pa.entity, pa.entity_raw = by_key[key], focus.strip()
+            pa.entities_named = sorted(set(pa.entities_named) | {pa.entity})
     distinct = {e_.entity for e_ in ents}
     hedge_a = len(distinct) >= 2
     hedge_b = bool(focus) and lx.has_phrase("hedge", focus)
