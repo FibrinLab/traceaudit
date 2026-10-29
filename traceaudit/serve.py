@@ -625,28 +625,8 @@ class Service:
 
 def ledger_from_json(case_d: dict, trace_d: dict):
     """Build ledger records from plain JSON (the shape `ledger.audit` returns under case/trace, minus derived fields)."""
-    from . import ledger as L
-    facts = [L.Fact(f["id"], f.get("source", "patient"), f.get("section", ""), f.get("field", ""), str(f.get("value", "")), f.get("evidence", ""), f.get("candidate"))
-             for f in case_d.get("facts", [])]
-    case = L.LedgerCase(case_d.get("case_id", "case"), case_d.get("truth"), list(case_d.get("candidates", [])), facts,
-                        set(case_d.get("allowed_ids", [])) | {f.id for f in facts}, case_d.get("meta", {}))
-    rep = trace_d.get("report") or {}
-    report = L.Report(rep.get("decision"), [L.Section(sec.get("title", ""), [L.Segment(sg.get("text", ""), list(sg.get("citation_ids", [])))
-                                                                              for sg in sec.get("segments", [])]) for sec in rep.get("sections", [])],
-                      rep.get("delivered_decision"), rep.get("contract_valid"), rep.get("failure_kind"), rep.get("dropped_segments", []))
-    rationale = None
-    if trace_d.get("rationale"):
-        r = trace_d["rationale"]
-        rationale = L.Rationale(r.get("decision"), r.get("confidence"), r.get("key_findings", []),
-                                [L.DifferentialEntry(d["diagnosis"], d.get("verdict", "unknown"), d.get("supporting", []), d.get("contradicting", []), d.get("rationale", ""),
-                                                     [L.Criterion(c["criterion"], c.get("status", "not_assessable"), c.get("ids", [])) for c in d.get("criteria", [])])
-                                 for d in r.get("differential", [])],
-                                r.get("discriminators", []), r.get("unresolved", []), r.get("would_change", []), r.get("thinking", ""))
-    ablation = None
-    if trace_d.get("ablation"):
-        a = trace_d["ablation"]
-        ablation = L.Ablation(list(a.get("removed_ids", [])), a.get("decision_before"), a.get("decision_after"), a.get("changed"))
-    return case, L.LedgerTrace(trace_d.get("thinking", ""), report, rationale, ablation, trace_d.get("meta", {}))
+    from . import ledger_io
+    return ledger_io.case_from_dict(case_d), ledger_io.trace_from_dict(trace_d)
 
 
 # ----------------------------------------------------------------------------- HTTP

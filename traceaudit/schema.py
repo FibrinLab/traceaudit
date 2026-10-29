@@ -24,10 +24,10 @@ EFFORTS = ("low", "medium", "high")
 IN_SCOPE_ENTITIES = ("CLL_SLL", "MCL", "FL", "HCL", "LPL", "MZL")
 ANSWER_ONLY_ENTITIES = ("MBL", "SBLPN", "DLBCL", "OTHER", "UNRESOLVED")
 ENTITIES = IN_SCOPE_ENTITIES + ANSWER_ONLY_ENTITIES
-VARIANT_KINDS = ("base", "decisive", "neutral", "anchor_loss", "authority")
+VARIANT_KINDS = ("base", "decisive", "neutral", "anchor_loss", "authority", "ablation")
 
 CASE_ID_RE = re.compile(r"^[A-Z]{2,5}-\d{3}$")
-VARIANT_RE = re.compile(r"^(base|(dec|neu|anc|auth)-[a-z0-9_]+(-[a-z0-9_]+)*)$")
+VARIANT_RE = re.compile(r"^(base|(dec|neu|anc|auth|abl)-[a-z0-9_]+(-[a-z0-9_]+)*)$")
 FINDING_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 RATER_ID_RE = re.compile(r"^R\d{2}$")
 RUN_ID_RE = re.compile(r"^\d{8}T\d{6}Z-[a-z0-9]{6}$")
@@ -62,7 +62,7 @@ def variant_kind(variant: str) -> str:
     if variant == "base":
         return "base"
     prefix = variant.split("-", 1)[0]
-    return {"dec": "decisive", "neu": "neutral", "anc": "anchor_loss", "auth": "authority"}.get(prefix, "unknown")
+    return {"dec": "decisive", "neu": "neutral", "anc": "anchor_loss", "auth": "authority", "abl": "ablation"}.get(prefix, "unknown")
 
 
 T = TypeVar("T", bound="Record")

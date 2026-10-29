@@ -21,6 +21,7 @@ jobs:
       - run: pytest -q
       - run: traceaudit demo --out runs/ci-demo --runs 2 --B 100
       - run: traceaudit validate-probes --grid quick --out runs/ci-validate
+      - run: traceaudit ledger validate-probes --grid quick --out runs/ci-validate-ledger
   viewer:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: viewer } }

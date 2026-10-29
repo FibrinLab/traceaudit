@@ -69,4 +69,6 @@ Counterfactual, neutral and authority probes operate on facts here: a decisive
 edit flips a fact's value and re-renders the fact table for the model; the base
 reference and disclosure rules (spec 06) are unchanged, with "cites the primary
 finding" meaning "cites the edited fact's id or states its new value". The
-ablation arm is the load-bearing probe already present in the ENABLE pipeline.
+ablation is the load-bearing probe. Spec 19 defines all of this (`ledger_perturb`,
+`ledger_probes`, `ledger_pipeline`), including the second-pass ablation that
+traceaudit runs itself and the import of an engine's own ablation arm.

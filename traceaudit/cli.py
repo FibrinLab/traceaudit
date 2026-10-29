@@ -395,6 +395,200 @@ def _print_ledger_result(res: dict) -> None:
           f"ignored {m['ignored']} ({m['ignored_informative']} informative)")
 
 
+def _ledger_client(a):
+    from .clients import make_client
+    if a.client == "sim":
+        from .ledger_sim import LedgerSimParams, LedgerSimulatedModel
+        params = LedgerSimParams.uniform(a.sim_p, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0) if a.sim_p is not None else LedgerSimParams()
+        if a.sim_params:
+            params = LedgerSimParams(**{**params.__dict__, **json.loads(a.sim_params)})
+        return LedgerSimulatedModel.client(params, seed=a.seed)
+    return make_client(a.client, a.model, a.endpoint)
+
+
+def _base_lexicon(a):
+    return lex_mod.load(a.lexicon) if getattr(a, "lexicon", None) else None
+
+
+def cmd_ledger_cases(a) -> int:
+    from . import ledger_io, ledger_pipeline as PL
+    paths = ledger_artefact_paths(a.paths)
+    if not paths:
+        return _err("no artefacts found", 2)
+    cases, problems = PL.cases_from_artefacts(paths)
+    for pr in problems:
+        print(json.dumps(pr), file=sys.stderr)
+    n = ledger_io.write_cases(a.out, cases)
+    print(f"wrote {n} case(s) -> {a.out}" + (f"; {len(problems)} problem(s)" if problems else ""), file=sys.stderr)
+    return 1 if problems and a.strict else 0
+
+
+def cmd_ledger_perturb(a) -> int:
+    from . import ledger_io, ledger_perturb as LP, ledger_pipeline as PL
+    from .schema import load_perturbations, write_jsonl
+    cases = ledger_io.load_cases(a.cases)
+    lx = _base_lexicon(a)
+    sources = tuple(x.strip() for x in a.expectations.split(",") if x.strip())
+    rationales_by_case: dict[str, list] = {}
+    if a.rationale_from:
+        from . import ledger_probes as LPR
+        from .schema import load_traces
+        rd = Path(a.rationale_from)
+        traces = load_traces(rd / "traces.jsonl") if (rd / "traces.jsonl").exists() else []
+        views = LPR.build_views(cases, [], lx)
+        for t in traces:
+            if t.variant == "base" and t.ok and (t.case_id, "base") in views:
+                lt, _ = LPR.parse_trace(t, views[(t.case_id, "base")], lx)
+                if lt.rationale is not None:
+                    rationales_by_case.setdefault(t.case_id, []).append(lt.rationale)
+        if not rationales_by_case:
+            for pth in ledger_artefact_paths([a.rationale_from]):
+                from .importers import parse_markdown
+                c, t = parse_markdown(pth.read_text(encoding="utf-8"))
+                if t.rationale is not None:
+                    rationales_by_case.setdefault(c.case_id, []).append(t.rationale)
+        sources = sources + ("rationale",) if "rationale" not in sources else sources
+    kinds = tuple(k.strip() for k in a.kinds.split(",") if k.strip())
+    kind_map = {"dec": "decisive", "neu": "neutral", "anc": "anchor_loss", "auth": "authority"}
+    kinds = tuple(kind_map.get(k, k) for k in kinds)
+    out = []
+    for c in cases:
+        exps = LP.expectations(c, lx, sources, rationales_by_case.get(c.case_id))
+        ps = LP.generate_all(c, a.seed, lx, exps, kinds, True if a.include_right else None, a.max_flips, a.max_decisive, a.anchor_op)
+        if a.approve_all:
+            for p in ps:
+                p.review.status = "approved"
+        out += ps
+    if a.merge_review and Path(a.out).exists():
+        from .perturb import merge_review
+        out = merge_review(out, load_perturbations(a.out))
+    write_jsonl(a.out, out)
+    by_kind = {}
+    for p in out:
+        by_kind[p.kind] = by_kind.get(p.kind, 0) + 1
+    print(f"wrote {len(out)} perturbation(s) -> {a.out} {by_kind}", file=sys.stderr)
+    for line in LP.generation_log():
+        print(line, file=sys.stderr)
+    _ = PL
+    return 0
+
+
+def cmd_ledger_validate(a) -> int:
+    from . import ledger_io, ledger_perturb as LP
+    from .schema import load_perturbations
+    cases = {c.case_id: c for c in ledger_io.load_cases(a.cases)}
+    perts = load_perturbations(a.perturbations)
+    lx = _base_lexicon(a)
+    n_prob = 0
+    for p in perts:
+        c = cases.get(p.case_id)
+        if c is None:
+            print(f"{p.perturbation_id}: P5_CASE_MISSING")
+            n_prob += 1
+            continue
+        probs = LP.verify(c, LP.apply(c, p, a.evidence_policy, lx), p, lx)
+        for pr in probs:
+            print(f"{p.perturbation_id}: {pr}")
+        n_prob += len(probs)
+    print(f"{len(perts)} perturbation(s), {n_prob} problem(s)", file=sys.stderr)
+    return 1 if n_prob else 0
+
+
+def cmd_ledger_export(a) -> int:
+    from . import ledger_io, ledger_perturb as LP
+    from .schema import load_perturbations
+    cases = ledger_io.load_cases(a.cases)
+    perts = load_perturbations(a.perturbations) if a.perturbations else []
+    index = LP.export_variants(cases, perts, a.out, tuple(a.format.split(",")), not a.no_evidence, _base_lexicon(a))
+    print(f"exported {len(index)} variant(s) -> {a.out}", file=sys.stderr)
+    return 0
+
+
+def cmd_ledger_run(a) -> int:
+    from . import experiment, ledger_io, ledger_pipeline as PL
+    from .schema import RUN_ID_RE, load_perturbations
+    cases = ledger_io.load_cases(a.cases)
+    perts = load_perturbations(a.perturbations) if a.perturbations else []
+    efforts = a.efforts.split(",")
+    client = _ledger_client(a)
+    try:
+        prompt = experiment.load_prompt(a.prompt)
+    except OSError:
+        return _err(f"prompt {a.prompt!r} not found", 2)
+    run_dir = Path(a.out)
+    lx = _base_lexicon(a)
+    jobs = PL.plan(cases, perts, efforts, a.runs, a.seed, a.cases_filter.split(",") if a.cases_filter else None,
+                   a.variants.split(",") if a.variants else None, a.allow_unreviewed, a.right_cue_fraction, not a.no_evidence, lx, a.evidence_policy)
+    if not jobs:
+        return _err("no jobs planned (are the perturbations approved? use --allow-unreviewed or `ledger perturb --approve-all`)")
+    if (run_dir / "manifest.json").exists() and not a.force:
+        manifest = experiment.read_manifest(run_dir)
+        manifest["status"] = "running"
+    else:
+        try:
+            desc = client.describe()
+        except Exception as e:  # noqa: BLE001
+            return _err(f"client unreachable: {e}", 4)
+        if desc.get("describe_error") and a.client != "sim":
+            print(f"warning: describe() incomplete: {desc['describe_error']}", file=sys.stderr)
+        sampling = {"temperature": a.temperature, "top_p": 1.0, "max_tokens": a.max_tokens, "timeout_s": a.timeout}
+        run_id = run_dir.name if RUN_ID_RE.match(run_dir.name) else experiment.new_run_id(random.Random(a.seed))
+        manifest = PL.manifest_for(run_id, client, prompt, efforts, a.runs, a.seed, a.cases, a.perturbations, len(cases), len(perts),
+                                   {"cases": a.cases_filter, "variants": a.variants, "allow_unreviewed": a.allow_unreviewed}, sampling, a.workers,
+                                   a.notes or "", not a.no_evidence, lx)
+    print(f"planned {len(jobs)} jobs -> {run_dir}", file=sys.stderr)
+    try:
+        counts = PL.run(jobs, client, run_dir, manifest, prompt, a.seed, workers=a.workers, redo_errors=a.redo_errors, force=a.force,
+                        min_interval_ms=a.min_interval_ms, progress=_progress if not a.quiet else None,
+                        sampling={"temperature": a.temperature, "max_tokens": a.max_tokens, "timeout_s": a.timeout})
+        if a.with_ablation:
+            counts["ablation"] = PL.ablate(run_dir, cases, perts, client, prompt, a.seed, a.ablation_runs, a.ablation_mode, None, lx,
+                                           progress=_progress if not a.quiet else None, workers=a.workers)
+    except experiment.ModelChanged as e:
+        return _err(str(e), 3)
+    print(json.dumps(counts))
+    return 0
+
+
+def cmd_ledger_ablate(a) -> int:
+    from . import experiment, ledger_pipeline as PL
+    cases, perts = PL.resolve_inputs(a.run_dir, a.cases, a.perturbations)
+    client = _ledger_client(a) if a.client else None
+    prompt = experiment.load_prompt(a.prompt)
+    res = PL.ablate(a.run_dir, cases, perts, client, prompt, a.seed, a.runs, a.mode, a.export, _base_lexicon(a),
+                    progress=_progress if not a.quiet else None)
+    print(json.dumps(res))
+    return 0
+
+
+def cmd_ledger_import(a) -> int:
+    from . import ledger_io, ledger_pipeline as PL
+    from .schema import load_perturbations
+    cases = ledger_io.load_cases(a.cases)
+    perts = load_perturbations(a.perturbations) if a.perturbations else []
+    paths = ledger_artefact_paths(a.paths)
+    if not paths:
+        return _err("no artefacts found", 2)
+    res = PL.import_artefacts(paths, a.run_dir, cases, perts, a.index, a.effort, a.model, _base_lexicon(a))
+    print(json.dumps(res, indent=1))
+    return 1 if res["problems"] and a.strict else 0
+
+
+def cmd_ledger_score(a) -> int:
+    from . import ledger_pipeline as PL
+    cases, perts = PL.resolve_inputs(a.run_dir, a.cases, a.perturbations)
+    out = PL.score_all(a.run_dir, cases, perts, a.rule, a.B, a.seed, _base_lexicon(a), tuple(a.surfaces.split(",")), a.evidence_policy, progress=_progress)
+    print(json.dumps({"probes": out["probes"], "run_id": out["summary"].get("run_id")}, indent=1))
+    return 0
+
+
+def cmd_ledger_validate_probes(a) -> int:
+    from .validation import run_ledger_grid
+    res = run_ledger_grid(a.grid, Path(a.out), a.seed, progress=_progress)
+    print(res["markdown"])
+    return 0 if res["passed"] else 1
+
+
 def cmd_manifest(a) -> int:
     from .experiment import manifest_check, read_manifest
     if a.action == "show":
@@ -500,6 +694,51 @@ def build_parser() -> argparse.ArgumentParser:
     la.add_argument("--json", action="store_true"); la.add_argument("--summary", action="store_true", help="aggregate even for a single artefact")
     la.add_argument("--review-sheet", metavar="CSV", help="write every citation grade and uncited assertion as a row for human review")
     la.set_defaults(fn=cmd_ledger_audit)
+    lc = ls.add_parser("cases", help="base ledger cases from artefacts (one per case id; repeats must agree)")
+    lc.add_argument("paths", nargs="+"); lc.add_argument("-o", "--out", required=True); lc.add_argument("--strict", action="store_true"); lc.set_defaults(fn=cmd_ledger_cases)
+    lp = ls.add_parser("perturb", help="generate decisive, neutral, anchor-loss and authority perturbations for ledger cases")
+    lp.add_argument("cases"); lp.add_argument("-o", "--out", required=True); lp.add_argument("--kinds", default="decisive,neutral,anchor_loss,authority")
+    lp.add_argument("--expectations", default="structured,reference,lexicon", help="expectation sources: structured,reference,lexicon[,rationale]")
+    lp.add_argument("--rationale-from", help="run directory or artefacts whose base rationales supply (model-derived, flagged) expectations")
+    lp.add_argument("--max-decisive", type=int, default=2); lp.add_argument("--max-flips", type=int, default=3); lp.add_argument("--anchor-op", default="untest", choices=["untest", "flip"])
+    lp.add_argument("--include-right", action="store_true", help="always include the right-cue control (default: seeded coin per case)")
+    lp.add_argument("--seed", type=int, default=20261020); lp.add_argument("--approve-all", action="store_true"); lp.add_argument("--merge-review", action="store_true")
+    lp.set_defaults(fn=cmd_ledger_perturb)
+    lv = ls.add_parser("validate", help="ledger invariant P1 over cases and perturbations")
+    lv.add_argument("cases"); lv.add_argument("--perturbations", required=True); lv.add_argument("--evidence-policy", default="rewrite", choices=["rewrite", "synthesize", "redact"])
+    lv.set_defaults(fn=cmd_ledger_validate)
+    le = ls.add_parser("export", help="write base cases and variants (json, md) for an external engine")
+    le.add_argument("cases"); le.add_argument("--perturbations"); le.add_argument("-o", "--out", required=True); le.add_argument("--format", default="json,md")
+    le.add_argument("--no-evidence", action="store_true"); le.set_defaults(fn=cmd_ledger_export)
+    lr = ls.add_parser("run", help="prompt a model with rendered ledger cases x variants x efforts x runs")
+    lr.add_argument("--client", choices=["ollama", "openai", "anthropic", "sim"], required=True); lr.add_argument("--model", default="simulated-ledger"); lr.add_argument("--endpoint")
+    lr.add_argument("--cases", required=True); lr.add_argument("--perturbations"); lr.add_argument("--out", required=True)
+    lr.add_argument("--efforts", default="low,medium,high"); lr.add_argument("--runs", type=int, default=3); lr.add_argument("--seed", type=int, default=20261020)
+    lr.add_argument("--cases-filter"); lr.add_argument("--variants"); lr.add_argument("--prompt", default="ledger-v1"); lr.add_argument("--right-cue-fraction", type=float, default=0.5)
+    lr.add_argument("--no-evidence", action="store_true"); lr.add_argument("--evidence-policy", default="rewrite", choices=["rewrite", "synthesize", "redact"])
+    lr.add_argument("--workers", type=int, default=1); lr.add_argument("--allow-unreviewed", action="store_true")
+    lr.add_argument("--redo-errors", action="store_true"); lr.add_argument("--force", action="store_true"); lr.add_argument("--min-interval-ms", type=int, default=0)
+    lr.add_argument("--temperature", type=float, default=1.0); lr.add_argument("--max-tokens", type=int, default=8192); lr.add_argument("--timeout", type=float, default=600.0)
+    lr.add_argument("--notes"); lr.add_argument("--quiet", action="store_true"); lr.add_argument("--sim-p", type=float); lr.add_argument("--sim-params")
+    lr.add_argument("--with-ablation", action="store_true"); lr.add_argument("--ablation-runs", type=int, default=1); lr.add_argument("--ablation-mode", default="remove", choices=["remove", "mask"])
+    lr.set_defaults(fn=cmd_ledger_run)
+    lab = ls.add_parser("ablate", help="second pass: remove each base trace's stated discriminators and rerun (or export for an engine)")
+    lab.add_argument("run_dir"); lab.add_argument("--cases"); lab.add_argument("--perturbations"); lab.add_argument("--client", choices=["ollama", "openai", "anthropic", "sim"])
+    lab.add_argument("--model", default="simulated-ledger"); lab.add_argument("--endpoint"); lab.add_argument("--prompt", default="ledger-v1")
+    lab.add_argument("--runs", type=int, default=1); lab.add_argument("--mode", default="remove", choices=["remove", "mask"]); lab.add_argument("--export")
+    lab.add_argument("--seed", type=int, default=20261020); lab.add_argument("--quiet", action="store_true"); lab.add_argument("--sim-p", type=float); lab.add_argument("--sim-params")
+    lab.set_defaults(fn=cmd_ledger_ablate)
+    li = ls.add_parser("import", help="artefacts an external engine produced for exported variants become traces")
+    li.add_argument("paths", nargs="+"); li.add_argument("--run-dir", required=True); li.add_argument("--cases", required=True); li.add_argument("--perturbations")
+    li.add_argument("--index", help="index.jsonl written by `ledger export`"); li.add_argument("--effort"); li.add_argument("--model", default="external")
+    li.add_argument("--strict", action="store_true"); li.set_defaults(fn=cmd_ledger_import)
+    lsc = ls.add_parser("score", help="parse, audit and score a ledger run; writes summary.json and long.csv")
+    lsc.add_argument("run_dir"); lsc.add_argument("--cases"); lsc.add_argument("--perturbations"); lsc.add_argument("--rule", default="D1", choices=["D1", "D2", "D3", "D1R"])
+    lsc.add_argument("--surfaces", default="thinking,report"); lsc.add_argument("--evidence-policy", default="rewrite", choices=["rewrite", "synthesize", "redact"])
+    lsc.add_argument("--B", type=int, default=2000); lsc.add_argument("--seed", type=int, default=20261020); lsc.set_defaults(fn=cmd_ledger_score)
+    lvp = ls.add_parser("validate-probes", help="ledger probe recovery on the synthetic simulator grid")
+    lvp.add_argument("--grid", default="quick", choices=["quick", "default"]); lvp.add_argument("--out", default="runs/validate-ledger-probes")
+    lvp.add_argument("--seed", type=int, default=20261020); lvp.set_defaults(fn=cmd_ledger_validate_probes)
     s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p

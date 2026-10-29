@@ -28,6 +28,11 @@ extractor turns documents into facts first.
 ```bash
 traceaudit ledger audit tests/fixtures/enable_trace_case_003.md      # 24 checks on a structured trace artefact
 traceaudit ledger audit artefacts/ --review-sheet review.csv          # a whole directory: pass rates per check, every grade as a row
+traceaudit ledger cases artefacts/ -o ledger_cases.jsonl              # base cases from your artefacts
+traceaudit ledger perturb ledger_cases.jsonl -o ledger_perts.jsonl --rationale-from artefacts/ --approve-all
+traceaudit ledger run --client sim --cases ledger_cases.jsonl --perturbations ledger_perts.jsonl --out runs/ledger-demo --with-ablation
+traceaudit ledger score runs/ledger-demo                                # summary.json, long.csv, ledger_audit.jsonl
+traceaudit ledger validate-probes --grid quick                           # the ledger probes recover planted rates
 ```
 
 What a researcher gets, for any domain:
@@ -38,6 +43,7 @@ What a researcher gets, for any domain:
 | Get cases | upload documents with known answers (`traceaudit cases build`), or write a generator like the haematology one |
 | Check a single output | Analyse tab or `POST /api/analyse`: every factual claim graded against the documents, answer parsed, reasoning graph |
 | Audit a structured trace | `POST /api/ledger` or `traceaudit ledger audit`: citations graded against facts, coverage, differential and criteria checks, ablation verdict ([specs/18-fact-ledger.md](specs/18-fact-ledger.md)) |
+| Probe a model on ledger cases | `traceaudit ledger perturb|run|ablate|score`: decisive edits, anchor loss, neutral edits, authority cues and the discriminator ablation on facts with ids; path A prompts any client with `ledger-v1`, path B exports variants for your own engine and imports its artefacts ([specs/19-ledger-probes.md](specs/19-ledger-probes.md)) |
 | Audit a model | counterfactual edits derived from the lexicon's own discriminator table (or authored rows), neutral edits, authority cues, three reasoning efforts, 5 runs |
 | Trust the instruments | a fault-injecting simulated model and a validation grid that must recover planted rates |
 | Report | case-clustered intervals, effort contrasts, viewer dashboard with exportable figures, a long table for mixed-effects models |

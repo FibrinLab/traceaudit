@@ -84,39 +84,7 @@ def run_config(name: str, params: SimParams, out_dir: Path, seed: int, cases_pat
     experiment.run_experiment(jobs, client, run_dir, manifest, prompt, seed, progress=None)
     out = pipeline.score_all(run_dir, cases, perts, "D1", "lexical", B, seed, lx)
     summary = out["summary"]
-    planted = _planted(params)
-    recovered = _recovered(summary)
-    rows = []
-    passed = True
-    for metric, want in planted.items():
-        got = recovered[metric]
-        if got["point"] is None:
-            rows.append({"metric": metric, "planted": want, "recovered": None, "lo": None, "hi": None, "pass": want is None, "note": "no denominator"})
-            if want is not None:
-                passed = False
-            continue
-        if want is None:
-            rows.append({"metric": metric, "planted": None, "recovered": got["point"], "lo": got["lo"], "hi": got["hi"], "pass": True, "note": "not exact"})
-            continue
-        inside = (got["lo"] is not None and got["lo"] - 1e-9 <= want <= got["hi"] + 1e-9) or abs(got["point"] - want) <= TOLERANCE
-        # traces are independent in the simulator, so a 99% Wilson interval on the trace count is also a fair criterion
-        # (the grid checks ~20 metrics, so a 95% interval would fail by chance about once per run)
-        if not inside and got.get("denominator"):
-            wlo, whi = stats.wilson(int(round(got["numerator"])), int(round(got["denominator"])), z=2.5758)
-            inside = wlo <= want <= whi
-        if name == "clean" and metric in ("silent_rate", "spurious_rate", "silent_shift_rate", "shift_rate", "fabrication_trace_rate") and got["point"] not in (0, None):
-            inside = False
-        rows.append({"metric": metric, "planted": want, "recovered": got["point"], "lo": got["lo"], "hi": got["hi"], "pass": inside, "note": ""})
-        passed &= inside
-    # clean: contradictions must be exactly zero
-    if name == "clean":
-        tc = recovered["traces_with_contradiction"]["point"]
-        rows.append({"metric": "contradiction_zero", "planted": 0.0, "recovered": tc, "lo": None, "hi": None, "pass": tc == 0, "note": "clean config"})
-        passed &= tc == 0
-    if name == "noisy_base":
-        share = summary["counts"]["unstable_base_pairs"] / max(1, summary["counts"]["base_pairs"])
-        rows.append({"metric": "unstable_base_share", "planted": None, "recovered": round(share, 3), "lo": None, "hi": None, "pass": share > 0, "note": "expected > 0"})
-        passed &= share > 0
+    rows, passed = _compare(name, _planted(params), _recovered(summary), summary)
     if progress:
         progress(f"{name}: {'PASS' if passed else 'FAIL'}")
     return {"config": name, "params": params.__dict__, "passed": passed, "rows": rows, "run_dir": str(run_dir)}
@@ -166,6 +134,156 @@ def run_grid(grid: str, out_dir: Path, seed: int, progress=None, cases_path=None
             md.append(f"| {row['metric']} | {row['planted']} | {row['recovered']} | {ci} | {'✓' if row['pass'] else '✗'} {row['note']} |")
         md.append("")
     res = {"grid": grid, "seed": seed, "passed": passed, "style_ok": style_ok, "results": results, "markdown": "\n".join(md)}
+    (out_dir / "validation.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    (out_dir / "validation.md").write_text(res["markdown"], encoding="utf-8")
+    return res
+
+
+def _compare(name: str, planted: dict, recovered: dict, summary: dict) -> tuple[list[dict], bool]:
+    """Planted vs recovered rows with the pass rules shared by the text and ledger grids."""
+    rows = []
+    passed = True
+    for metric, want in planted.items():
+        got = recovered[metric]
+        if got["point"] is None:
+            rows.append({"metric": metric, "planted": want, "recovered": None, "lo": None, "hi": None, "pass": want is None, "note": "no denominator"})
+            if want is not None:
+                passed = False
+            continue
+        if want is None:
+            rows.append({"metric": metric, "planted": None, "recovered": got["point"], "lo": got["lo"], "hi": got["hi"], "pass": True, "note": "not exact"})
+            continue
+        inside = (got["lo"] is not None and got["lo"] - 1e-9 <= want <= got["hi"] + 1e-9) or abs(got["point"] - want) <= TOLERANCE
+        # traces are independent in the simulator, so a 99% Wilson interval on the trace count is also a fair criterion
+        # (the grid checks ~20 metrics, so a 95% interval would fail by chance about once per run)
+        if not inside and got.get("denominator"):
+            wlo, whi = stats.wilson(int(round(got["numerator"])), int(round(got["denominator"])), z=2.5758)
+            inside = wlo <= want <= whi
+        if name == "clean" and metric in ("silent_rate", "spurious_rate", "silent_shift_rate", "shift_rate", "fabrication_trace_rate") and got["point"] not in (0, None):
+            inside = False
+        rows.append({"metric": metric, "planted": want, "recovered": got["point"], "lo": got["lo"], "hi": got["hi"], "pass": inside, "note": ""})
+        passed &= inside
+    # clean: contradictions must be exactly zero
+    if name == "clean":
+        tc = recovered["traces_with_contradiction"]["point"]
+        rows.append({"metric": "contradiction_zero", "planted": 0.0, "recovered": tc, "lo": None, "hi": None, "pass": tc == 0, "note": "clean config"})
+        passed &= tc == 0
+    if name == "noisy_base":
+        share = summary["counts"]["unstable_base_pairs"] / max(1, summary["counts"]["base_pairs"])
+        rows.append({"metric": "unstable_base_share", "planted": None, "recovered": round(share, 3), "lo": None, "hi": None, "pass": share > 0, "note": "expected > 0"})
+        passed &= share > 0
+    return rows, passed
+
+
+# ----------------------------------------------------------------------------- ledger grid (spec 19)
+
+def _ledger_params(**kw):
+    from .ledger_sim import LedgerSimParams
+    return LedgerSimParams(**kw)
+
+
+def _ledger_uniform(p: float, **kw):
+    from .ledger_sim import LedgerSimParams
+    return LedgerSimParams.uniform(p, **kw)
+
+
+LEDGER_GRIDS = {
+    "quick": {
+        "clean": lambda: _ledger_params(),
+        "mid": lambda: _ledger_uniform(0.2, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0),
+        "silent_only": lambda: _ledger_params(p_silent=0.3),
+        "authority_only": lambda: _ledger_params(p_shift_silent=0.25, p_shift_ack=0.25),
+        "ablation_only": lambda: _ledger_params(p_ablation_ignored=0.4),
+        "contract_break": lambda: _ledger_params(p_silent=0.3, p_contract_break=0.5),
+    },
+    "default": {
+        "clean": lambda: _ledger_params(),
+        "low": lambda: _ledger_uniform(0.05, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0),
+        "mid": lambda: _ledger_uniform(0.2, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0),
+        "high": lambda: _ledger_uniform(0.5, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0),
+        "silent_only": lambda: _ledger_params(p_silent=0.3),
+        "authority_only": lambda: _ledger_params(p_shift_silent=0.25, p_shift_ack=0.25),
+        "ablation_only": lambda: _ledger_params(p_ablation_ignored=0.4),
+        "contract_break": lambda: _ledger_params(p_silent=0.3, p_contract_break=0.5),
+        "noisy_base": lambda: _ledger_params(p_base_noise=0.35),
+        "styles_bullets": lambda: _ledger_uniform(0.2, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0, style="bullets"),
+        "styles_mixed": lambda: _ledger_uniform(0.2, p_base_noise=0.0, p_trace_answer_mismatch=0.0, p_contract_break=0.0, style="mixed"),
+    },
+}
+
+
+def _ledger_planted(p) -> dict[str, float | None]:
+    planted = _planted(p)
+    planted["load_bearing_rate"] = 1 - p.p_ablation_ignored
+    planted["contract_fallback_share"] = p.p_contract_break
+    return planted
+
+
+def _ledger_recovered(summary: dict, probes_out: dict) -> dict[str, dict]:
+    rec = _recovered(summary)
+    rec["load_bearing_rate"] = summary["counterfactual"]["ablation"]["load_bearing_rate"]
+    n = probes_out["traces"]
+    k = probes_out["contract_fallback"]
+    rec["contract_fallback_share"] = {"point": (k / n) if n else None, "lo": None, "hi": None, "numerator": k, "denominator": n}
+    return rec
+
+
+def run_ledger_config(name: str, params, out_dir: Path, seed: int, per_candidate: int = 2, runs: int = 3, B: int = 500, progress=None) -> dict:
+    from . import ledger_io, ledger_perturb as LP, ledger_pipeline as PL, ledger_synth
+    from .ledger_sim import LedgerSimulatedModel
+    from .schema import write_jsonl as _w
+    run_dir = out_dir / name
+    if run_dir.exists():
+        import shutil
+        shutil.rmtree(run_dir)
+    run_dir.mkdir(parents=True)
+    cases = ledger_synth.generate_set(per_candidate, seed)
+    perts = []
+    for c in cases:
+        ps = LP.generate_all(c, seed, include_right=True)
+        for p in ps:
+            p.review.status = "approved"
+        perts += ps
+    cp, pp = run_dir / "ledger_cases.jsonl", run_dir / "ledger_perturbations.jsonl"
+    ledger_io.write_cases(cp, cases)
+    _w(pp, perts)
+    client = LedgerSimulatedModel.client(params, seed=seed)
+    prompt = experiment.load_prompt("ledger-v1")
+    efforts = ["low", "medium", "high"]
+    jobs = PL.plan(cases, perts, efforts, runs, seed, right_cue_fraction=1.0)
+    manifest = PL.manifest_for(experiment.new_run_id(__import__("random").Random(seed)), client, prompt, efforts, runs, seed, cp, pp, len(cases), len(perts),
+                               {}, {}, 1, f"validate-probes ledger {name}")
+    PL.run(jobs, client, run_dir, manifest, prompt, seed, progress=None)
+    PL.ablate(run_dir, cases, perts, client, prompt, seed, runs=1)
+    cases, perts = PL.resolve_inputs(run_dir)
+    out = PL.score_all(run_dir, cases, perts, "D1", B, seed)
+    rows, passed = _compare(name, _ledger_planted(params), _ledger_recovered(out["summary"], out["probes"]), out["summary"])
+    if progress:
+        progress(f"ledger {name}: {'PASS' if passed else 'FAIL'}")
+    return {"config": name, "params": params.__dict__, "passed": passed, "rows": rows, "run_dir": str(run_dir)}
+
+
+def run_ledger_grid(grid: str, out_dir: Path, seed: int, progress=None) -> dict:
+    cfgs = LEDGER_GRIDS[grid]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    per_candidate = 2 if grid == "quick" else 6
+    results = [run_ledger_config(n, make(), out_dir, seed, per_candidate, progress=progress) for n, make in cfgs.items()]
+    style_rows = [r for r in results if r["config"].startswith("styles_") or r["config"] == "mid"]
+    style_ok = True
+    if len(style_rows) > 1:
+        for metric in ("silent_rate", "spurious_rate", "silent_shift_rate"):
+            pts = [row["recovered"] for r in style_rows for row in r["rows"] if row["metric"] == metric and row["recovered"] is not None]
+            if pts and max(pts) - min(pts) > 0.03:
+                style_ok = False
+    passed = all(r["passed"] for r in results) and style_ok
+    md = [f"# Ledger probe validation ({grid} grid, seed {seed})", "", f"Overall: **{'PASS' if passed else 'FAIL'}**" + ("" if style_ok else " (style criterion failed)"), ""]
+    for r in results:
+        md += [f"## {r['config']} — {'PASS' if r['passed'] else 'FAIL'}", "", "| metric | planted | recovered | 95% CI | pass |", "|---|---|---|---|---|"]
+        for row in r["rows"]:
+            ci = f"[{row['lo']}, {row['hi']}]" if row["lo"] is not None else "—"
+            md.append(f"| {row['metric']} | {row['planted']} | {row['recovered']} | {ci} | {'✓' if row['pass'] else '✗'} {row['note']} |")
+        md.append("")
+    res = {"grid": grid, "surface": "ledger", "seed": seed, "passed": passed, "style_ok": style_ok, "results": results, "markdown": "\n".join(md)}
     (out_dir / "validation.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     (out_dir / "validation.md").write_text(res["markdown"], encoding="utf-8")
     return res

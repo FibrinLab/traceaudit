@@ -371,7 +371,8 @@ def audit(case: LedgerCase, trace: LedgerTrace, base_lexicon: Lexicon | None = N
     else:
         check("nothing_dropped", "Nothing informative deleted by post-processing", "PASS")
     summary = next((s for s in trace.report.sections if s.title.lower().startswith("summary")), None)
-    if summary is not None:
+    # the three-segment summary is the ENABLE engine's report contract; only artefacts from it are held to it
+    if summary is not None and (case.meta.get("source_format") == "enable-md" or trace.meta.get("source_format") == "enable-md"):
         heads = [seg.text.split(":")[0].strip().lower() for seg in summary.segments]
         missing = [h for h in ("diagnosis", "summary", "additional comments") if h not in heads]
         check("summary_structure", "Summary has Diagnosis, Summary and Additional comments", "PASS" if not missing else "FAIL",

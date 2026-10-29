@@ -326,6 +326,7 @@ def summarise(run_dir: str | Path, rule: str = "D1", B: int = 2000, seed: int = 
     neu = [r for r in cf if r["kind"] == "neutral" and r["outcome"] != "unscored"]
     neu_stable = [r for r in neu if r["base_stable"]]
     anc = [r for r in cf if r["kind"] == "anchor_loss"]
+    abl = [r for r in cf if r["kind"] == "ablation" and r["outcome"] != "unscored"]
 
     def dec_metrics(rule_: str):
         def o(r):
@@ -355,6 +356,15 @@ def summarise(run_dir: str | Path, rule: str = "D1", B: int = 2000, seed: int = 
         "anchor_loss": {
             **_rates(anc, {"hedge_rate": lambda r: (1 if r["outcome"] == "hedged" else 0, 1)}, B, seed, case_entities),
             "hedged_x_changed": dict(sorted(_count(anc, lambda r: f"{r['outcome']}/{'changed' if r['changed'] else 'same'}").items())),
+        },
+        "ablation": {
+            **_rates(abl, {
+                "load_bearing_rate": lambda r: (1 if r["outcome"] == "load_bearing" else 0, 1),
+                "changed_rate": lambda r: (1 if r["changed"] else 0, 1),
+                "hedged_after_rate": lambda r: (1 if r["answer_hedged"] else 0, 1),
+            }, B, seed, case_entities),
+            "outcome_counts": dict(sorted(_count(abl, lambda r: r["outcome"]).items())),
+            "n_unscored": sum(1 for r in cf if r["kind"] == "ablation" and r["outcome"] == "unscored"),
         },
     }
     # authority

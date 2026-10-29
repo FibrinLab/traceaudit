@@ -62,8 +62,8 @@ def parse_facts(block: str) -> tuple[list[ledger.Fact], list[str]]:
         name = m.group(1).strip()
         end = sections[i + 1].start() if i + 1 < len(sections) else len(block)
         body = block[m.end():end]
-        if name.lower().startswith("who"):
-            # candidate blocks "**NAME**" each followed by a table
+        if name.lower().startswith(("who", "reference")):
+            # candidate blocks "**NAME**" each followed by a table (WHO blocks in ENABLE artefacts; "Reference criteria" in rendered cases)
             cands = list(_BOLD.finditer(body))
             for j, cm in enumerate(cands):
                 cand = cm.group(1).strip()
@@ -187,6 +187,10 @@ def parse_markdown(text: str) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
     model = re.search(r"Model:\s*`([^`]+)`", head)
     allowed_n = re.search(r"allowed citation ids:\s*(\d+)", head)
     facts, candidates = parse_facts(parts.get("1", ""))
+    cm = re.search(r"^Candidate answers:\s*(.+?)\s*$", head, re.M)
+    if cm:
+        listed = [c.strip() for c in cm.group(1).split(";") if c.strip()]
+        candidates = listed + [c for c in candidates if c not in listed]
     thinking_block = parts.get("2", "")
     fm = _FENCE.search(thinking_block)
     thinking = fm.group(1) if fm else thinking_block.strip()
@@ -197,5 +201,5 @@ def parse_markdown(text: str) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
     case = ledger.LedgerCase(case_id.group(1) if case_id else "case", truth.group(1).strip() if truth else None, candidates, facts, allowed,
                              {"model": model.group(1) if model else None, "allowed_ids_declared": int(allowed_n.group(1)) if allowed_n else None,
                               "source_format": "enable-md"})
-    trace = ledger.LedgerTrace(thinking, report, rationale, ablation, {"model": model.group(1) if model else None})
+    trace = ledger.LedgerTrace(thinking, report, rationale, ablation, {"model": model.group(1) if model else None, "source_format": "enable-md"})
     return case, trace
