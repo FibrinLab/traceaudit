@@ -24,7 +24,10 @@ class CallableClient:
     def generate(self, req: GenerateRequest) -> RawResponse:
         t0 = timed()
         try:
-            out = self.fn(req.system, req.user, req.effort, req.seed, **self.kw)
+            kw = dict(self.kw)
+            if req.meta is not None:
+                kw["meta"] = req.meta
+            out = self.fn(req.system, req.user, req.effort, req.seed, **kw)
         except ClientError:
             raise
         except Exception as e:  # noqa: BLE001

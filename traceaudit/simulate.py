@@ -59,11 +59,14 @@ class SimulatedModel:
         sim = cls(params, seed=seed)
         return CallableClient(sim, name="simulated", describe={"tag": "simulated", "params": sim.params.__dict__})
 
-    # The experiment embeds the trace_key as an HTML comment at the end of the user message so the simulator can
-    # know the variant kind without seeing truth. Real models receive the same comment (harmless) — see experiment.py.
+    # The experiment passes the trace_key and variant metadata out of band (GenerateRequest.meta -> kw["meta"]) so the
+    # simulator knows the variant kind without seeing truth and without anything variant-related entering the prompt.
+    # The HTML-comment form is still recognised for prompts produced with embed_trace_key=True (runs before 29 Oct 2026).
     def __call__(self, system: str, user: str, effort: str, seed: int, **kw) -> dict:
-        m = _CASE_ID_RE.search(user)
-        trace_key = m.group(1) if m else "unknown|base|medium|0"
+        trace_key = (kw.get("meta") or {}).get("trace_key")
+        if not trace_key:
+            m = _CASE_ID_RE.search(user)
+            trace_key = m.group(1) if m else "unknown|base|medium|0"
         case_id, variant, _eff, _run = trace_key.split("|")
         kind = {"base": "base", "dec": "decisive", "neu": "neutral", "anc": "anchor_loss", "auth": "authority"}[variant.split("-")[0]]
         # seed from a strong hash of (model seed, trace_key, per-trace seed); XOR-ing CRC32s of related strings

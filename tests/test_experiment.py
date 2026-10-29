@@ -60,6 +60,38 @@ def test_run_writes_traces_manifest_and_resumes(tmp_path, sample_cases, sample_p
     assert counts3["ok"] == 4 and len(traces3) == 4
 
 
+def test_no_trace_key_in_prompt(tmp_path, sample_cases, sample_perts, lx):
+    """The prompt a model sees must not carry the trace key: its variant slug names the edited finding."""
+    seen: list[GenerateRequest] = []
+
+    def fn(system, user, effort, seed, **kw):
+        seen.append((user, kw.get("meta")))
+        return {"reasoning": "r", "answer": "Integrated diagnosis: CLL/SLL"}
+
+    jobs = experiment.plan(sample_cases[:1], sample_perts, ("low",), 1, 0, lexicon=lx)
+    assert any(j.variant.startswith("dec-") for j in jobs)
+    _run(tmp_path, CallableClient(fn), jobs)
+    assert seen and all("trace_key" not in user and "<!--" not in user for user, _ in seen)
+    assert all(meta and meta["trace_key"] and meta["kind"] for _, meta in seen)
+    keys = {meta["trace_key"] for _, meta in seen}
+    assert keys == {j.trace_key for j in jobs}
+    man = experiment.read_manifest(tmp_path)
+    assert man["prompt"]["embed_trace_key"] is False
+
+
+def test_request_meta_per_call(tmp_path, sample_cases, sample_perts, lx):
+    """Variant metadata travels with each request, so parallel workers cannot see another job's metadata."""
+    jobs = experiment.plan(sample_cases[:2], sample_perts, ("low", "high"), 2, 0, lexicon=lx)
+    one = make_client("sim", "simulated", params=SimParams(), seed=0)
+    four = make_client("sim", "simulated", params=SimParams(), seed=0)
+    _, traces1, _ = _run(tmp_path / "w1", one, jobs)
+    _, traces4, _ = _run(tmp_path / "w4", four, jobs, workers=4)
+    by1 = {t["trace_key"]: (t["reasoning"], t["answer"]) for t in traces1}
+    by4 = {t["trace_key"]: (t["reasoning"], t["answer"]) for t in traces4}
+    assert by1 == by4 and len(by1) == len(jobs)
+    assert not four.kw.get("meta")  # nothing is left behind on the client
+
+
 def test_error_traces_and_redo(tmp_path, sample_cases, lx):
     calls = {"n": 0}
 

@@ -28,6 +28,8 @@ class GenerateRequest:
     top_p: float = 1.0
     max_tokens: int = 8192
     timeout_s: float = 600.0
+    # Out-of-band metadata for in-process clients (the simulator): trace key and variant facts. Never sent to a model.
+    meta: dict | None = field(default=None, compare=False, hash=False)
 
 
 @dataclass

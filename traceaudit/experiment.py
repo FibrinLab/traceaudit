@@ -92,12 +92,16 @@ def plan(cases: list[Case], perturbations: list[Perturbation], efforts: Iterable
             meta = {"kind": p.kind, "base_entity": c.entity, "primary_finding": p.primary_finding, "co_edits": p.co_edits,
                     "linked_findings": p.linked_findings, "expected_entity": p.expected_entity}
             variants.append((p.variant, v.render(), dict(p.truth_after), meta))
-        for variant, rendered, truth_after, meta in variants:
-            for eff in efforts:
-                for r in range(runs_per_variant):
-                    jobs.append(Job(c.case_id, variant, eff, r, rendered, truth_after, meta))
+        jobs.extend(expand_jobs(c.case_id, variants, efforts, runs_per_variant))
     random.Random(master_seed).shuffle(jobs)  # [PRE-REG] interleaving
     return jobs
+
+
+def expand_jobs(case_id: str, variants: list[tuple[str, str, dict, dict]], efforts: Iterable[str], runs_per_variant: int) -> list[Job]:
+    """One Job per (variant, effort, run) for a case; variants are (variant, rendered, truth_after, meta)."""
+    efforts = list(efforts)
+    return [Job(case_id, variant, eff, r, rendered, truth_after, meta)
+            for variant, rendered, truth_after, meta in variants for eff in efforts for r in range(runs_per_variant)]
 
 
 def _git_info(repo: Path) -> tuple[str | None, bool | None]:
@@ -119,15 +123,18 @@ def new_run_id(rng: random.Random | None = None) -> str:
 
 
 def build_manifest(run_id: str, client: ModelClient, prompt: dict, efforts: list[str], runs_per_variant: int, master_seed: int,
-                   cases_path: str | Path | None, perturbations_path: str | Path | None, lexicon: Lexicon, n_cases: int, n_perts: int,
-                   filters: dict, sampling: dict, workers: int, notes: str = "", allow_dirty: str | None = None) -> dict:
+                   cases_path: str | Path | None, perturbations_path: str | Path | None, lexicon: Lexicon | None, n_cases: int, n_perts: int,
+                   filters: dict, sampling: dict, workers: int, notes: str = "", allow_dirty: str | None = None,
+                   embed_trace_key: bool = False) -> dict:
     commit, dirty = _git_info(Path(__file__).resolve().parents[1])
     return {
         "schema_version": 1, "run_id": run_id, "created": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
         "status": "running", "traceaudit_version": __version__, "git_commit": commit, "git_dirty": dirty, "allow_dirty": allow_dirty,
         "python": platform.python_version(), "platform": platform.platform(),
         "model": client.describe(),
-        "prompt": {"id": prompt["id"], "sha256": prompt["sha256"], "system": prompt["system"], "user_template": prompt["user_template"]},
+        "prompt": {"id": prompt["id"], "sha256": prompt["sha256"], "system": prompt["system"], "user_template": prompt["user_template"],
+                   # True only for runs made before 29 Oct 2026, whose prompts carried "<!-- trace_key: ... -->" naming the variant
+                   "embed_trace_key": embed_trace_key},
         "sampling": {"temperature": sampling.get("temperature", 1.0), "top_p": sampling.get("top_p", 1.0), "max_tokens": sampling.get("max_tokens", 8192),
                      "efforts": list(efforts), "runs_per_variant": runs_per_variant, "workers": workers},
         "seeds": {"master": master_seed, "per_trace_rule": "crc32(master_seed:trace_key) & 0x7fffffff"},
@@ -135,7 +142,7 @@ def build_manifest(run_id: str, client: ModelClient, prompt: dict, efforts: list
             "cases": {"path": str(cases_path) if cases_path else None, "sha256": sha256_file(cases_path) if cases_path else None, "n": n_cases},
             "perturbations": {"path": str(perturbations_path) if perturbations_path else None,
                               "sha256": sha256_file(perturbations_path) if perturbations_path else None, "n": n_perts},
-            "lexicon": {"path": str(lexicon.path), "version": lexicon.version, "sha256": lexicon.sha256()},
+            "lexicon": {"path": str(lexicon.path), "version": lexicon.version, "sha256": lexicon.sha256()} if lexicon else None,
         },
         "filters": filters, "notes": notes, "scoring": [],
     }
@@ -193,7 +200,13 @@ class ModelChanged(RuntimeError):
 def run_experiment(jobs: list[Job], client: ModelClient, run_dir: str | Path, manifest: dict, prompt: dict, master_seed: int,
                    workers: int = 1, redo_errors: bool = False, force: bool = False, min_interval_ms: int = 0,
                    health_every: int = 100, progress: Callable[[str], None] | None = None, sleep=time.sleep,
-                   sampling: dict | None = None, should_stop: Callable[[], bool] | None = None) -> dict:
+                   sampling: dict | None = None, should_stop: Callable[[], bool] | None = None, embed_trace_key: bool = False) -> dict:
+    """Run every job not already in traces.jsonl.
+
+    The variant metadata and trace key reach in-process clients through GenerateRequest.meta, never through the prompt.
+    embed_trace_key=True restores the pre-29-Oct-2026 behaviour of appending "<!-- trace_key: ... -->" to the user message;
+    it names the edited finding to the model and exists only to reproduce old runs.
+    """
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     sampling = sampling or {}
@@ -246,14 +259,15 @@ def run_experiment(jobs: list[Job], client: ModelClient, run_dir: str | Path, ma
                     if wait > 0:
                         sleep(wait)
                 seed = per_trace_seed(master_seed, job.trace_key)
-                user = prompt["user_template"].replace("{case_rendered}", job.rendered) + f"\n<!-- trace_key: {job.trace_key} -->"
+                user = prompt["user_template"].replace("{case_rendered}", job.rendered)
+                if embed_trace_key:
+                    user += f"\n<!-- trace_key: {job.trace_key} -->"
                 req = GenerateRequest(system=prompt["system"], user=user, effort=job.effort, seed=seed,
                                       temperature=sampling.get("temperature", 1.0), top_p=sampling.get("top_p", 1.0),
-                                      max_tokens=sampling.get("max_tokens", 8192), timeout_s=sampling.get("timeout_s", 600.0))
+                                      max_tokens=sampling.get("max_tokens", 8192), timeout_s=sampling.get("timeout_s", 600.0),
+                                      meta={**job.meta, "trace_key": job.trace_key})
                 meta = TraceMeta(seed=seed, temperature=req.temperature, timestamp=_dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"))
                 try:
-                    if hasattr(client, "kw"):
-                        client.kw["meta"] = job.meta  # CallableClient / simulator receives variant metadata
                     resp, attempts = _call_with_retry(client, req, sleep=sleep)
                     meta.latency_ms = resp.latency_ms
                     meta.usage = resp.usage

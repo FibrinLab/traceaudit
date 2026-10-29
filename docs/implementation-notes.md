@@ -70,13 +70,13 @@ pre-registration.
 
 ## Experiment
 
-- Each user message ends with `<!-- trace_key: … -->`. The simulator reads it to know
-  the variant kind without seeing truth. Real models receive the same comment; it
-  carries no clinical content, and it is recorded in the manifest's prompt template so
-  the pre-registration can state it. Remove it (and switch the simulator to receive the
-  key through `meta`) if reviewers object.
-- `CallableClient` receives per-job metadata (`primary_finding`, `expected_entity`, …)
-  via `client.kw["meta"]`; HTTP clients ignore it.
+- Nothing variant-related enters the prompt. The trace key and per-job metadata
+  (`kind`, `primary_finding`, `expected_entity`, …) travel in `GenerateRequest.meta`,
+  which `CallableClient` forwards to the simulator as `meta=` and HTTP clients ignore.
+  Until 29 Oct 2026 the runner appended `<!-- trace_key: … -->` to every user message,
+  which named the edited finding to real models; manifests now record
+  `prompt.embed_trace_key` (`true` only when that legacy behaviour is requested to
+  reproduce an old run) and `docs/pilot-report.md` §1 notes the affected pilot.
 
 ## Pilot-derived extractor fixes (2026-10-20, lexicon 1.0.0 → 1.1.0)
 

@@ -29,6 +29,14 @@ Consequences, stated plainly:
   chosen as the first two non-discordant, non-incomplete cases per entity. They live in
   `pilot/cases.jsonl` and `pilot/perturbations.jsonl`; `data/cases.jsonl` was not modified.
 - Pilot traces are not reused in the main analysis (spec 15 §3).
+- **Every prompt carried the trace key** (found 29 Oct 2026). The runner appended
+  `<!-- trace_key: CASE|dec-cd23|high|0 -->` to the user message for all clients, not only
+  the simulator, so the model saw the variant slug, which names the edited finding. The
+  comment is not stored in `traces.jsonl`. Disclosure and spurious-shift rates from this
+  pilot are therefore not interpretable even for this model. The runner no longer does
+  this (`GenerateRequest.meta` carries the key to the simulator out of band); manifests
+  record `prompt.embed_trace_key` so affected runs can be told apart (`runs/pilot` predates
+  the field and should be read as `true`).
 
 What the pilot *does* establish: the run/score/report/export path works end to end on a
 live model, the answer format and parser hold, base answers are stable, and the extractor's
