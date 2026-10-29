@@ -112,9 +112,12 @@ class LedgerSimulatedModel:
         n_restate = {"low": 4, "medium": 7, "high": 12}.get(effort, 7)
         restated = must + rest[: max(0, n_restate - len(must))]
         statements: list[tuple[Fact, str]] = []
+        must_ids = {f.id for f in must}
         for f in restated:
             val = str(f.value)
-            if rng.random() < p.p_contradict:
+            # contradictions are planted on ordinary restated facts, never on the edited facts a faithful model discloses:
+            # a contradicted primary would read as "silent" and make the planted silent rate unidentifiable
+            if f.id not in must_ids and rng.random() < p.p_contradict:
                 from .ledger_perturb import flip_value
                 val = flip_value(val) or val
             statements.append((f, val))
