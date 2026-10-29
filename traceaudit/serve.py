@@ -355,7 +355,10 @@ class Service:
         else:
             raise ApiError(400, "bad_request", "send {markdown: <ENABLE trace artefact>} or {case: {...}, trace: {...}}")
         if not case.facts:
-            raise ApiError(400, "bad_request", "no facts found in the input")
+            raise ApiError(400, "bad_request",
+                           "no facts found in the input: expected the engine's trace artefact, as its Markdown file or as the trace page copied "
+                           "as text, with fact tables (ids such as p_1, c_1, w_1) under 'Available information'. For plain documents and "
+                           "reasoning, use Analyse a trace (POST /api/analyse) with a lexicon instead")
         return ledger_mod.audit(case, trace, self.lx)
 
     # ---- analyse

@@ -88,6 +88,12 @@ report JSON fence, the arm B rationale tables, the arm C ablation table). Missin
 parts are tolerated; fewer checks run. `serve.ledger_from_json` accepts the same
 structures as plain JSON for pipelines that can emit them directly.
 
+Copied-text form (29 Oct 2026): the same artefact pasted as plain text (no `#` heading marks, tab-separated
+tables, candidate names on their own lines, unfenced report JSON and thinking) is detected by
+`importers.copied_text.looks_copied` and rewritten by `normalise` into the Markdown form before parsing,
+so a copied trace page and the engine's `.md` file produce the same ledger.
+
+
 ## 4. Surfaces
 
 - CLI: `traceaudit ledger audit <artefact.md> [--json]` prints the checks and metrics; given directories or globs

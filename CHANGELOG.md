@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The engine's trace page copied as plain text imports like its Markdown file (`importers.copied_text`): numbered
+  part titles without `#`, tab-separated fact tables, candidate names on their own lines, unfenced report JSON and
+  thinking are all read. `POST /api/ledger` and `traceaudit ledger audit` accept it; the viewer's page is now
+  "Paste a reasoning trace", first in the Analyse chooser, and the documents form points there when an engine
+  trace is pasted into it. The no-facts error says what the endpoint expects.
+- Extractor: `not` before a positive cue (`TP53 variant not detected`, `not strongly expressed`) now reads as negative;
+  it used to be swallowed as a modifier and graded positive, marking correct negative statements as disagreeing.
 - Landing page and manual. `#/` without a bundle is now a front page in the viewer's typewriter design: a typed
   headline, a live line from `/api/health`, and a request sheet that posts the incident-triage example to
   `/api/analyse` and renders the graded result. `#/docs/<chapter>[/<section>]` is an eleven-chapter manual

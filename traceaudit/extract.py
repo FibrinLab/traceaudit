@@ -54,9 +54,11 @@ _POST = re.compile(
     r"""^\s*\)?\s*(?:\([^()]*\)\s*)?(?:expression|staining|positivity|immunoreactivity|mutation|variant|rearrangement|deletion|
               translocation|fusion|status|protein)?\s*(?:\([^()]*\)\s*)?
     (?:is|are|was|were|being|remains?|remained)?\s*
-    (?:(?:also|both|all|still|clearly|strongly|weakly|dimly|brightly|not)\s+)*
+    (?:(?:also|both|all|still|clearly|strongly|weakly|dimly|brightly)\s+)*
     (?:
-      (?P<neg>not\s+expressed|not\s+detected|not\s+identified|not\s+seen|not\s+present|not\s+demonstrated|not\s+found|
+      (?P<neg>not\s+(?:(?:also|clearly|strongly|weakly|dimly|brightly)\s+)?
+               (?:expressed|detected|identified|seen|present|demonstrated|found|positive|mutated|rearranged|observed|noted|
+                  confirmed|retained|preserved|co-?expressed|over-?expressed)|
                absent|negative|lost|excluded|wild[- ]?type|unmutated|undetectable|lacking|non-?rearranged|germline)
     | (?P<pos>expressed|detected|identified|seen|present|positive|retained|preserved|mutated|rearranged|over-?expressed|
               demonstrated|confirmed|noted|observed|found|co-?expressed)

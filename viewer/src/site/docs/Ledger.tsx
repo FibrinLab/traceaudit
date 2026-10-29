@@ -107,6 +107,12 @@ export default function Ledger() {
         case and a trace; <code>ledger_io.render_case</code> writes a case back out in the same format, and the two round-trip. The service accepts
         either the Markdown or canonical JSON at <a href="#/docs/api/ledger">POST /api/ledger</a>.
       </p>
+      <p>
+        The same page <strong>copied as plain text</strong>, from a browser, a PDF or a chat, also imports: the importer recognises the numbered part
+        titles without their <code>#</code> marks, tab-separated tables, candidate names on their own lines, and the report JSON and thinking without
+        code fences, and rewrites them into the Markdown form first. In the viewer this is "Paste a reasoning trace": select everything on the engine's
+        trace page, copy, paste.
+      </p>
       <Code lang="shell">{`traceaudit ledger audit artefact.md --json          # one artefact, full result as JSON
 traceaudit ledger cases artefacts/ -o ledger_cases.jsonl   # base cases, for the probes`}</Code>
     </>

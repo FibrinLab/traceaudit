@@ -6,8 +6,8 @@ export type AnalysePageId = 'chooser' | 'trace' | 'audit' | 'ledger' | 'jobs';
 export function AnalyseNav({ active }: { active: AnalysePageId }) {
   const tabs: Array<[typeof active, string, string]> = [
     ['chooser', '#/analyse', 'Overview'],
-    ['trace', '#/analyse/trace', 'Analyse a trace'],
-    ['ledger', '#/analyse/ledger', 'Fact ledger'],
+    ['ledger', '#/analyse/ledger', 'Paste a trace'],
+    ['trace', '#/analyse/trace', 'Documents and reasoning'],
     ['audit', '#/analyse/audit', 'Audit a model'],
     ['jobs', '#/jobs', 'Jobs'],
   ];
@@ -34,15 +34,15 @@ export function AnalyseView() {
   return (
     <AnalysePage active="chooser" title="Does the reasoning hold up?" lede="traceaudit grades every factual claim in a model's reasoning against the source documents it was given, then checks whether its answer changes when the documents do. Any domain: bring your own lexicon.">
       <div className="choice-cards">
-        <a className="choice-card" href="#/analyse/trace">
-          <h2>Analyse a trace</h2>
-          <p>Paste the documents, the reasoning and the answer; see each claim graded against the documents.</p>
-          <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">Text only.</span></div>
-        </a>
         <a className="choice-card" href="#/analyse/ledger">
-          <h2>Audit a structured trace</h2>
-          <p>Paste a trace artefact with facts and citations; every citation is checked against its fact.</p>
-          <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">Fact ledger, report, reasoning, rationale, ablation.</span></div>
+          <h2>Paste a reasoning trace</h2>
+          <p>Copy the engine's trace page, or choose its file. Every citation is checked against its fact and the 24 checks run.</p>
+          <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">Start here with an engine trace.</span></div>
+        </a>
+        <a className="choice-card" href="#/analyse/trace">
+          <h2>Analyse documents and reasoning</h2>
+          <p>Paste the source documents, the reasoning and the answer as plain text; each claim is graded against the documents with a lexicon.</p>
+          <div className="calls"><Chip tone="good" icon="✓">Calls no model</Chip> <span className="small muted">For traces without fact ids.</span></div>
         </a>
         <a className="choice-card" href="#/analyse/audit">
           <h2>Audit a model</h2>

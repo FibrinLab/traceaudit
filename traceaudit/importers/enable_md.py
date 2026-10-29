@@ -180,6 +180,9 @@ def parse_ablation(block: str) -> ledger.Ablation | None:
 
 
 def parse_markdown(text: str) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
+    from .copied_text import looks_copied, normalise
+    if looks_copied(text):
+        text = normalise(text)
     parts = _split_h2(text)
     head = text[: _H2.search(text).start()] if _H2.search(text) else text
     case_id = (re.search(r"Case:\s*`([^`]+)`", head) or re.search(r"case[_ ]?(\d+)", head, re.I))

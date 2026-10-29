@@ -89,8 +89,8 @@ export default function Api() {
         <Sig method="POST" path="/api/ledger" />
         <p>
           A structured artefact in, the 24 checks out. Send either <code>{'{'} "markdown": "&lt;artefact&gt;" {'}'}</code> (an engine's Markdown artefact
-          with fact tables and a cited report, up to 2 MB) or <code>{'{'} "case": {'{'}…{'}'}, "trace": {'{'}…{'}'} {'}'}</code> in the canonical JSON below.
-          No lexicon is needed: the facts carry their own fields and values.
+          with fact tables and a cited report, or that page copied as plain text, up to 2 MB) or <code>{'{'} "case": {'{'}…{'}'}, "trace": {'{'}…{'}'} {'}'}</code> in the
+          canonical JSON below. No lexicon is needed: the facts carry their own fields and values.
         </p>
         <ApiTry method="POST" path="/api/ledger" body={stringify(LEDGER_REQUEST)} summary={(json) => <AnalyseSummary data={json} />}
           note="The second segment cites p_2 but states the opposite value, so one citation disagrees." />

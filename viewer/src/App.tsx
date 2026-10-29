@@ -147,7 +147,7 @@ function NoResults({ route, onLoad }: { route: Route; onLoad: () => void }) {
       <p>No results loaded. Run an audit under Analyse, or load a bundle.</p>
       <div className="actions">
         <a className="btn primary" href="#/analyse/audit">Run an audit</a>
-        <a className="btn" href="#/analyse/trace">Analyse a trace</a>
+        <a className="btn" href="#/analyse/ledger">Paste a trace</a>
         <button type="button" className="btn" onClick={onLoad}>Load a bundle</button>
       </div>
     </div>
@@ -162,7 +162,7 @@ function titleFor(route: Route): string {
     case 'rate': return 'Rating — traceaudit';
     case 'cohort': return 'Cohort — traceaudit';
     case 'review': return `Review ${route.caseId} — traceaudit`;
-    case 'analyse': return route.page === 'trace' ? 'Analyse a trace — traceaudit' : route.page === 'audit' ? 'Audit a model — traceaudit' : route.page === 'ledger' ? 'Fact ledger — traceaudit' : 'Analyse — traceaudit';
+    case 'analyse': return route.page === 'trace' ? 'Analyse documents and reasoning — traceaudit' : route.page === 'audit' ? 'Audit a model — traceaudit' : route.page === 'ledger' ? 'Paste a trace — traceaudit' : 'Analyse — traceaudit';
     case 'jobs': return 'Jobs — traceaudit';
     case 'job': return `Job ${route.jobId} — traceaudit`;
     case 'docs': return 'Manual — traceaudit';

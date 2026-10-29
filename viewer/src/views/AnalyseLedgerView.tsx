@@ -64,7 +64,7 @@ export function AnalyseLedgerView() {
   const clear = () => { setText(''); setResult(null); setError(null); setNotice(null); };
   const audit = async () => {
     setError(null); setNotice(null);
-    if (!text.trim()) { setError('Paste a trace artefact first: the markdown the trace runner wrote, or a {case, trace} JSON document.'); return; }
+    if (!text.trim()) { setError('Paste the trace first: select everything on the engine\'s trace page and copy it, or choose the .md file it wrote.'); return; }
     setBusy('audit'); setResult(null);
     try {
       const res = await api.auditLedger(buildLedgerRequest(text));
@@ -77,20 +77,20 @@ export function AnalyseLedgerView() {
   };
 
   return (
-    <AnalysePage active="ledger" title="Audit a structured trace" wide lede="Paste a trace artefact: its facts with ids, the reasoning that cites them, the delivered report with citation ids, the rationale and the ablation. Every citation is checked against its fact. No model is called.">
+    <AnalysePage active="ledger" title="Paste a reasoning trace" wide lede="Paste the engine's trace page exactly as you copied it, or choose its Markdown or JSON file. The facts with their ids, the thinking, the delivered report, the rationale and the ablation are all read from it, and every citation is checked against its fact. No model is called.">
       <form className="panel" aria-labelledby="ledger-form-title" onSubmit={(e) => { e.preventDefault(); void audit(); }}>
         <div className="panel-head">
           <h2 id="ledger-form-title" style={{ margin: 0 }}>Trace artefact</h2>
           <div className="row small">
             <button type="button" className="btn small" onClick={() => void loadExample()} disabled={working}>{busy === 'example' ? 'Loading…' : 'Load example'}</button>
             <button type="button" className="btn small" onClick={() => fileInput.current?.click()} disabled={working}>Choose file</button>
-            <input ref={fileInput} type="file" accept=".md,.markdown,.json,text/markdown,application/json" className="visually-hidden" aria-label="Choose a trace artefact (.md or .json)" onChange={(e) => void onFile(e)} />
+            <input ref={fileInput} type="file" accept=".md,.markdown,.txt,.json,text/markdown,text/plain,application/json" className="visually-hidden" aria-label="Choose a trace artefact (.md or .json)" onChange={(e) => void onFile(e)} />
             <button type="button" className="btn small quiet" onClick={clear} disabled={working}>Clear</button>
           </div>
         </div>
         <label className="field block full">
-          <span>Artefact (markdown, or a <code>{'{case, trace}'}</code> JSON document)</span>
-          <textarea className="ledger" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} placeholder={'# Reasoning trace — case_… \n\n## 1. Available information\n| ids | field | value | evidence snippet |\n| p_1 | CD5 | Positive | positive for CD5 |\n…'} required />
+          <span>The trace, copied as text or as its Markdown; a <code>{'{case, trace}'}</code> JSON document also works</span>
+          <textarea className="ledger" value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} placeholder={'Reasoning trace — … — repeat 1\nCase: case_002 · ground truth: …\n1. Available information (what the model was given)\nimmunophenotyping (16 facts)\nids\tfield\tvalue\tevidence snippet\np_1\tCD5\tPositive\tpositive for CD5\n…'} required />
         </label>
         {error && <Banner tone="bad">{error}</Banner>}
         {notice && !error && <Banner tone="info">{notice}</Banner>}

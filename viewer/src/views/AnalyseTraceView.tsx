@@ -19,6 +19,11 @@ const FALLBACK_LEXICON: LexiconDisplay = { version: 'unknown', entities: [], fin
 
 type Busy = 'idle' | 'example' | 'upload' | 'analyse';
 
+/** The engine's trace page pasted into the wrong box: fact ids plus its first part title. */
+export function looksLikeEngineTrace(text: string): boolean {
+  return /\b[pcw]_\d+\b/.test(text) && /available information/i.test(text);
+}
+
 export function AnalyseTraceView() {
   const api = useApi();
   const [lexicons, setLexicons] = useState<LexiconMeta[] | null>(null);
@@ -137,7 +142,10 @@ export function AnalyseTraceView() {
         : 'The vocabulary the service grades against: its document sections, findings and answer categories. The service has no default.';
 
   return (
-    <AnalysePage active="trace" title="Analyse a trace" wide lede="Choose the lexicon for your domain, then paste the documents the model saw, its reasoning and its final answer. The documents become a ledger of facts; every factual claim in the reasoning cites the facts it restates and is graded against them. No model is called.">
+    <AnalysePage active="trace" title="Analyse documents and reasoning" wide lede="For traces without fact ids. Choose the lexicon for your domain, then paste the documents the model saw, its reasoning and its final answer. The documents become a ledger of facts; every factual claim in the reasoning cites the facts it restates and is graded against them. No model is called.">
+      {looksLikeEngineTrace(reasoning) && (
+        <Banner tone="info">This looks like an engine trace page with fact ids. <a href="#/analyse/ledger">Paste a reasoning trace</a> reads all of it, facts, report, rationale and ablation, in one go.</Banner>
+      )}
       <form className="panel" aria-labelledby="analyse-form-title" onSubmit={(e) => { e.preventDefault(); void analyse(); }}>
         <div className="panel-head">
           <h2 id="analyse-form-title" style={{ margin: 0 }}>Inputs</h2>
