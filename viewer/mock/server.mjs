@@ -14,7 +14,7 @@
 //                         read from public/examples/) then the workspace's uploads (`source: "upload"`, POST `{lexicon, name?}`).
 //   GET  /api/lexicon?id= one lexicon's display data; 400 lexicon_required without an id, 404 lexicon_not_found otherwise.
 //   POST /api/ledger      `{markdown}` or `{case, trace}` → the canned fact-ledger audit in mock/fixtures/ledger-result.json
-//                         (produced by `traceaudit ledger audit tests/fixtures/enable_trace_case_003.md --json`).
+//                         (produced by `traceaudit ledger audit tests/fixtures/synthetic_trace_SYN-003.md --json`).
 //   POST /api/analyse     400 lexicon_required without a usable `lexicon_id`; the packaged example inputs get the real
 //                         service's result (mock/fixtures/analyse-result.json, from `POST /api/analyse` on
 //                         examples/incident-trace.json with the incident-triage lexicon); anything else is graded by a

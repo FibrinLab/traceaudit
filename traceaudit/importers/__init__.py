@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .. import ledger
-from .enable_md import parse_markdown
+from .enable_md import parse_markdown, render_artefact
 
 
 def load(path: str | Path) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
@@ -12,4 +12,4 @@ def load(path: str | Path) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
     return parse_markdown(text)
 
 
-__all__ = ["load", "parse_markdown"]
+__all__ = ["load", "parse_markdown", "render_artefact"]

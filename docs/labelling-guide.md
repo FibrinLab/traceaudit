@@ -21,42 +21,43 @@ recorded for it?**
 Where an item says `"kind": "uncited"`, the sentence did not cite the fact's id; the
 grader matched the fact to something the sentence asserts. The question is the same.
 
-## Examples from `case_003`
+## Examples from the synthetic artefact `SYN-003`
 
-All sentences below are real sentences from the artefact except the ones marked
-*modified*, which are real sentences with one value changed.
+The sentences below come from `tests/fixtures/synthetic_trace_SYN-003.md`, a generated
+artefact with invented vocabulary (markers `mk1`..`mk16`, shapes, `GENEnn` variants) and the
+structure of a real engine trace. Rows marked *modified* change one value.
 
 ### `agree`
 
 | Sentence | Cited fact | Why |
 |---|---|---|
-| "CD5+, CD19+, CD20+, CD23+, CD200+, CD43+; CD10 negative; CD81 weak; CD79b weak; ROR1 negative." | `p_10` CD10 = Negative | "CD10 negative" is the recorded value. |
-| "Summary: IGHV unmutated; TP53 aberration present." | `p_57` del_17p = Positive (evidence: "clonal loss of TP53 (at 17p13.1)") | A TP53 aberration at 17p13.1 is what del(17p) is. Clinical equivalence counts, so `agree`, even though the words del(17p) do not appear. |
-| "BRAF mutation is absent and villous projections were not described, arguing against HCL." | `p_25` villous_projections = Not mentioned | The fact was never recorded, and the sentence says so ("not described"). |
+| "mk1 positive; mk4 positive; mk2 positive; mk3 positive; mk5 weak; mk6 positive; mk7 strong; mk8 negative; mk9 positive; mk10 negative" | `p_10` mk10 = Negative | "mk10 negative" is the recorded value. |
+| "Summary: ig mutated; del(3q) positive; GENE21 variant positive; GENE27 variant positive; GENE28 variant not detected" | `p_53` GENE28_variant = Negative | "Not detected" is the negative result; the words differ from the recorded value, the meaning does not. |
+| "Small mature forms with shape_g and occasional shape_c and shape_e forms; shape_h forms present; no shape_f" | `p_22` shape_f = Negative | "No shape_f" states the recorded absence. |
 
 ### `disagree`
 
 | Sentence | Cited fact | Why |
 |---|---|---|
-| "Absence of splenomegaly and lack of villous projections argue against SDRPL." | `p_25` villous_projections = Not mentioned | The report never assessed villous projections; the sentence asserts they are absent. Asserting a value for an untested fact is `disagree`. |
-| *modified:* "CD5+, CD19+, CD20+, CD23+, CD200+, CD43+; CD10 positive; …" | `p_10` CD10 = Negative | Opposite polarity. |
-| *modified:* "Additional comments: del(11q) not detected." | `p_55` del_11q = Positive | Opposite polarity. |
+| *modified:* "mk1 positive; mk4 positive; …; mk10 positive" | `p_10` mk10 = Negative | Opposite polarity. |
+| *modified:* "Additional comments: del(3q) not detected." | `p_55` del_3q = Positive | Opposite polarity. |
+| *modified:* "No shape_i forms were seen, which argues against K7." | `p_25` shape_i = Not mentioned | The report never assessed shape_i; the sentence asserts a value for an untested fact. |
 
 ### `unverifiable`
 
 | Sentence | Cited fact | Why |
 |---|---|---|
-| "The patient shows the classic immunophenotype (CD5+, CD23+) and small mature B‑cell morphology, with cytogenetic abnormalities (del11q, del17p) and high lymphocytosis typical of CLL/SLL." | `c_108` lymph = 143.2 | "High lymphocytosis" refers to the count but gives no number, so the recorded value cannot be checked against the sentence. |
-| "The patient is CD5 positive and IgM negative, which excludes SMZL." | `c_109` paraprotein = Absent | "IgM negative" could mean surface IgM on flow or no IgM paraprotein; the sentence does not say which. |
-| *modified:* "Morphology was reviewed." | `p_23` small_size = Positive | Refers to the domain of the fact without claiming any value. |
+| "The panel (mk1, mk4, mk6, mk7) and morphology (shape_g forms with occasional shape_c) fit K1, supported by ig mutation and del(3q)." | `c_108` level_e = 90.5 (as cited in the rationale) | The sentence cites a count but gives no number, so the recorded value cannot be checked. |
+| "marker_x absent and mk4 positive argue against K4." | `c_109` marker_x = Absent | "Absent" matches, but the sentence is about K4's requirement, not the patient's result; grade what the sentence claims about the fact. If you read it as a claim, `agree`. |
+| *modified:* "Morphology was reviewed." | `p_23` shape_g = Positive | Refers to the domain of the fact without claiming any value. |
 
 ### `not_mentioned`
 
 | Sentence | Cited fact | Why |
 |---|---|---|
-| "Small mature B cells; no prominent nucleoli." | `p_24` smear_cell = Positive | Nothing in the sentence is about smudge cells. |
-| "Absence of germinal‑center markers (CD10 negative) and lack of follicular morphology make FL unlikely." | `p_23` small_size = Positive | Follicular architecture is not cell size. |
-| "The patient shows the classic immunophenotype (CD5+, CD23+) and small mature B‑cell morphology, with cytogenetic abnormalities (del11q, del17p) and high lymphocytosis typical of CLL/SLL." | `c_111` lymphadenopathy = Present | The sentence cites it but never mentions nodes. |
+| "The panel (mk1, mk4, mk6, mk7) and morphology (shape_g forms with occasional shape_c) fit K1, supported by ig mutation and del(3q)." | `p_2` mk2 = Positive | The rationale cites mk2 in support, but the sentence never mentions it. |
+| "mk10 is negative, which K2 requires positive." | `p_23` shape_g = Positive | Nothing in the sentence is about shape_g. |
+| "GENE05 variant negative and no shape_i forms described." | `p_22` shape_f = Negative | shape_f is not shape_i. |
 
 ## Practicalities
 

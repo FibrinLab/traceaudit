@@ -6,7 +6,7 @@ from traceaudit import importers, ledger_io, ledger_perturb as LP
 from traceaudit.ledger import Fact, LedgerCase
 from traceaudit.schema import VARIANT_RE, variant_kind
 
-FIX = Path(__file__).with_name("fixtures") / "enable_trace_case_003.md"
+FIX = Path(__file__).with_name("fixtures") / "synthetic_trace_SYN-003.md"
 
 
 def synth_case() -> LedgerCase:
@@ -38,10 +38,10 @@ def test_expectations_from_structured_reference_and_rationale():
     assert {(e.candidate, e.field, e.expected) for e in ex_ref} == {("A", "x", "pos"), ("A", "y", "pos")} and all(e.origin == "reference_text" for e in ex_ref)
     fcase, trace = importers.load(FIX)
     ref = {(e.candidate, e.field, e.expected) for e in LP.expectations(fcase, sources=("reference",))}
-    assert ("SMZL", "CD5", "neg") in ref and ("MCL", "CD5", "pos") in ref and not any(c == "CLL/SLL" for c, _, _ in ref)
+    assert ("K8", "mk1", "neg") in ref and ("K5", "mk1", "pos") in ref and not any(c == "K1" for c, _, _ in ref)
     rat = LP.expectations(fcase, sources=("rationale",), rationales=[trace.rationale])
     assert all(e.model_derived for e in rat)
-    assert {(e.candidate, e.field, e.expected) for e in rat} >= {("FL", "CD10", "pos"), ("SMZL", "CD5", "neg"), ("CLL/SLL", "CD5", "pos")}
+    assert {(e.candidate, e.field, e.expected) for e in rat} >= {("K2", "mk10", "pos"), ("K8", "mk1", "neg"), ("K1", "mk1", "pos")}
 
 
 def test_expectation_lexicon_fills_discriminators_and_linked():
@@ -86,17 +86,17 @@ def test_decisive_target_must_expect_new_value_and_base_recovered():
     assert LP.generate_decisive(broken, lx, ex) == [] and any("does not recover" in m for m in LP.generation_log())
 
 
-def test_decisive_fixture_rationale_gives_cd5_pair_to_smzl():
+def test_decisive_fixture_rationale_gives_m1_flip_to_k8():
     case, trace = importers.load(FIX)
     ex = LP.expectations(case, sources=("reference", "rationale"), rationales=[trace.rationale])
     lx = LP.expectation_lexicon(case, ex)
     perts = LP.generate_decisive(case, lx, ex)
-    smzl = next(p for p in perts if p.expected_entity == "SMZL")
-    assert smzl.variant == "dec-cd5" and "model_derived" in smzl.flags and {e.extra["field"] for e in smzl.edits} == {"CD5", "paraprotein"}
-    v = LP.apply(case, smzl)
-    assert v.fact("p_1").value == "Negative" and v.fact("c_109").value == "Present" and v.truth == "SMZL"
-    # cumulative snippets no longer assert CD5 positive
-    assert "CD5 negative" in v.fact("p_6").evidence and LP.verify(case, v, smzl) == []
+    k8 = next(p for p in perts if p.expected_entity == "K8")
+    assert k8.variant == "dec-mk1" and "model_derived" in k8.flags and {e.extra["field"] for e in k8.edits} == {"mk1", "marker_x"}
+    v = LP.apply(case, k8)
+    assert v.fact("p_1").value == "Negative" and v.fact("c_109").value == "Present" and v.truth == "K8"
+    # cumulative snippets no longer assert mk1 positive
+    assert "mk1 negative" in v.fact("p_2").evidence and LP.verify(case, v, k8) == []
     assert any(f.startswith("evidence_rewritten:") for f in v.meta["flags"])
 
 
@@ -129,7 +129,7 @@ def test_neutral_multiset_and_id_map():
     [ren] = LP.generate_neutral(case, 7, ops=("renumber_ids",))
     m = ren.edits[0].extra["id_map"]
     v = LP.apply(case, ren)
-    assert sorted(m) == sorted(m.values()) and v.fact(m["p_1"]).field == "CD5" and v.allowed_ids == case.allowed_ids
+    assert sorted(m) == sorted(m.values()) and v.fact(m["p_1"]).field == "mk1" and v.allowed_ids == case.allowed_ids
 
 
 def test_authority_cue_is_one_context_fact():
@@ -147,12 +147,12 @@ def test_authority_cue_is_one_context_fact():
 def test_ablation_plan_and_modes():
     case, trace = importers.load(FIX)
     ids = [i for d in trace.rationale.discriminators for i in d["ids"]]
-    abl = LP.plan_ablation(case, ids, "medium", 0, "CLL/SLL", False, "case_003|base|medium|0")
+    abl = LP.plan_ablation(case, ids, "medium", 0, "K1", False, "SYN-003|base|medium|0")
     assert abl.variant == "abl-medium-r0" and abl.kind == "ablation" and variant_kind(abl.variant) == "ablation"
-    assert abl.primary_finding == "p_1" and abl.co_edits == ["p_4", "p_23", "p_55", "p_57"] and abl.extra["decision_before"] == "CLL/SLL"
+    assert abl.primary_finding == "p_1" and abl.co_edits == ["p_4", "p_23", "p_10", "p_30"] and abl.extra["decision_before"] == "K1"
     v = LP.apply(case, abl)
     assert len(v.facts) == len(case.facts) - 5 and "p_1" not in v.allowed_ids and v.truth is None and LP.verify(case, v, abl) == []
-    masked = LP.plan_ablation(case, ids, "medium", 0, "CLL/SLL", False, None, mode="mask")
+    masked = LP.plan_ablation(case, ids, "medium", 0, "K1", False, None, mode="mask")
     assert LP.apply(case, masked).fact("p_1").value == "Not performed"
     assert LP.plan_ablation(case, ["w_62", "nope"], "low", 0, None, None, None) is None
 

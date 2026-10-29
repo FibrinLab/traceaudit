@@ -81,46 +81,46 @@ describe('coverage strip categorisation', () => {
 describe('ledger result parsing of the service fixture', () => {
   const r: LedgerResult = parseLedgerResult(raw);
   it('keeps the top-level verdict, checks and metrics', () => {
-    expect(r.case_id).toBe('case_003');
-    expect(r.decision).toBe('CLL/SLL');
-    expect(r.truth).toBe('CLL/SLL');
+    expect(r.case_id).toBe('SYN-003');
+    expect(r.decision).toBe('K1');
+    expect(r.truth).toBe('K1');
     expect(r.candidates).toHaveLength(8);
     expect(r.checks).toHaveLength(24);
     expect(r.checks.filter((c) => c.status === 'FAIL')).toHaveLength(r.metrics.checks_failed);
     expect(r.metrics.checks_total).toBe(24);
     expect(r.metrics.facts).toBe(111);
     expect(r.metrics.patient_facts + r.metrics.context_facts + r.metrics.reference_facts).toBe(111);
-    expect(r.metrics.candidates_named_in_thinking).toEqual({ 'CLL/SLL': 1 });
+    expect(r.metrics.candidates_named_in_thinking).toEqual({ K1: 1 });
   });
   it('keeps the report sections with graded citations and the facts in ledger order', () => {
-    expect(r.sections.map((s) => s.title)).toEqual(['ICD codes:', 'Summary of diagnosis:', 'Immunophenotyping:', 'Morphology:', 'Molecular:', 'Cytogenetics:']);
+    expect(r.sections.map((s) => s.title)).toEqual(['Codes:', 'Summary of diagnosis:', 'Panel:', 'Morphology:', 'Molecular:', 'Cytogenetics:']);
     const grades = new Set(r.sections.flatMap((s) => s.segments.flatMap((seg) => seg.cited.map((c) => c.grade))));
-    expect([...grades].sort()).toEqual(['agree', 'not_mentioned', 'reference', 'unverifiable']);
+    expect([...grades].sort()).toEqual(['agree', 'reference', 'unverifiable']);
     expect(r.facts).toHaveLength(111);
-    expect(r.facts[0]).toMatchObject({ id: 'p_1', field: 'CD5', value: 'Positive', cited_in_report: true });
+    expect(r.facts[0]).toMatchObject({ id: 'p_1', field: 'mk1', value: 'Positive', cited_in_report: true });
     expect(r.facts.filter((f) => f.ignored)).toHaveLength(r.metrics.ignored);
     expect(r.facts.filter((f) => f.ignored && f.informative)).toHaveLength(r.metrics.ignored_informative);
   });
   it('keeps thinking, rationale and ablation', () => {
-    expect(r.thinking?.ids).toHaveLength(22);
-    expect(r.thinking?.candidates).toEqual(['CLL/SLL']);
+    expect(r.thinking?.ids).toHaveLength(23);
+    expect(r.thinking?.candidates).toEqual(['K1']);
     expect(r.rationale?.differential).toHaveLength(8);
-    expect(r.rationale?.differential[0]).toMatchObject({ diagnosis: 'CLL/SLL', verdict: 'favoured' });
-    expect(r.rationale?.differential[0].criteria[0]).toMatchObject({ criterion: 'CD5 positivity', status: 'met', ids: ['w_62', 'p_1'] });
-    expect(r.ablation).toEqual({ removed_ids: ['p_1', 'p_4', 'p_23', 'p_55', 'p_57'], decision_before: 'CLL/SLL', decision_after: 'CLL/SLL', changed: false });
+    expect(r.rationale?.differential[0]).toMatchObject({ diagnosis: 'K1', verdict: 'favoured' });
+    expect(r.rationale?.differential[0].criteria[0]).toMatchObject({ criterion: 'mk1 positivity', status: 'met', ids: ['w_62', 'p_1'] });
+    expect(r.ablation).toEqual({ removed_ids: ['p_1', 'p_4', 'p_23', 'p_55', 'p_57'], decision_before: 'K1', decision_after: 'K1', changed: false });
   });
   it('groups facts by source then section in first-appearance order and filters them', () => {
     const groups = groupFacts(r.facts);
     expect(groups.map((g) => g.source)).toEqual(['patient', 'patient', 'patient', 'patient', 'context', ...Array(8).fill('who')]);
-    expect(groups[0]).toMatchObject({ source: 'patient', section: 'immunophenotyping' });
+    expect(groups[0]).toMatchObject({ source: 'patient', section: 'panel' });
     expect(groups[0].facts).toHaveLength(16);
     const dis = disagreeingIds(r.sections);
     expect(dis.size).toBe(0);
     expect(filterFacts(r.facts, 'ignored', '', dis)).toHaveLength(39);
-    expect(filterFacts(r.facts, 'ignored_informative', '', dis)).toHaveLength(28);
+    expect(filterFacts(r.facts, 'ignored_informative', '', dis)).toHaveLength(27);
     expect(filterFacts(r.facts, 'cited', '', dis).every((f) => f.cited_in_report || f.cited_in_rationale)).toBe(true);
     expect(filterFacts(r.facts, 'disagreements', '', dis)).toEqual([]);
-    expect(filterFacts(r.facts, 'all', 'cd23', dis).map((f) => f.id)).toContain('p_4');
+    expect(filterFacts(r.facts, 'all', 'mk4', dis).map((f) => f.id)).toContain('p_4');
     expect(coverageCounts(r.facts).cited + coverageCounts(r.facts).referenced + coverageCounts(r.facts).ignored + coverageCounts(r.facts).untested).toBe(69);
   });
   it('rejects shapes the page cannot render', () => {

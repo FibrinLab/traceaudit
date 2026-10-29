@@ -8,7 +8,7 @@ from traceaudit import importers, ledger
 from traceaudit.cli import main
 from traceaudit.tools import ledger_labels as ll
 
-FIX = Path(__file__).with_name("fixtures") / "enable_trace_case_003.md"
+FIX = Path(__file__).with_name("fixtures") / "synthetic_trace_SYN-003.md"
 GRADES = ll.HUMAN_GRADES
 
 
@@ -21,21 +21,21 @@ def audit_result():
 def test_items_from_audit_counts(audit_result):
     items = ll.items_from_audit(audit_result)
     report_cited = [c for s in audit_result["sections"] for g in s["segments"] for c in g["cited"]]
-    assert sum(1 for c in report_cited if c["grade"] in GRADES) == 19
+    assert sum(1 for c in report_cited if c["grade"] in GRADES) == 26
     assert sum(1 for c in report_cited if c["grade"] == "reference") == 2          # left out: mechanical
-    assert sum(1 for i in items if i["source"] == "report") == 19
-    assert sum(1 for i in items if i["source"] == "rationale") == 38 and len(items) == 57
+    assert sum(1 for i in items if i["source"] == "report") == 26
+    assert sum(1 for i in items if i["source"] == "rationale") == 50 and len(items) == 76
     assert {i["grade"] for i in items} <= set(GRADES) and not any(i["fact_id"].startswith("w_") for i in items)
     assert len({i["item_id"] for i in items}) == len(items)
     for i in items:
         assert set(i) >= {"item_id", "case_id", "source", "section", "segment_text", "fact_id", "field", "value", "evidence", "grade", "kind"}
-        assert i["case_id"] == "case_003" and len(i["item_id"]) == 16
+        assert i["case_id"] == "SYN-003" and len(i["item_id"]) == 16
     by_id = {i["item_id"]: i for i in items}
-    morph = next(i for i in items if i["section"].startswith("Morphology") and i["fact_id"] == "p_24")
-    assert morph["grade"] == "not_mentioned" and morph["field"] == "smear_cell" and morph["evidence"].startswith("Frequent smudge")
+    nm = next(i for i in items if i["section"] == "rationale.differential.K1" and i["fact_id"] == "p_2")
+    assert nm["grade"] == "not_mentioned" and nm["field"] == "mk2" and nm["evidence"].startswith("positive for mk1 mk2")
     assert ll.items_from_audit(audit_result)[0]["item_id"] in by_id  # stable ids across calls
-    assert ll.item_id("case_003", "Morphology:", morph["segment_text"], "p_24") == morph["item_id"]
-    assert sum(1 for i in items if i["kind"] == "uncited") == 1
+    assert ll.item_id("SYN-003", "rationale.differential.K1", nm["segment_text"], "p_2") == nm["item_id"]
+    assert sum(1 for i in items if i["kind"] == "uncited") == 0
     # the rationale's criteria rows are not items (they state what a candidate requires, not what the patient has)
     assert not any("criteria" in i["section"] for i in items)
     assert ll.items_from_audit({"case_id": "x", "sections": [], "facts": [], "rationale": None}) == []
@@ -131,7 +131,7 @@ def test_cli_sample_then_agreement_round_trip(tmp_path, capsys):
     assert sorted(p.name for p in out.iterdir()) == ["R01.jsonl", "R02.jsonl", "grader.jsonl", "manifest.json"]
     grader = [json.loads(l) for l in (out / "grader.jsonl").read_text().splitlines()]
     assert len(grader) == 20 and all("grade" in g for g in grader)
-    assert json.loads((out / "manifest.json").read_text())["n_items_available"] == 57
+    assert json.loads((out / "manifest.json").read_text())["n_items_available"] == 76
     # the raters fill in their files: R01 copies the grader, R02 differs on three items
     by_id = {g["item_id"]: g["grade"] for g in grader}
     for rid, flips in (("R01", 0), ("R02", 3)):
@@ -155,4 +155,4 @@ def test_cli_sample_then_agreement_round_trip(tmp_path, capsys):
     assert rep["n_consensus"] == 20 and rep["consensus_source"]["adjudicated"] == 3
     # the audit command keeps its syntax
     assert main(["ledger", "audit", str(FIX), "--json"]) == 0
-    assert json.loads(capsys.readouterr().out)["case_id"] == "case_003"
+    assert json.loads(capsys.readouterr().out)["case_id"] == "SYN-003"

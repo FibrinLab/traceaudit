@@ -33,7 +33,7 @@ traceaudit manifest verify runs/demo --cases traceaudit/domains/haematology/samp
         A structured trace artefact is a Markdown document that an engine produced for one case: the fact tables it was shown, its thinking, its
         report with citation ids, optionally its rationale and an ablation. The repository ships one as a test fixture.
       </p>
-      <Code lang="shell">{`traceaudit ledger audit tests/fixtures/enable_trace_case_003.md
+      <Code lang="shell">{`traceaudit ledger audit tests/fixtures/synthetic_trace_SYN-003.md
 traceaudit ledger audit artefacts/ --summary --review-sheet review.csv --json > audit.json`}</Code>
       <p>
         The first prints the 24 checks and the metrics for one artefact. The second takes a directory, prints pass rates per check across every

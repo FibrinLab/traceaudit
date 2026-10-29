@@ -136,7 +136,7 @@ def parse_rationale(block: str) -> ledger.Rationale:
                 for r in rows:
                     if len(r) >= 6:
                         rat.differential.append(ledger.DifferentialEntry(r[0], r[1], _ids(r[2]), _ids(r[3]), r[5]))
-        elif h.startswith("who criteria"):
+        elif h.startswith(("who criteria", "reference criteria")):
             cands = list(_BOLD.finditer(body))
             for j, cm in enumerate(cands):
                 cand = cm.group(1).strip()
@@ -206,3 +206,123 @@ def parse_markdown(text: str) -> tuple[ledger.LedgerCase, ledger.LedgerTrace]:
                               "source_format": "enable-md"})
     trace = ledger.LedgerTrace(thinking, report, rationale, ablation, {"model": model.group(1) if model else None, "source_format": "enable-md"})
     return case, trace
+
+
+# ----------------------------------------------------------------------------- the inverse: write an artefact
+
+def _md_cell(x) -> str:
+    return str(x if x is not None else "").replace("|", "\\|").replace("\n", " ")
+
+
+def _table(header: list[str], rows: list[list]) -> list[str]:
+    out = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+    out += ["| " + " | ".join(_md_cell(c) for c in r) + " |" for r in rows]
+    return out
+
+
+def render_artefact(case: ledger.LedgerCase, trace: ledger.LedgerTrace, repeat: int = 1, model: str | None = None,
+                    raw_report: dict | None = None, audit_lines: list[str] | None = None) -> str:
+    """Write a case and a trace as the per-case Markdown artefact `parse_markdown` reads: fact tables with ids, the thinking,
+    the delivered report (with its raw JSON and dropped segments), the rationale and the ablation. Facts that share a
+    (section, field, value, evidence) row with consecutive ids are kept as separate rows; pass `raw_report` to control the
+    JSON block (default: the report's sections, including dropped segments, under the engine's key names)."""
+    model = model or (trace.meta.get("model") if trace.meta else None) or (case.meta.get("model") if case.meta else None) or "engine"
+    out: list[str] = [f"# Reasoning trace — {case.case_id} — repeat {repeat}", "",
+                      f"- Case: `{case.case_id}` · ground truth: **{case.truth or 'unknown'}**",
+                      f"- Model: `{model}` · think A/C: `medium` · think B: `medium`",
+                      f"- Facts: {len(case.facts)} total — context={sum(1 for f in case.facts if f.source == 'context')}, "
+                      f"patient={sum(1 for f in case.facts if f.source == 'patient')}, who={sum(1 for f in case.facts if f.source == 'who')} · "
+                      f"allowed citation ids: {len(case.allowed_ids or {f.id for f in case.facts})}", "",
+                      "## 1. Available information (what the model was given)", ""]
+    groups: dict[tuple[str, str], list[ledger.Fact]] = {}
+    for f in case.facts:
+        if f.source != "who":
+            groups.setdefault((f.source, f.section), []).append(f)
+    for (source, section), facts in groups.items():
+        title = section.replace("_", " ")
+        if source == "context" and "context" not in title.lower():
+            title += " context"
+        out.append(f"### {title} ({len(facts)} facts)")
+        out.append("")
+        if source == "context":
+            out += _table(["ids", "field", "value"], [[f.id, f.field, f.value] for f in facts])
+        else:
+            out += _table(["ids", "field", "value", "evidence snippet"], [[f.id, f.field, f.value, f.evidence] for f in facts])
+        out.append("")
+    who = [f for f in case.facts if f.source == "who"]
+    if who:
+        cands = list(dict.fromkeys(f.candidate or f.section for f in who))
+        out.append(f"### Reference criteria ({len(who)} facts across {len(cands)} candidates)")
+        out.append("")
+        for cand in cands:
+            out.append(f"**{cand}**")
+            out.append("")
+            rows = []
+            for f in who:
+                if (f.candidate or f.section) != cand:
+                    continue
+                if rows and rows[-1][1] == f.field and rows[-1][2] == f.value:
+                    rows[-1][0] += f", {f.id}"       # one row, several ids
+                else:
+                    rows.append([f.id, f.field, f.value])
+            out += _table(["ids", "field", "value (truncated)"], rows)
+            out.append("")
+    out += ["## 2. Model's own reasoning (arm A thinking, verbatim)", "", "```", trace.thinking.rstrip("\n"), "```", ""]
+    rep = trace.report
+    out += ["## 3. Delivered report (arm A raw output replayed through the engine parser)", ""]
+    out.append(f"predicted_diagnosis raw: **{rep.decision or ''}** · delivered: **{rep.delivered_decision or rep.decision or ''}** · "
+               f"contract_valid: {bool(rep.contract_valid)}" + (f" · failure_kind: `{rep.failure_kind}`" if rep.failure_kind else ""))
+    out.append("")
+    for sec in rep.sections:
+        out.append(f"**{sec.title}**")
+        out.append("")
+        for seg in sec.segments:
+            out.append(f"- {seg.text} `[{', '.join(seg.citation_ids)}]`" if seg.citation_ids else f"- {seg.text}")
+        out.append("")
+    if rep.dropped_segments:
+        out.append("Removed by post-processing (uncited informative segments the model wrote but the engine deleted):")
+        out += [f"- {d['section']}: {d['text']}" for d in rep.dropped_segments]
+        out.append("")
+    if raw_report is None:
+        raw_sections = []
+        for sec in rep.sections:
+            segs = [{"text": g.text, "citation_ids": list(g.citation_ids)} for g in sec.segments]
+            segs += [{"text": d["text"], "citation_ids": []} for d in rep.dropped_segments if d["section"] == sec.title.rstrip(":")]
+            raw_sections.append({"title": sec.title, "segments": segs})
+        raw_report = {"predicted_diagnosis": rep.decision, "sections": raw_sections}
+    out += ["Raw model JSON:", "", "```json", json.dumps(raw_report, indent=2, ensure_ascii=False), "```", ""]
+    rat = trace.rationale
+    if rat is not None:
+        out += ["## 4. Structured rationale (arm B)", "",
+                f"Decision: **{rat.decision or ''}**" + (f" · confidence: {rat.confidence}" if rat.confidence else "") +
+                f" · agrees with delivered report: {rat.decision == (rep.delivered_decision or rep.decision)}", ""]
+        if rat.key_findings:
+            out += ["### Key findings", ""] + _table(["modality", "finding", "ids"],
+                                                     [[k.get("modality", ""), k.get("description", ""), ", ".join(k.get("ids", []))] for k in rat.key_findings]) + [""]
+        out += ["### Differential", ""] + _table(["diagnosis", "verdict", "supporting", "contradicting", "criteria", "rationale"],
+                                                 [[d.diagnosis, d.verdict, ", ".join(d.supporting), ", ".join(d.contradicting),
+                                                   f"met {sum(c.status == 'met' for c in d.criteria)} / not met {sum(c.status == 'not_met' for c in d.criteria)} / "
+                                                   f"n.a. {sum(c.status not in ('met', 'not_met') for c in d.criteria)}", d.rationale] for d in rat.differential]) + [""]
+        out += ["### Reference criteria, per candidate", ""]
+        for d in rat.differential:
+            if not d.criteria:
+                continue
+            out += [f"**{d.diagnosis}** ({d.verdict})", ""] + _table(["criterion", "status", "ids"], [[c.criterion, c.status, ", ".join(c.ids)] for c in d.criteria]) + [""]
+        out += ["### Decision detail", ""]
+        out += [f"- Discriminator: {d['text']} `[{', '.join(d.get('ids', []))}]`" for d in rat.discriminators]
+        out += [f"- Unresolved: {u}" for u in rat.unresolved]
+        out += [f"- Would change the diagnosis: {w}" for w in rat.would_change]
+        out.append("")
+        if rat.thinking:
+            out += ["Arm B thinking (verbatim):", "", "```", rat.thinking.rstrip("\n"), "```", ""]
+    abl = trace.ablation
+    if abl is not None:
+        by = case.by_id()
+        out += ["## 5. Discriminator ablation (arm C)", "",
+                f"Removed {len(abl.removed_ids)} fact(s) named as key discriminators; delivered diagnosis without them: "
+                f"**{abl.decision_after or ''}** (was {abl.decision_before or ''}) · changed: {bool(abl.changed)}", ""]
+        out += _table(["ids", "source", "field", "value"], [[i, by[i].source if i in by else "", by[i].field if i in by else "", by[i].value if i in by else ""]
+                                                            for i in abl.removed_ids]) + [""]
+    if audit_lines:
+        out += ["## 6. Audit checks", ""] + list(audit_lines) + [""]
+    return "\n".join(out)

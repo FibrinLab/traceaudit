@@ -270,9 +270,9 @@ def test_bare_server_has_no_built_in_domain(tmp_path, sample_cases):
 
 def test_ledger_endpoint(server):
     base, _ = server
-    md = Path(__file__).with_name("fixtures").joinpath("enable_trace_case_003.md").read_text()
+    md = Path(__file__).with_name("fixtures").joinpath("synthetic_trace_SYN-003.md").read_text()
     st, out = call(base, "POST", "/api/ledger", {"markdown": md})
-    assert st == 200 and out["case_id"] == "case_003" and out["metrics"]["facts"] == 111
+    assert st == 200 and out["case_id"] == "SYN-003" and out["metrics"]["facts"] == 111
     status = {c["id"]: c["status"] for c in out["checks"]}
     assert status["citations_exist"] == "PASS" and status["coverage"] == "FAIL"
     # round-trip through the JSON form

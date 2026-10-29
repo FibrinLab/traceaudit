@@ -7,7 +7,7 @@ from traceaudit import experiment, importers, ledger_io, ledger_perturb as LP, l
 from traceaudit.ledger_sim import LedgerSimParams, LedgerSimulatedModel
 from traceaudit.schema import load_traces, read_jsonl, write_jsonl
 
-FIX = Path(__file__).with_name("fixtures") / "enable_trace_case_003.md"
+FIX = Path(__file__).with_name("fixtures") / "synthetic_trace_SYN-003.md"
 
 
 def _inputs(tmp_path, per_candidate=1, seed=0):
@@ -95,7 +95,7 @@ def test_ablation_ignored_is_recovered(tmp_path):
     assert out["summary"]["counterfactual"]["ablation"]["load_bearing_rate"]["point"] == 0.0
 
 
-def test_import_enable_fixture_and_mismatch(tmp_path):
+def test_import_artefact_and_mismatch(tmp_path):
     case, trace = importers.load(FIX)
     cases = [case]
     ex = LP.expectations(case, sources=("reference", "rationale"), rationales=[trace.rationale])
@@ -105,7 +105,7 @@ def test_import_enable_fixture_and_mismatch(tmp_path):
     assert res["imported"] == 2 and res["engine_ablations"] == 1 and res["problems"] == []
     traces = load_traces(run_dir / "traces.jsonl")
     keys = {t.trace_key for t in traces}
-    assert keys == {"case_003|base|medium|0", "case_003|abl-eng-medium-r0|medium|0"}
+    assert keys == {"SYN-003|base|medium|0", "SYN-003|abl-eng-medium-r0|medium|0"}
     base = next(t for t in traces if t.variant == "base")
     assert base.extra["format"] == "ledger-json" and base.extra["source"] == "enable-md" and base.reasoning
     cases2, perts2 = PL.resolve_inputs(run_dir, str(tmp_path / "cases.jsonl")) if False else (cases, perts + list(__import__("traceaudit.schema", fromlist=["load_perturbations"]).load_perturbations(run_dir / "ablations.jsonl")))
@@ -113,10 +113,10 @@ def test_import_enable_fixture_and_mismatch(tmp_path):
     cf = list(read_jsonl(run_dir / "counterfactual.jsonl"))
     assert len(cf) == 1 and cf[0]["kind"] == "ablation" and cf[0]["outcome"] == "not_load_bearing"
     g = {r["trace_key"]: r for r in read_jsonl(run_dir / "grounding.jsonl")}
-    assert g["case_003|base|medium|0"]["n_contradicted"] == 0 and g["case_003|base|medium|0"]["contract_valid"] is False
+    assert g["SYN-003|base|medium|0"]["n_contradicted"] == 0 and g["SYN-003|base|medium|0"]["contract_valid"] is False
     assert out["summary"]["counts"]["traces"] == 2
     # an artefact whose facts match no planned variant is excluded
-    other = FIX.read_text(encoding="utf-8").replace("| p_1 | CD5 | Positive |", "| p_1 | CD5 | Weak |")
+    other = FIX.read_text(encoding="utf-8").replace("| p_1 | mk1 | Positive |", "| p_1 | mk1 | Weak |")
     (tmp_path / "x.md").write_text(other, encoding="utf-8")
     res2 = PL.import_artefacts([tmp_path / "x.md"], run_dir, cases, perts)
     assert res2["imported"] == 0 and res2["problems"][0]["code"] == "P1_LEDGER_IMPORT_MISMATCH"
@@ -145,9 +145,9 @@ def test_cases_from_artefacts_dedupes_and_flags_drift(tmp_path):
     a = FIX.read_text(encoding="utf-8")
     (tmp_path / "r1.md").write_text(a, encoding="utf-8")
     (tmp_path / "r2.md").write_text(a.replace("repeat 1", "repeat 2"), encoding="utf-8")
-    (tmp_path / "r3.md").write_text(a.replace("| p_1 | CD5 | Positive |", "| p_1 | CD5 | Weak |"), encoding="utf-8")
+    (tmp_path / "r3.md").write_text(a.replace("| p_1 | mk1 | Positive |", "| p_1 | mk1 | Weak |"), encoding="utf-8")
     cases, problems = PL.cases_from_artefacts([tmp_path / "r1.md", tmp_path / "r2.md", tmp_path / "r3.md"])
-    assert [c.case_id for c in cases] == ["case_003"] and problems[0]["code"] == "FACTS_DIFFER_ACROSS_REPEATS"
+    assert [c.case_id for c in cases] == ["SYN-003"] and problems[0]["code"] == "FACTS_DIFFER_ACROSS_REPEATS"
 
 
 @pytest.mark.parametrize("workers", [1, 3])
@@ -177,7 +177,7 @@ def test_cli_ledger_subcommands(tmp_path, capsys):
     assert any("model_derived" in p["flags"] for p in perts if p["kind"] == "decisive")
     assert main(["ledger", "validate", str(d / "cases.jsonl"), "--perturbations", str(d / "perts.jsonl")]) == 0
     assert main(["ledger", "export", str(d / "cases.jsonl"), "--perturbations", str(d / "perts.jsonl"), "-o", str(d / "exp")]) == 0
-    assert (d / "exp" / "index.jsonl").exists() and (d / "exp" / "case_003" / "base.md").exists()
+    assert (d / "exp" / "index.jsonl").exists() and (d / "exp" / "SYN-003" / "base.md").exists()
     rc = main(["ledger", "run", "--client", "sim", "--cases", str(d / "cases.jsonl"), "--perturbations", str(d / "perts.jsonl"), "--out", str(d / "run"),
                "--efforts", "medium", "--runs", "3", "--right-cue-fraction", "1", "--quiet", "--with-ablation", "--seed", "3"])
     assert rc == 0

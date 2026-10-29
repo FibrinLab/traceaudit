@@ -12,7 +12,7 @@ _SECTION = re.compile(r"^([A-Za-z][A-Za-z0-9 _/\-]*?)\s*\((\d+) facts?[^)]*\)\s*
 _TABLE_HEAD = re.compile(r"^(ids|modality|diagnosis|criterion)(\t|\s{2,})")
 _STATS_LINE = re.compile(r"^\d[\d,]* characters\.")
 _H3_TITLES = {"key findings": "Key findings", "differential": "Differential", "who criteria, per diagnosis": "WHO criteria, per diagnosis",
-              "decision detail": "Decision detail"}
+              "reference criteria, per candidate": "Reference criteria, per candidate", "decision detail": "Decision detail"}
 
 
 def looks_copied(text: str) -> bool:
@@ -193,7 +193,7 @@ def _part4(lines: list[str]) -> list[str]:
             i += 1
             continue
         if low in _H3_TITLES:
-            in_who = low.startswith("who criteria")
+            in_who = low.startswith(("who criteria", "reference criteria"))
             out.append(f"### {_H3_TITLES[low]}")
             i += 1
             continue

@@ -26,14 +26,14 @@ stated discriminators were load-bearing. If you only have prose, the lexicon
 extractor turns documents into facts first.
 
 ```bash
-traceaudit ledger audit tests/fixtures/enable_trace_case_003.md      # 24 checks on a structured trace artefact
+traceaudit ledger audit tests/fixtures/synthetic_trace_SYN-003.md      # 24 checks on a structured trace artefact
 traceaudit ledger audit artefacts/ --review-sheet review.csv          # a whole directory: pass rates per check, every grade as a row
 traceaudit ledger cases artefacts/ -o ledger_cases.jsonl              # base cases from your artefacts
 traceaudit ledger perturb ledger_cases.jsonl -o ledger_perts.jsonl --rationale-from artefacts/ --approve-all
 traceaudit ledger run --client sim --cases ledger_cases.jsonl --perturbations ledger_perts.jsonl --out runs/ledger-demo --with-ablation
 traceaudit ledger score runs/ledger-demo                                # summary.json, long.csv, ledger_audit.jsonl
 traceaudit ledger validate-probes --grid quick                           # the ledger probes recover planted rates
-traceaudit ledger sample tests/fixtures/enable_trace_case_003.md --n 300 --raters R01,R02 -o labels/   # blind label files for grader validation
+traceaudit ledger sample tests/fixtures/synthetic_trace_SYN-003.md --n 300 --raters R01,R02 -o labels/   # blind label files for grader validation
 traceaudit ledger agreement labels/                                   # inter-rater and grader-vs-consensus agreement (spec 20)
 ```
 

@@ -181,7 +181,7 @@ traceaudit report runs/demo`}</Code>
               </div>
               <div>
                 <h3>Audit a structured trace artefact</h3>
-                <Code lang="shell">{`traceaudit ledger audit tests/fixtures/enable_trace_case_003.md
+                <Code lang="shell">{`traceaudit ledger audit tests/fixtures/synthetic_trace_SYN-003.md
 traceaudit ledger audit artefacts/ --summary --review-sheet review.csv`}</Code>
                 <p>Twenty-four checks, pass rates across a directory, and every grade as a row a human can dispute.</p>
               </div>

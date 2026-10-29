@@ -82,7 +82,7 @@ referenced in thinking, cited in the report, cited in the rationale, or ignored.
 
 ## 3. Importers
 
-`importers.enable_md.parse_markdown(text)` reads the ENABLE-AI per-case artefact
+`importers.enable_md.parse_markdown(text)` reads the engine's per-case artefact (and `render_artefact(case, trace)` writes one)
 (fact tables by modality, WHO blocks by candidate, the arm A thinking fence, the
 report JSON fence, the arm B rationale tables, the arm C ablation table). Missing
 parts are tolerated; fewer checks run. `serve.ledger_from_json` accepts the same

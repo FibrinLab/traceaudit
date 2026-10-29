@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The repository carries no ENABLE-AI material. The engine artefact fixtures are replaced by a synthetic artefact
+  with the same structure and invented vocabulary (`tests/synthetic_artefact.py`, written to
+  `tests/fixtures/synthetic_trace_SYN-003.md` by `scripts/make_synthetic_artefact.py`); the viewer's mock ledger
+  result and the labelling guide's examples come from it. `importers.render_artefact` writes a case and trace as
+  the per-case Markdown artefact, the inverse of `parse_markdown`.
 - The site ships no ENABLE material: the viewer's example artefact is now a software-incident trace
   (`viewer/public/examples/incident-trace-artefact.md`, generated, twelve facts, cited report) and the site text no
   longer names the engine. The case lexicon the ledger grader builds now carries hyphenated aliases and polar value
