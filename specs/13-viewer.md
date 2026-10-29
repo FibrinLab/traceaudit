@@ -16,6 +16,11 @@ it can be opened from a file share inside a TRE.
   `#/cases` · `#/case/:caseId` · `#/trace/:traceKey/grounding` ·
   `#/trace/:traceKey/counterfactual` · `#/trace/:traceKey/authority` ·
   `#/trace/:traceKey/map` · `#/rate` · `#/rate/:index` · `#/cohort` · `#/review/:caseId`.
+  Site routes (29 Oct 2026): `#/` with no bundle is the landing page (typed headline, live
+  `/api/health` line, a request sheet to `/api/analyse`); `#/docs/:chapter[/:section]` is the
+  manual, eleven chapters with a numbered contents rail and a live request sheet per API
+  endpoint. Both use the viewer's tokens and theme and none of its bundle chrome. `#/` with
+  `?bundle=` is still Cases.
 - `trace_key` in URLs is URL-encoded (`|` → `%7C`).
 - State: a single store (Zustand or React context + reducer): `bundle`,
   `currentCase`, `currentTrace`, `mode` (`explore` | `rate` | `review`),

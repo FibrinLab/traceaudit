@@ -95,6 +95,13 @@ trace records the sha256 of the exact prompt it was sent and of its raw reasonin
 <run_dir> --cases … --perturbations …` recomputes every hash, so a reviewer can confirm the
 released traces are the ones produced from the registered inputs.
 
+## The site
+
+The built viewer is also the project's site: `#/` is a landing page with a live request sheet against
+`/api/analyse`, and `#/docs` is the manual (API reference with a live sheet per endpoint, the fact ledger,
+the probes, validation, provenance, command line, domains, self-hosting, research status). It is served
+by `traceaudit serve --static viewer/dist` and by the public instance at https://traceaudit.pages.dev.
+
 ## Run it as a service
 
 ```bash

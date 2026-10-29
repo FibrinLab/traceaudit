@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Landing page and manual. `#/` without a bundle is now a front page in the viewer's typewriter design: a typed
+  headline, a live line from `/api/health`, and a request sheet that posts the incident-triage example to
+  `/api/analyse` and renders the graded result. `#/docs/<chapter>[/<section>]` is an eleven-chapter manual
+  (what is measured, quick start, API reference with a live sheet per endpoint, fact ledger, probes, validation
+  and statistics, provenance, command line, bring your own domain, self-hosting, research status and limits).
+  Monochrome, Courier Prime, hairlines; the only colour is the three grade colours inside live results.
 - Provenance hashes (`traceaudit.provenance`): each trace records the sha256 of the exact prompt sent, of its raw
   reasoning and of its raw answer (imports add the artefact hash); the manifest records `provenance.inputs_sha256`
   over the prompt, cases, perturbations and lexicon hashes, the value to pre-register. `traceaudit manifest verify

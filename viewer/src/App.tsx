@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { navigate, useRoute, type Route } from './lib/router';
+import { useRoute, type Route } from './lib/router';
 import { useStore, VIEWER_VERSION } from './store';
 import { LoadPanel } from './components/LoadPanel';
 import { KeyboardHelp } from './components/Shared';
@@ -19,6 +19,8 @@ import { AnalyseLedgerView } from './views/AnalyseLedgerView';
 import { JobsView } from './views/JobsView';
 import { JobView } from './views/JobView';
 import { ApiSettingsButton } from './components/ApiSettings';
+import { Landing } from './site/Landing';
+import { Docs } from './site/Docs';
 
 const GLOBAL_SHORTCUTS: Array<[string, string]> = [
   ['?', 'Toggle this help'],
@@ -63,12 +65,17 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => { document.title = titleFor(route); window.scrollTo(0, 0); }, [route]);
-
-  // Landing: the front page is Analyse unless the address asked for a bundle (`?bundle=`), in which case `#/` is Cases.
   useEffect(() => {
-    if (route.name === 'home' && status === 'idle') navigate('#/analyse');
-  }, [route.name, status]);
+    document.title = titleFor(route);
+    // A manual deep link scrolls to its heading itself; everything else starts at the top.
+    if (!(route.name === 'docs' && route.anchor)) window.scrollTo(0, 0);
+  }, [route]);
+
+  // The front page and the manual have their own chrome. `#/` with a bundle loading or loaded (`?bundle=`) is Cases.
+  const siteRoute = route.name === 'docs' || (route.name === 'home' && status === 'idle');
+  if (siteRoute) {
+    return route.name === 'docs' ? <Docs slug={route.slug} anchor={route.anchor} /> : <Landing />;
+  }
 
   const manifest = bundle?.index.run.manifest;
   const model = manifest?.model as { tag?: string; effort_mechanism?: string } | undefined;
@@ -158,6 +165,8 @@ function titleFor(route: Route): string {
     case 'analyse': return route.page === 'trace' ? 'Analyse a trace — traceaudit' : route.page === 'audit' ? 'Audit a model — traceaudit' : route.page === 'ledger' ? 'Fact ledger — traceaudit' : 'Analyse — traceaudit';
     case 'jobs': return 'Jobs — traceaudit';
     case 'job': return `Job ${route.jobId} — traceaudit`;
+    case 'docs': return 'Manual — traceaudit';
+    case 'home': return 'traceaudit';
     default: return 'traceaudit Trace Viewer';
   }
 }
@@ -181,6 +190,7 @@ function RouteView({ route }: { route: Route }) {
     case 'analyse': return route.page === 'trace' ? <AnalyseTraceView /> : route.page === 'audit' ? <AuditView /> : route.page === 'ledger' ? <AnalyseLedgerView /> : <AnalyseView />;
     case 'jobs': return <JobsView />;
     case 'job': return <JobView jobId={route.jobId} />;
+    case 'docs': return <Docs slug={route.slug} anchor={route.anchor} />;
     case 'notfound': return <div className="narrow"><h1>Not found</h1><p className="muted">No view at <code>{route.path}</code>. <a href="#/analyse">Go to Analyse</a>.</p></div>;
   }
 }

@@ -11,6 +11,7 @@ export type Route =
   | { name: 'analyse'; page: 'chooser' | 'trace' | 'audit' | 'ledger' }
   | { name: 'jobs' }
   | { name: 'job'; jobId: string }
+  | { name: 'docs'; slug: string; anchor: string | null }
   | { name: 'notfound'; path: string };
 
 export function parseHash(hash: string): Route {
@@ -38,6 +39,7 @@ export function parseHash(hash: string): Route {
       if (parts[1] === 'trace' || parts[1] === 'audit' || parts[1] === 'ledger') return { name: 'analyse', page: parts[1] };
       return { name: 'notfound', path };
     case 'jobs': return parts[1] ? { name: 'job', jobId: parts[1] } : { name: 'jobs' };
+    case 'docs': return { name: 'docs', slug: parts[1] ?? 'overview', anchor: parts[2] ?? null };
     default: return { name: 'notfound', path };
   }
 }
@@ -49,6 +51,8 @@ export function hrefCase(caseId: string): string { return `#/case/${encodeURICom
 export function hrefReview(caseId: string): string { return `#/review/${encodeURIComponent(caseId)}`; }
 export function hrefRate(index: number): string { return `#/rate/${index}`; }
 export function hrefJob(jobId: string): string { return `#/jobs/${encodeURIComponent(jobId)}`; }
+/** A manual chapter, optionally a heading inside it: `#/docs/api/analyse`. */
+export function hrefDocs(slug: string, anchor?: string): string { return anchor ? `#/docs/${slug}/${anchor}` : `#/docs/${slug}`; }
 
 export function navigate(href: string): void {
   if (window.location.hash === href) return;
