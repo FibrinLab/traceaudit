@@ -25,6 +25,7 @@ scope and the documents here set behaviour.
 | 14 | [Case generation](14-case-generation.md) | Structured truth → SIHMDS-style reports → review |
 | 15 | [Study protocol](15-study-protocol.md) | Sampling, rating study, pre-registration contents, deviations |
 | 16 | [Testing and CI](16-testing-ci.md) | Test plan, invariants enforced in CI, release gates |
+| 19 | [Grader validation](19-grader-validation.md) | Blind labelling of ledger citations, inter-rater and grader-vs-consensus agreement, acceptance rule |
 
 ## Scope note
 

@@ -27,6 +27,8 @@ extractor turns documents into facts first.
 
 ```bash
 traceaudit ledger audit tests/fixtures/enable_trace_case_003.md      # 24 checks on a structured trace artefact
+traceaudit ledger sample tests/fixtures/enable_trace_case_003.md --n 300 --raters R01,R02 -o labels/   # blind label files for grader validation
+traceaudit ledger agreement labels/                                   # inter-rater and grader-vs-consensus agreement (spec 19)
 ```
 
 What a researcher gets, for any domain:

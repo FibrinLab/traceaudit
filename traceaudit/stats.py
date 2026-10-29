@@ -5,7 +5,7 @@ import csv
 import json
 import math
 import random
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
@@ -216,6 +216,65 @@ def percent_agreement(a: Sequence[int], b: Sequence[int], within: int = 0) -> fl
     if not pairs:
         return float("nan")
     return sum(1 for x, y in pairs if abs(x - y) <= within) / len(pairs)
+
+
+def cohen_kappa(a: Sequence, b: Sequence) -> float:
+    """Unweighted (nominal) Cohen's kappa. Pairs with a None on either side are dropped; nan when no pairs remain."""
+    pairs = [(x, y) for x, y in zip(a, b) if x is not None and y is not None]
+    n = len(pairs)
+    if n == 0:
+        return float("nan")
+    ca = Counter(x for x, _ in pairs)
+    cb = Counter(y for _, y in pairs)
+    po = sum(1 for x, y in pairs if x == y) / n
+    pe = sum(ca[c] * cb[c] for c in set(ca) | set(cb)) / (n * n)
+    if pe == 1:
+        return 1.0
+    return (po - pe) / (1 - pe)
+
+
+def gwet_ac1(matrix: Sequence[Sequence], categories: Sequence | None = None) -> float:
+    """Gwet's AC1 for nominal ratings; matrix rows = items, columns = raters (None = missing).
+    Items with fewer than two ratings are skipped; nan when none remain. `categories` fixes the category set
+    (default: every value observed)."""
+    rows = [[x for x in row if x is not None] for row in matrix]
+    rows = [r for r in rows if len(r) >= 2]
+    n = len(rows)
+    if n == 0:
+        return float("nan")
+    cats = list(categories) if categories is not None else sorted({x for r in rows for x in r}, key=str)
+    q = len(cats)
+    pa = 0.0
+    pi: dict = {c: 0.0 for c in cats}
+    for r in rows:
+        m = len(r)
+        counts = Counter(r)
+        pa += sum(k * (k - 1) for k in counts.values()) / (m * (m - 1))
+        for c, k in counts.items():
+            if c not in pi:
+                raise ValueError(f"rating {c!r} not in categories {cats}")
+            pi[c] += k / m
+    pa /= n
+    if q < 2:
+        return 1.0
+    pe = sum((p / n) * (1 - p / n) for p in pi.values()) / (q - 1)
+    if pe == 1:
+        return 1.0
+    return (pa - pe) / (1 - pe)
+
+
+def per_class_pr(pred: Sequence, truth: Sequence, classes: Sequence) -> dict:
+    """Precision and recall of `pred` against `truth` for each class (one-vs-rest). Pairs with a None are dropped;
+    precision/recall are None where their denominator is zero."""
+    pairs = [(p, t) for p, t in zip(pred, truth) if p is not None and t is not None]
+    out: dict = {}
+    for c in classes:
+        tp = sum(1 for p, t in pairs if p == c and t == c)
+        fp = sum(1 for p, t in pairs if p == c and t != c)
+        fn = sum(1 for p, t in pairs if p != c and t == c)
+        out[c] = {"tp": tp, "fp": fp, "fn": fn, "support": tp + fn, "predicted": tp + fp,
+                  "precision": tp / (tp + fp) if tp + fp else None, "recall": tp / (tp + fn) if tp + fn else None}
+    return out
 
 
 def agreement_bootstrap(fn: Callable[[list], float], items: list, B: int = 2000, seed: int = 20261020) -> dict:

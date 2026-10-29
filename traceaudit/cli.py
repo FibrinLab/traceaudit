@@ -344,6 +344,41 @@ def cmd_ledger(a) -> int:
     return 1 if m["checks_failed"] else 0
 
 
+def cmd_ledger_sample(a) -> int:
+    from . import ledger as ledger_mod
+    from .importers import load as load_artefact
+    from .tools import ledger_labels as ll
+    paths = ll.artefact_paths(a.source)
+    if not paths:
+        return _err(f"no artefacts under {a.source}", 2)
+    items: list[dict] = []
+    for path in paths:
+        case, trace = load_artefact(path)
+        items += ll.items_from_audit(ledger_mod.audit(case, trace))
+    raters = [r.strip() for r in a.raters.split(",") if r.strip()]
+    if not raters:
+        return _err("--raters must name at least one rater")
+    sampled = ll.sample(items, a.n, a.seed, a.per_case)
+    written = ll.write_label_set(a.out, sampled, raters, a.seed, {"sources": [str(x) for x in paths], "n_items_available": len(items),
+                                                                  "strata_available": ll.strata_counts(items)})
+    print(f"{len(items)} gradable items in {len(paths)} artefact(s); sampled {len(sampled)} -> {written['grader']} (grades) and "
+          f"{', '.join(str(written[r]) for r in raters)} (blind)")
+    for k, v in ll.strata_counts(sampled).items():
+        print(f"  {k}: {v}")
+    return 0
+
+
+def cmd_ledger_agreement(a) -> int:
+    from .tools import ledger_labels as ll
+    grader, raters, adj = ll.read_label_set(a.labels, a.adjudicated)
+    if not raters:
+        return _err(f"no rater files in {a.labels}")
+    rep = ll.agreement(raters, grader, adj, B=a.B, seed=a.seed)
+    print(json.dumps(rep, indent=1, ensure_ascii=False))
+    print(ll.summary_text(rep), file=sys.stderr)
+    return 0
+
+
 def cmd_manifest(a) -> int:
     from .experiment import manifest_check, read_manifest
     if a.action == "show":
@@ -442,9 +477,18 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("action", choices=["build"]); s.add_argument("documents", help="JSONL of {case_id, entity, documents{section: text}, truth?}")
     s.add_argument("-o", "--out", required=True); s.add_argument("--approve", action="store_true", help="mark the built cases approved for runs")
     s.add_argument("--strict", action="store_true", help="drop cases with problems and exit 1 if any"); s.set_defaults(fn=cmd_cases)
-    s = sub.add_parser("ledger", help="audit a structured trace artefact (facts + citations)")
-    s.add_argument("action", choices=["audit"]); s.add_argument("file", help="ENABLE-style markdown artefact"); s.add_argument("--json", action="store_true")
-    s.set_defaults(fn=cmd_ledger)
+    s = sub.add_parser("ledger", help="audit a structured trace artefact (facts + citations); sample citations for blind labelling; grader agreement")
+    ls = s.add_subparsers(dest="action", required=True)
+    x = ls.add_parser("audit", help="run every ledger check on one artefact")
+    x.add_argument("file", help="ENABLE-style markdown artefact"); x.add_argument("--json", action="store_true"); x.set_defaults(fn=cmd_ledger)
+    x = ls.add_parser("sample", help="write grader.jsonl and blind per-rater files for a sample of citations (spec 19)")
+    x.add_argument("source", help="artefact file, or a directory searched for *.md"); x.add_argument("--n", type=int, default=300)
+    x.add_argument("--raters", default="R01,R02", help="comma list of rater ids"); x.add_argument("--seed", type=int, default=20261029)
+    x.add_argument("--per-case", type=int, default=None, help="cap per case (default: twice the even share, at least 5)")
+    x.add_argument("-o", "--out", default="labels"); x.set_defaults(fn=cmd_ledger_sample)
+    x = ls.add_parser("agreement", help="inter-rater and grader-vs-consensus agreement over a labels directory (spec 19)")
+    x.add_argument("labels", help="directory with grader.jsonl and <rater>.jsonl"); x.add_argument("--adjudicated", default=None, help="jsonl of {item_id, human_grade}")
+    x.add_argument("--B", type=int, default=2000); x.add_argument("--seed", type=int, default=20261029); x.set_defaults(fn=cmd_ledger_agreement)
     s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p
