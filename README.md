@@ -27,6 +27,7 @@ extractor turns documents into facts first.
 
 ```bash
 traceaudit ledger audit tests/fixtures/enable_trace_case_003.md      # 24 checks on a structured trace artefact
+traceaudit ledger audit artefacts/ --review-sheet review.csv          # a whole directory: pass rates per check, every grade as a row
 ```
 
 What a researcher gets, for any domain:

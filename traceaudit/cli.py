@@ -326,14 +326,66 @@ def cmd_cases(a) -> int:
     return 1 if (a.strict and problems) else 0
 
 
-def cmd_ledger(a) -> int:
+def ledger_artefact_paths(inputs: list[str]) -> list[Path]:
+    """Expand files, directories (every *.md inside, recursively) and globs into artefact paths, sorted."""
+    import glob
+    out: list[Path] = []
+    for item in inputs:
+        pth = Path(item)
+        if pth.is_dir():
+            out += sorted(q for q in pth.rglob("*.md") if q.is_file())
+        elif pth.exists():
+            out.append(pth)
+        else:
+            out += sorted(Path(q) for q in glob.glob(item, recursive=True))
+    seen: set[Path] = set()
+    return [q for q in out if not (q in seen or seen.add(q))]
+
+
+def cmd_ledger_audit(a) -> int:
+    import csv
     from . import ledger as ledger_mod
     from .importers import load as load_artefact
-    case, trace = load_artefact(a.file)
-    res = ledger_mod.audit(case, trace)
+    paths = ledger_artefact_paths(a.paths)
+    if not paths:
+        print("no artefacts found", file=sys.stderr)
+        return 2
+    results = []
+    for pth in paths:
+        case, trace = load_artefact(pth)
+        res = ledger_mod.audit(case, trace)
+        res["source_path"] = str(pth)
+        results.append(res)
+    if a.review_sheet:
+        with open(a.review_sheet, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=ledger_mod.REVIEW_COLUMNS)
+            w.writeheader()
+            for res in results:
+                for row in ledger_mod.review_rows(res):
+                    w.writerow({**row, "human_grade": "", "note": ""})
+        print(f"review sheet: {a.review_sheet} ({sum(len(ledger_mod.review_rows(r)) for r in results)} rows)", file=sys.stderr)
+    many = len(results) > 1 or a.summary
     if a.json:
-        print(json.dumps(res, indent=1))
+        print(json.dumps(ledger_mod.audit_many(results) if many else results[0], indent=1))
         return 0
+    if not many:
+        _print_ledger_result(results[0])
+        return 1 if results[0]["metrics"]["checks_failed"] else 0
+    agg = ledger_mod.audit_many(results)
+    for pc in agg["per_case"]:
+        print(f"{pc['case_id']}: decision {pc['decision']} (truth {pc['truth']}); {pc['checks_failed']} of {pc['checks_total']} checks failed")
+    print(f"\n{agg['n']} artefact(s); decision matches truth in {agg['decision_matches_truth']['matches']} of {agg['decision_matches_truth']['n']}")
+    print("check pass rates:")
+    for cid, row in sorted(agg["check_pass_rates"].items(), key=lambda kv: (kv[1]["pass_rate"] or 0, kv[0])):
+        print(f"  {row['pass']:3}/{row['n']:<3} {row['title']}")
+    g = agg["grade_counts"]
+    print("citation grades: " + ", ".join(f"{k} {v}" for k, v in sorted(g["cited"].items())))
+    if g["uncited"]:
+        print("uncited assertions: " + ", ".join(f"{k} {v}" for k, v in sorted(g["uncited"].items())))
+    return 1 if any(pc["checks_failed"] for pc in agg["per_case"]) else 0
+
+
+def _print_ledger_result(res: dict) -> None:
     print(f"{res['case_id']}: decision {res['decision']} (truth {res['truth']}); {res['metrics']['checks_failed']} of {res['metrics']['checks_total']} checks failed")
     for ch in res["checks"]:
         print(f"  {ch['status']:4} {ch['title']}" + (f" — {ch['detail']}" if ch["detail"] else ""))
@@ -341,7 +393,6 @@ def cmd_ledger(a) -> int:
     print(f"  facts {m['facts']} (patient {m['patient_facts']}, context {m['context_facts']}, reference {m['reference_facts']}); "
           f"cited in report {m['cited_in_report']} (agree {m['cited_agree']}, disagree {m['cited_disagree']}, unverifiable {m['cited_unverifiable']}); "
           f"ignored {m['ignored']} ({m['ignored_informative']} informative)")
-    return 1 if m["checks_failed"] else 0
 
 
 def cmd_manifest(a) -> int:
@@ -442,9 +493,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("action", choices=["build"]); s.add_argument("documents", help="JSONL of {case_id, entity, documents{section: text}, truth?}")
     s.add_argument("-o", "--out", required=True); s.add_argument("--approve", action="store_true", help="mark the built cases approved for runs")
     s.add_argument("--strict", action="store_true", help="drop cases with problems and exit 1 if any"); s.set_defaults(fn=cmd_cases)
-    s = sub.add_parser("ledger", help="audit a structured trace artefact (facts + citations)")
-    s.add_argument("action", choices=["audit"]); s.add_argument("file", help="ENABLE-style markdown artefact"); s.add_argument("--json", action="store_true")
-    s.set_defaults(fn=cmd_ledger)
+    s = sub.add_parser("ledger", help="structured trace artefacts (facts + citations): audit, and later sample/agreement")
+    ls = s.add_subparsers(dest="ledger_action", required=True)
+    la = ls.add_parser("audit", help="audit one artefact, or many (directories and globs) with a summary and a review sheet")
+    la.add_argument("paths", nargs="+", help="markdown artefact files, directories (all *.md inside) or globs")
+    la.add_argument("--json", action="store_true"); la.add_argument("--summary", action="store_true", help="aggregate even for a single artefact")
+    la.add_argument("--review-sheet", metavar="CSV", help="write every citation grade and uncited assertion as a row for human review")
+    la.set_defaults(fn=cmd_ledger_audit)
     s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p

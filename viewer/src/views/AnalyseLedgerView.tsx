@@ -8,6 +8,7 @@ import {
   COVERAGE_META, COVERAGE_ORDER, GRADE_ICON, GRADE_TEXT, LEDGER_FILTERS,
   candidateCounts, coverageCategory, coverageCounts, disagreeingIds, factLabel, factMap, filterFacts, gradeTone, groupFacts, isCaseFact, sourceText, tokeniseThinking,
   type Citation, type CoverageCategory, type Fact, type LedgerFilter, type LedgerRequest, type LedgerResult,
+  describeUncited,
 } from '../lib/ledger';
 
 /** The service's own fixture: a haematopathology trace with 111 facts, packaged with the viewer. */
@@ -282,7 +283,7 @@ function ReportWithCitations({ result, ctx }: { result: LedgerResult; ctx: Ctx }
               </div>
               {seg.uncited_assertions.length > 0 && (
                 <ul className="uncited" aria-label="Uncited assertions">
-                  {seg.uncited_assertions.map((a, ai) => <li key={ai}><span className="icon" aria-hidden="true">!</span> uncited: {a}</li>)}
+                  {seg.uncited_assertions.map((a, ai) => <li key={ai}><span className="icon" aria-hidden="true">!</span> uncited: {describeUncited(a)} <span className="muted small">({a.grade})</span></li>)}
                 </ul>
               )}
             </div>

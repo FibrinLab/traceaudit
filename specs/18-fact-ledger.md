@@ -54,7 +54,10 @@ structures as plain JSON for pipelines that can emit them directly.
 
 ## 4. Surfaces
 
-- CLI: `traceaudit ledger audit <artefact.md> [--json]` prints the checks and metrics.
+- CLI: `traceaudit ledger audit <artefact.md> [--json]` prints the checks and metrics; given directories or globs
+  (or `--summary`) it prints pass rates per check and grade counts across artefacts (`ledger.audit_many`), and
+  `--review-sheet out.csv` writes one row per citation grade and uncited assertion (`ledger.review_rows`) with empty
+  `human_grade`/`note` columns for a reviewer to fill.
 - Service: `POST /api/ledger` with `{markdown}` or `{case, trace}` returns the full result.
 - Viewer: `#/analyse/ledger` renders the verdict, the report with graded citation
   chips, the ledger table with coverage marks, the reasoning with clickable ids,

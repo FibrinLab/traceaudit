@@ -33,7 +33,9 @@ export interface Citation {
   stated?: string | null;
   candidate?: string | null;
 }
-export interface LedgerSegment { text: string; citation_ids: string[]; cited: Citation[]; uncited_assertions: string[]; informative: boolean }
+/** An assertion the grader found in the segment's text that cites no fact: `fact_id` is the fact it matched, if any. */
+export interface UncitedAssertion { field: string; stated?: string | null; fact_id?: string | null; value?: string | null; grade: string }
+export interface LedgerSegment { text: string; citation_ids: string[]; cited: Citation[]; uncited_assertions: UncitedAssertion[]; informative: boolean }
 export interface LedgerSection { title: string; segments: LedgerSegment[] }
 
 /** `patient` and `context` are the case; everything else (`who`, …) is reference material. */
@@ -134,7 +136,7 @@ export function parseLedgerResult(raw: unknown): LedgerResult {
     candidates: arr<string>('candidates').filter((c) => typeof c === 'string'),
     checks,
     metrics: m,
-    sections: arr<LedgerSection>('sections').map((s) => ({ title: String(s.title ?? ''), segments: (s.segments ?? []).map((seg) => ({ text: String(seg.text ?? ''), citation_ids: seg.citation_ids ?? [], cited: seg.cited ?? [], uncited_assertions: seg.uncited_assertions ?? [], informative: seg.informative !== false })) })),
+    sections: arr<LedgerSection>('sections').map((s) => ({ title: String(s.title ?? ''), segments: (s.segments ?? []).map((seg) => ({ text: String(seg.text ?? ''), citation_ids: seg.citation_ids ?? [], cited: seg.cited ?? [], uncited_assertions: (seg.uncited_assertions ?? []).map(uncitedAssertion), informative: seg.informative !== false })) })),
     facts,
     thinking: thinking ? { text: String(thinking.text ?? ''), ids: thinking.ids ?? [], candidates: thinking.candidates ?? [] } : null,
     rationale: rationale ? {
@@ -304,4 +306,17 @@ export function factMap(facts: Fact[]): Map<string, Fact> { return new Map(facts
 export function factLabel(id: string, f: { field?: string | null; value?: string | null } | undefined): string {
   if (!f || !f.field) return id;
   return `${id} · ${f.field} = ${f.value ?? '—'}`;
+}
+
+/** Older results carried uncited assertions as plain strings; keep them renderable. */
+export function uncitedAssertion(a: unknown): UncitedAssertion {
+  if (typeof a === 'string') return { field: a, grade: 'unknown' };
+  const o = (a ?? {}) as Record<string, unknown>;
+  return { field: String(o.field ?? ''), stated: o.stated == null ? null : String(o.stated), fact_id: o.fact_id == null ? null : String(o.fact_id), value: o.value == null ? null : String(o.value), grade: String(o.grade ?? 'unknown') };
+}
+
+export function describeUncited(a: UncitedAssertion): string {
+  const what = a.stated ? `${a.field}: ${a.stated}` : a.field;
+  const against = a.fact_id ? ` vs ${a.fact_id} (${a.value ?? '?'})` : '';
+  return `${what}${against}`;
 }

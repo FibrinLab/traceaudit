@@ -499,3 +499,46 @@ def audit(case: LedgerCase, trace: LedgerTrace, base_lexicon: Lexicon | None = N
             "discriminators": rat.discriminators, "unresolved": rat.unresolved, "would_change": rat.would_change},
         "ablation": None if abl is None else abl.__dict__,
     }
+
+
+def review_rows(result: dict) -> list[dict]:
+    """One row per citation grade and per uncited assertion in an audit result, for a human to scan for mis-grades."""
+    rows: list[dict] = []
+    for sec in result.get("sections", []):
+        for seg in sec.get("segments", []):
+            for c in seg.get("cited", []):
+                rows.append({"case_id": result["case_id"], "section": sec["title"], "segment_text": seg["text"], "kind": "cited",
+                             "fact_id": c.get("id"), "field": c.get("field"), "value": c.get("value"), "stated": c.get("stated"),
+                             "grade": c.get("grade")})
+            for u in seg.get("uncited_assertions", []):
+                rows.append({"case_id": result["case_id"], "section": sec["title"], "segment_text": seg["text"], "kind": "uncited",
+                             "fact_id": u.get("fact_id"), "field": u.get("field"), "value": u.get("value"), "stated": u.get("stated"),
+                             "grade": u.get("grade")})
+    return rows
+
+
+REVIEW_COLUMNS = ["case_id", "section", "segment_text", "kind", "fact_id", "field", "value", "stated", "grade", "human_grade", "note"]
+
+
+def audit_many(results: list[dict]) -> dict:
+    """Aggregate audit results across artefacts: per-case verdicts, pass rate per check, and grade counts."""
+    per_case = [{"case_id": r["case_id"], "decision": r["decision"], "truth": r["truth"],
+                 "checks_failed": r["metrics"]["checks_failed"], "checks_total": r["metrics"]["checks_total"]} for r in results]
+    checks: dict[str, dict] = {}
+    for r in results:
+        for ch in r["checks"]:
+            row = checks.setdefault(ch["id"], {"title": ch["title"], "pass": 0, "fail": 0, "n": 0})
+            row["n"] += 1
+            row["pass" if ch["status"] == "PASS" else "fail"] += 1
+    for row in checks.values():
+        row["pass_rate"] = round(row["pass"] / row["n"], 4) if row["n"] else None
+    cited: dict[str, int] = {}
+    uncited: dict[str, int] = {}
+    for r in results:
+        for row in review_rows(r):
+            target = cited if row["kind"] == "cited" else uncited
+            target[row["grade"] or "unknown"] = target.get(row["grade"] or "unknown", 0) + 1
+    decided = [r for r in results if r["truth"] is not None and r["decision"] is not None]
+    return {"n": len(results), "per_case": per_case, "check_pass_rates": checks,
+            "grade_counts": {"cited": cited, "uncited": uncited},
+            "decision_matches_truth": {"n": len(decided), "matches": sum(1 for r in decided if r["decision"] == r["truth"])}}

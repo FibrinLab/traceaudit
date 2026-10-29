@@ -69,3 +69,44 @@ def test_disagreement_is_caught():
     trace.thinking += " Also CD23 negative here."
     res = ledger.audit(case, trace)
     assert {c["id"]: c["status"] for c in res["checks"]}["thinking_agrees"] == "FAIL"
+
+
+def test_review_rows_and_audit_many():
+    case, trace = importers.load(FIX)
+    res = ledger.audit(case, trace)
+    rows = ledger.review_rows(res)
+    # one row per citation occurrence (a fact cited twice gives two rows), plus one per uncited assertion
+    assert len(rows) == sum(len(seg["cited"]) + len(seg["uncited_assertions"]) for s in res["sections"] for seg in s["segments"])
+    assert len({r["fact_id"] for r in rows if r["kind"] == "cited"}) == res["metrics"]["cited_in_report"]
+    assert {r["kind"] for r in rows} <= {"cited", "uncited"}
+    assert all(set(r) == set(ledger.REVIEW_COLUMNS) - {"human_grade", "note"} for r in rows)
+    cited = [r for r in rows if r["kind"] == "cited"]
+    assert sum(1 for r in cited if r["grade"] == "agree") == res["metrics"]["cited_agree"]
+    agg = ledger.audit_many([res, res])
+    assert agg["n"] == 2 and [pc["case_id"] for pc in agg["per_case"]] == ["case_003", "case_003"]
+    assert agg["check_pass_rates"]["citations_agree"] == {"title": "Cited facts are stated with their recorded value", "pass": 2, "fail": 0, "n": 2, "pass_rate": 1.0}
+    assert agg["check_pass_rates"]["thinking_considers_alternatives"]["pass_rate"] == 0.0
+    assert agg["grade_counts"]["cited"]["agree"] == 2 * res["metrics"]["cited_agree"]
+    assert agg["decision_matches_truth"] == {"n": 2, "matches": 2}
+
+
+def test_ledger_audit_cli_many(tmp_path, capsys):
+    import csv
+    from traceaudit.cli import main
+    d = tmp_path / "artefacts"
+    d.mkdir()
+    (d / "a.md").write_text(FIX.read_text(encoding="utf-8"), encoding="utf-8")
+    (d / "sub").mkdir()
+    (d / "sub" / "b.md").write_text(FIX.read_text(encoding="utf-8"), encoding="utf-8")
+    sheet = tmp_path / "review.csv"
+    rc = main(["ledger", "audit", str(d), "--review-sheet", str(sheet)])
+    out = capsys.readouterr().out
+    assert rc == 1 and "2 artefact(s)" in out and "check pass rates:" in out and "citation grades:" in out
+    rows = list(csv.DictReader(open(sheet, encoding="utf-8")))
+    assert rows and list(rows[0]) == ledger.REVIEW_COLUMNS and all(r["human_grade"] == "" for r in rows)
+    assert len(rows) == 2 * len(ledger.review_rows(ledger.audit(*importers.load(FIX))))
+    assert main(["ledger", "audit", str(FIX), "--json"]) == 0
+    single = json.loads(capsys.readouterr().out)
+    assert single["case_id"] == "case_003" and "per_case" not in single
+    assert main(["ledger", "audit", str(FIX), "--summary", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["n"] == 1

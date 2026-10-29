@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  GRADE_TONE, candidateCounts, coverageCategory, coverageCounts, disagreeingIds, filterFacts, gradeColor, gradeTone, groupFacts, parseLedgerResult, tokeniseThinking,
+  GRADE_TONE, candidateCounts, coverageCategory, coverageCounts, describeUncited, disagreeingIds, filterFacts, gradeColor, gradeTone, groupFacts, parseLedgerResult, tokeniseThinking, uncitedAssertion,
   type Fact, type LedgerResult,
 } from '../lib/ledger';
 import { buildLedgerRequest } from '../views/AnalyseLedgerView';
@@ -139,5 +139,21 @@ describe('request building', () => {
     expect(buildLedgerRequest('# Reasoning trace\n| p_1 | CD5 |')).toEqual({ markdown: '# Reasoning trace\n| p_1 | CD5 |' });
     expect(buildLedgerRequest('{"case": {"id": 1}, "trace": {"thinking": "x"}}')).toEqual({ case: { id: 1 }, trace: { thinking: 'x' } });
     expect(buildLedgerRequest('{"not": "a trace"}')).toEqual({ markdown: '{"not": "a trace"}' });
+  });
+});
+
+describe('uncited assertions', () => {
+  it('parses the service object shape and still accepts the old string shape', () => {
+    const o = uncitedAssertion({ field: 'CD10', stated: 'positive', fact_id: 'p_10', value: 'Negative', grade: 'disagree' });
+    expect(o).toEqual({ field: 'CD10', stated: 'positive', fact_id: 'p_10', value: 'Negative', grade: 'disagree' });
+    expect(describeUncited(o)).toBe('CD10: positive vs p_10 (Negative)');
+    expect(uncitedAssertion('CD10 positive')).toEqual({ field: 'CD10 positive', grade: 'unknown' });
+    expect(describeUncited({ field: 'BRAF', grade: 'unknown_fact' })).toBe('BRAF');
+  });
+  it('keeps uncited assertions on parsed segments', () => {
+    const copy = JSON.parse(JSON.stringify(raw));
+    copy.sections[0].segments[0].uncited_assertions = [{ field: 'CD10', stated: 'positive', fact_id: 'p_10', value: 'Negative', grade: 'disagree' }];
+    const r = parseLedgerResult(copy);
+    expect(r.sections[0].segments[0].uncited_assertions[0].grade).toBe('disagree');
   });
 });
