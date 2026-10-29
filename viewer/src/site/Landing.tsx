@@ -21,7 +21,7 @@ export function Landing() {
       <main>
         <section className="hero">
           <div className="sheet">
-            <p className="kicker">traceaudit, reasoning-trace analytics. A research instrument you can run against the live service below.</p>
+            <p className="kicker">traceaudit, reasoning-trace analytics. Paste a model's reasoning and the documents it read; see what holds up.</p>
             <Typed as="h1" text={HEADLINE} speed={38} startDelay={200} />
             <p className="lede">
               A reasoning model writes a long chain of thought before it answers. traceaudit grades every factual claim in that chain against
@@ -29,10 +29,9 @@ export function Landing() {
               Any domain, no model of its own, standard-library Python.
             </p>
             <div className="actions">
-              <a className="btn primary" href="#/" onClick={(e) => { e.preventDefault(); document.getElementById('try')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>Send a trace now</a>
+              <a className="btn primary" href="#/analyse">Open the viewer</a>
               <a className="btn" href="#/docs">Read the manual</a>
-              <a className="btn" href="#/docs/api">API reference</a>
-              <a className="btn quiet" href="#/analyse">Open the viewer</a>
+              <a className="btn quiet" href="#/" onClick={(e) => { e.preventDefault(); document.getElementById('try')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>For developers: the API</a>
             </div>
             <p className="wire" aria-label="Live service status">
               {health.status === 'loading' ? <span className="muted">connecting to the service</span> : <Typed text={wire} speed={10} startDelay={1400} cursor={false} />}
@@ -70,10 +69,11 @@ export function Landing() {
 
         <section className="section" id="try" aria-labelledby="try-h">
           <div className="sheet">
-            <h2 id="try-h">Send a trace to the live API</h2>
+            <h2 id="try-h">For developers: send a trace to the live API</h2>
             <p className="lede">
-              This sheet posts to <code>/api/analyse</code> on the service behind this page. The example is a software incident: three documents,
-              a model's reasoning, an answer. Edit anything and send again. Nothing here calls a language model.
+              The viewer does this with a form; this sheet does it with a request. It posts to <code>/api/analyse</code> on the service behind
+              this page. The example is a software incident: three documents, a model's reasoning, an answer. Edit anything and send again.
+              Nothing here calls a language model.
             </p>
             <ApiTry method="POST" path="/api/analyse" body={stringify(INCIDENT_REQUEST)} sendLabel="Send to /api/analyse"
               note="Anonymous requests are rate limited per address." summary={(json) => <AnalyseSummary data={json} />} />

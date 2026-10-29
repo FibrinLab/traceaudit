@@ -129,6 +129,8 @@ describe('App front page and manual', () => {
     expect(screen.queryByText('Trace Viewer')).toBeNull();
     await waitFor(() => expect(screen.getByText(/service 0\.2\.0/)).toBeTruthy());
     expect(screen.getByLabelText('Live service status').textContent).toMatch(/GET \/api\/health\s+200\s+version 0\.2\.0/);
+    const primary = screen.getAllByRole('link', { name: 'Open the viewer' }).find((a) => a.className.includes('primary'));
+    expect(primary?.getAttribute('href')).toBe('#/analyse');
     expect(screen.getByRole('button', { name: 'Send to /api/analyse' })).toBeTruthy();
   });
 
