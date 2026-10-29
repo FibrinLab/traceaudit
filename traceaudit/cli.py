@@ -589,6 +589,41 @@ def cmd_ledger_validate_probes(a) -> int:
     return 0 if res["passed"] else 1
 
 
+def cmd_ledger_sample(a) -> int:
+    from . import ledger as ledger_mod
+    from .importers import load as load_artefact
+    from .tools import ledger_labels as ll
+    paths = ll.artefact_paths(a.source)
+    if not paths:
+        return _err(f"no artefacts under {a.source}", 2)
+    items: list[dict] = []
+    for path in paths:
+        case, trace = load_artefact(path)
+        items += ll.items_from_audit(ledger_mod.audit(case, trace))
+    raters = [r.strip() for r in a.raters.split(",") if r.strip()]
+    if not raters:
+        return _err("--raters must name at least one rater")
+    sampled = ll.sample(items, a.n, a.seed, a.per_case)
+    written = ll.write_label_set(a.out, sampled, raters, a.seed, {"sources": [str(x) for x in paths], "n_items_available": len(items),
+                                                                  "strata_available": ll.strata_counts(items)})
+    print(f"{len(items)} gradable items in {len(paths)} artefact(s); sampled {len(sampled)} -> {written['grader']} (grades) and "
+          f"{', '.join(str(written[r]) for r in raters)} (blind)")
+    for k, v in ll.strata_counts(sampled).items():
+        print(f"  {k}: {v}")
+    return 0
+
+
+def cmd_ledger_agreement(a) -> int:
+    from .tools import ledger_labels as ll
+    grader, raters, adj = ll.read_label_set(a.labels, a.adjudicated)
+    if not raters:
+        return _err(f"no rater files in {a.labels}")
+    rep = ll.agreement(raters, grader, adj, B=a.B, seed=a.seed)
+    print(json.dumps(rep, indent=1, ensure_ascii=False))
+    print(ll.summary_text(rep), file=sys.stderr)
+    return 0
+
+
 def cmd_manifest(a) -> int:
     from .experiment import manifest_check, read_manifest
     if a.action == "show":
@@ -739,6 +774,14 @@ def build_parser() -> argparse.ArgumentParser:
     lvp = ls.add_parser("validate-probes", help="ledger probe recovery on the synthetic simulator grid")
     lvp.add_argument("--grid", default="quick", choices=["quick", "default"]); lvp.add_argument("--out", default="runs/validate-ledger-probes")
     lvp.add_argument("--seed", type=int, default=20261020); lvp.set_defaults(fn=cmd_ledger_validate_probes)
+    x = ls.add_parser("sample", help="write grader.jsonl and blind per-rater files for a sample of citations (spec 19)")
+    x.add_argument("source", help="artefact file, or a directory searched for *.md"); x.add_argument("--n", type=int, default=300)
+    x.add_argument("--raters", default="R01,R02", help="comma list of rater ids"); x.add_argument("--seed", type=int, default=20261029)
+    x.add_argument("--per-case", type=int, default=None, help="cap per case (default: twice the even share, at least 5)")
+    x.add_argument("-o", "--out", default="labels"); x.set_defaults(fn=cmd_ledger_sample)
+    x = ls.add_parser("agreement", help="inter-rater and grader-vs-consensus agreement over a labels directory (spec 19)")
+    x.add_argument("labels", help="directory with grader.jsonl and <rater>.jsonl"); x.add_argument("--adjudicated", default=None, help="jsonl of {item_id, human_grade}")
+    x.add_argument("--B", type=int, default=2000); x.add_argument("--seed", type=int, default=20261029); x.set_defaults(fn=cmd_ledger_agreement)
     s = sub.add_parser("manifest", help="check or show a run manifest"); s.add_argument("action", choices=["check", "show"]); s.add_argument("run_dir"); s.set_defaults(fn=cmd_manifest)
     s = sub.add_parser("recall", help="extractor recall against clinician labels"); s.add_argument("labelled"); s.add_argument("run_dir"); s.set_defaults(fn=cmd_recall)
     return p

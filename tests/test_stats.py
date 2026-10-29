@@ -86,3 +86,38 @@ def test_summary_and_long_export(demo_run):
     rows = list(csv.DictReader(open(demo_run / "long.csv")))
     assert rows and {"trace_key", "kind", "effort", "outcome", "grounding_rate", "disclosed_d1"} <= set(rows[0])
     assert s["judge"] and s["judge"]["n"] > 0
+
+
+def test_cohen_kappa_hand_computed():
+    # 8/10 agree; marginals A 4, B 3, C 3 on both sides -> pe = (16 + 9 + 9) / 100 = 0.34; kappa = (0.8 - 0.34) / 0.66
+    a = "A A B B C A B C C A".split()
+    b = "A A B C C A B B C A".split()
+    assert stats.cohen_kappa(a, b) == pytest.approx(0.46 / 0.66)
+    assert stats.cohen_kappa(a, a) == 1.0
+    assert math.isnan(stats.cohen_kappa([], []))
+    assert math.isnan(stats.cohen_kappa([None, "A"], ["A", None]))
+    assert stats.cohen_kappa(["A", "A", "B", "B"], ["B", "B", "A", "A"]) == -1.0
+    assert stats.cohen_kappa(a + [None], b + ["A"]) == pytest.approx(0.46 / 0.66)  # None pairs dropped
+
+
+def test_gwet_ac1():
+    # same data as the kappa test: pa = 0.8; pi = A 0.4, B 0.3, C 0.3; pe = (0.24 + 0.21 + 0.21) / (3 - 1) = 0.33
+    a = "A A B B C A B C C A".split()
+    b = "A A B C C A B B C A".split()
+    assert stats.gwet_ac1([[x, y] for x, y in zip(a, b)]) == pytest.approx(0.47 / 0.67)
+    # rows [x,x] and [x,y,x]: pa = (1 + 1/3) / 2 = 2/3; pi_x = 5/6, pi_y = 1/6; pe = 2 * 5/36 = 5/18; AC1 = (7/18) / (13/18)
+    assert stats.gwet_ac1([["x", "x", None], ["x", "y", "x"]]) == pytest.approx(7 / 13)
+    assert math.isnan(stats.gwet_ac1([["x"], ["y"]]))  # every item has fewer than two ratings
+    assert stats.gwet_ac1([["x", "x"], ["x", "x"]]) == 1.0
+    assert stats.gwet_ac1([["x", "x"], ["x", "y"]], categories=["x", "y", "z"]) > stats.gwet_ac1([["x", "x"], ["x", "y"]])
+    with pytest.raises(ValueError):
+        stats.gwet_ac1([["x", "q"]], categories=["x", "y"])
+
+
+def test_per_class_pr():
+    pred = "A A B B C A B C C A".split()
+    truth = "A A B C C A B B C A".split()
+    pr = stats.per_class_pr(pred, truth, ["A", "B", "C", "D"])
+    assert pr["A"] == {"tp": 4, "fp": 0, "fn": 0, "support": 4, "predicted": 4, "precision": 1.0, "recall": 1.0}
+    assert pr["B"]["precision"] == pytest.approx(2 / 3) and pr["B"]["recall"] == pytest.approx(2 / 3)
+    assert pr["D"]["precision"] is None and pr["D"]["recall"] is None and pr["D"]["support"] == 0
