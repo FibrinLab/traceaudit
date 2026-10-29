@@ -6,7 +6,7 @@ const CHECKS: Array<[string, string, string]> = [
   ['segments_cited', 'Every informative segment carries a citation', 'always'],
   ['report_contract', 'Report contract valid, no engine warnings', 'always'],
   ['nothing_dropped', 'Nothing informative deleted by post-processing', 'always'],
-  ['summary_structure', 'Summary has Diagnosis, Summary and Additional comments', 'ENABLE artefacts only'],
+  ['summary_structure', 'Summary has Diagnosis, Summary and Additional comments', 'engine artefacts with that summary contract'],
   ['decision_matches_truth', 'Delivered answer matches ground truth', 'when truth is known'],
   ['decision_survived', 'Raw answer survived post-processing unchanged', 'when both are present'],
   ['thinking_present', 'Thinking returned', 'always'],

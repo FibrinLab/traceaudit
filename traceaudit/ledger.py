@@ -173,7 +173,14 @@ def field_aliases(fieldname: str) -> list[str]:
         gene = f[: -len("_variant")]
         out += [f"{gene} variant", f"{gene} mutation", gene.replace("_", " "), gene.split("_")[0]]
     if "_" in f:
-        out.append(f.replace("_", " "))
+        # every mix of space and hyphen for the underscores: on_call_note -> "on call note", "on-call note", ...
+        parts = f.split("_")
+        if len(parts) <= 4:
+            import itertools
+            for seps in itertools.product((" ", "-"), repeat=len(parts) - 1):
+                out.append("".join(p + sep for p, sep in zip(parts, seps)) + parts[-1])
+        else:
+            out += [f.replace("_", " "), f.replace("_", "-")]
     if low == "smear_cell":
         out += ["smudge cells", "smear cells"]
     if low == "small_size":
@@ -210,8 +217,29 @@ def lexicon_from_case(case: LedgerCase, base: Lexicon | None = None) -> Lexicon:
         aliases = [a for a in field_aliases(f.field) if a.lower() not in {x.lower() for ff in findings for x in ff["aliases"]}]
         if not aliases:
             continue
+        # A polar value word that the cue grammar does not know ("elevated", "high", "normal", "present") becomes whole-phrase
+        # forms, so "error rate elevated" and "database latency normal" read as assertions outside the reference domain.
+        pos_phrases: list[str] = []
+        neg_phrases: list[str] = []
+        polar = any(g.field == f.field and g.polarity in ("pos", "neg") for g in case.facts)
+        if polar:
+            # the fact's own value word plus the generic polar words, so a sentence can also *contradict* the fact
+            # ("CPU elevated" against a fact recorded as Normal)
+            words = {"pos": {"elevated", "high", "increased", "raised", "abnormal", "present", "detected"},
+                     "neg": {"normal", "absent", "not detected", "none", "unremarkable"}}
+            for g in case.facts:
+                if g.field == f.field and g.polarity in ("pos", "neg"):
+                    word = str(g.value).strip().lower()
+                    if word and word not in {"positive", "negative", "+", "-"}:
+                        words[g.polarity].add(word)
+            for pol, target in (("pos", pos_phrases), ("neg", neg_phrases)):
+                for a in aliases:
+                    for word in sorted(words[pol]):
+                        for phrase in (f"{a} {word}", f"{word} {a}", f"{a} is {word}", f"{a} was {word}"):
+                            if phrase.lower() not in {x.lower() for x in target}:
+                                target.append(phrase)
         findings.append({"id": f.field, "display": f.field, "kind": "fact", "modality": f.section, "aliases": aliases,
-                         "pos_phrases": [], "neg_phrases": [], "intensity": False, "numeric_rule": None, "default_polarity": None,
+                         "pos_phrases": pos_phrases, "neg_phrases": neg_phrases, "intensity": False, "numeric_rule": None, "default_polarity": None,
                          "pos_text": None, "neg_text": None, "notes": ""})
     entities = [{"id": c, "display": c, "in_scope": True, "parent": None, "aliases": [c] + _candidate_aliases(c)} for c in case.candidates] or \
                [{"id": "ANSWER", "display": "answer", "in_scope": True, "parent": None, "aliases": ["answer"]}]

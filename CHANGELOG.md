@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The site ships no ENABLE material: the viewer's example artefact is now a software-incident trace
+  (`viewer/public/examples/incident-trace-artefact.md`, generated, twelve facts, cited report) and the site text no
+  longer names the engine. The case lexicon the ledger grader builds now carries hyphenated aliases and polar value
+  phrases ("error rate elevated", "database latency normal", and the opposite polarity so "CPU elevated" can
+  contradict a fact recorded as Normal), so artefacts outside the reference domain grade instead of reading as
+  unverifiable.
 - The engine's trace page copied as plain text imports like its Markdown file (`importers.copied_text`): numbered
   part titles without `#`, tab-separated fact tables, candidate names on their own lines, unfenced report JSON and
   thinking are all read. `POST /api/ledger` and `traceaudit ledger audit` accept it; the viewer's page is now

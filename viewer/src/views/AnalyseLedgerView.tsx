@@ -12,7 +12,7 @@ import {
 } from '../lib/ledger';
 
 /** The service's own fixture: a haematopathology trace with 111 facts, packaged with the viewer. */
-const EXAMPLE_URL = './examples/enable-trace-case_003.md';
+const EXAMPLE_URL = './examples/incident-trace-artefact.md';
 
 type Busy = 'idle' | 'example' | 'audit';
 
@@ -47,7 +47,7 @@ export function AnalyseLedgerView() {
       if (!r.ok) throw new Error(`HTTP ${r.status} loading the example artefact`);
       const md = await r.text();
       setText(md); setResult(null);
-      setNotice('Loaded the example artefact (case_003, a reasoning trace with 111 facts). Press Audit to check it.');
+      setNotice('Loaded the example artefact: a software incident with 12 facts, the engine\'s reasoning and its cited report. Press Audit to check it.');
     } catch (e) { setError(describeError(e)); } finally { setBusy('idle'); }
   };
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
